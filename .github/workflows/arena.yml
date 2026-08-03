@@ -1,0 +1,37 @@
+name: Arena Auto-Run
+
+# Chạy tự động mỗi 6 giờ (0,6,12,18 UTC = 7,13,19,1h giờ VN)
+# 6h/lần = 4 phiên/ngày ≈ 40 lượt gọi AI — vừa khít quota free tier (~50/ngày)
+# Muốn chạy dày hơn: nạp $10 OpenRouter (→1000 lượt/ngày) rồi sửa cron bên dưới.
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch: {}   # cho phép bấm "Run workflow" chạy tay
+
+jobs:
+  run-simulation:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Cài thư viện
+        run: pip install numpy
+
+      - name: Chạy phiên mô phỏng XAU/USD
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python app.py --timeframe 1h --rounds 2 --voters 80 --paths 300
+
+      - name: Commit kết quả (cập nhật dashboard + backtest history)
+        run: |
+          git config user.name "arena-bot"
+          git config user.email "arena-bot@users.noreply.github.com"
+          git add output/
+          git commit -m "auto: cập nhật phiên $(date -u +%Y-%m-%dT%H:%MZ)" || echo "Không có thay đổi — bỏ qua commit"
+          git push
