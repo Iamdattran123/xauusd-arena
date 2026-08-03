@@ -166,56 +166,70 @@
           <div class="hint">Lấy tại <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> — được lưu tự động trong trình duyệt. <b>Để trống = chạy dữ liệu mẫu.</b></div>
         </div>
         <div>
-          <label class="f">⏱️ Khung thời gian</label>
-          <div class="seg" id="tfSeg">
-            <button data-tf="15m">15m</button>
-            <button data-tf="1h" class="active">1H</button>
-            <button data-tf="4h">4H</button>
-            <button data-tf="1D">1D</button>
+          <label class="f">🔑 Gemini API Key (Google AI Studio — FREE)</label>
+          <div style="display:flex; gap:6px;">
+            <input type="password" id="geminiKey" placeholder="AIza..." autocomplete="off" spellcheck="false">
+            <button class="mini-btn" id="btnToggleGem" type="button" title="Hiện/ẩn key">👁️</button>
           </div>
-          <div class="hint" id="tfHint">Dự báo 24 nến ≈ 24 giờ tới</div>
+          <div class="hint">Lấy tại <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> — miễn phí, ~1.000–1.500 lượt/ngày, không cần thẻ.</div>
         </div>
         <div>
-          <label class="f">💬 Số vòng tranh luận</label>
-          <div class="seg" id="roundSeg">
-            <button data-r="1">1 · Nhanh</button>
-            <button data-r="2" class="active">2 · Chuẩn</button>
-            <button data-r="3">3 · Sâu</button>
+          <label class="f">🔑 Groq API Key (FREE)</label>
+          <div style="display:flex; gap:6px;">
+            <input type="password" id="groqKey" placeholder="gsk_..." autocomplete="off" spellcheck="false">
+            <button class="mini-btn" id="btnToggleGroq" type="button" title="Hiện/ẩn key">👁️</button>
           </div>
-          <div class="hint">1: Lập trường · 2: + Phản biện · 3: + Điều chỉnh cuối</div>
+          <div class="hint">Lấy tại <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> — miễn phí, ~1.000 lượt/ngày, phản hồi siêu nhanh.</div>
         </div>
         <div>
-          <label class="f">🗳️ Cử tri / Kịch bản MC</label>
-          <div style="display:flex; gap:8px;">
-            <input type="number" id="voters" value="80" min="10" max="500" step="10" title="Số cử tri mô phỏng">
-            <input type="number" id="paths" value="300" min="50" max="1000" step="50" title="Số kịch bản Monte Carlo">
-          </div>
-          <div class="hint">Cử tri (đám đông) · Kịch bản giá ngẫu nhiên</div>
+          <label class="f">💰 Số dư OpenRouter</label>
+          <input type="text" id="balanceBox" placeholder="Chưa kiểm tra" readonly style="background:#0d1728; color:#94a3b8;">
+          <div class="hint">Tự kiểm tra mỗi phiên. Nạp $5 dùng model trả phí rẻ: deepseek-v4-flash ($0.09/M) · qwen3-32b ($0.08/M) → dùng rất lâu.</div>
         </div>
       </div>
 
       <div class="grid g4" style="margin-bottom:14px;">
         <div>
           <label class="f">🤖 Macro (Vĩ mô)</label>
+          <select id="provMacro" class="provider-sel">
+            <option value="openrouter">OpenRouter (trả phí/free)</option>
+            <option value="gemini">Gemini — AI Studio (FREE)</option>
+            <option value="groq">Groq (FREE)</option>
+          </select>
           <select id="modelMacro" class="model-sel"></select>
-          <input type="text" id="modelMacroCustom" class="model-custom" placeholder="VD: google/gemini-2.5-flash" spellcheck="false" style="display:none;">
+          <input type="text" id="modelMacroCustom" class="model-custom" placeholder="VD: deepseek/deepseek-v4-flash-0731" spellcheck="false" style="display:none;">
         </div>
         <div>
           <label class="f">📐 Technical (Kỹ thuật)</label>
+          <select id="provTech" class="provider-sel">
+            <option value="openrouter">OpenRouter (trả phí/free)</option>
+            <option value="gemini">Gemini — AI Studio (FREE)</option>
+            <option value="groq">Groq (FREE)</option>
+          </select>
           <select id="modelTech" class="model-sel"></select>
-          <input type="text" id="modelTechCustom" class="model-custom" placeholder="VD: google/gemini-2.5-flash" spellcheck="false" style="display:none;">
+          <input type="text" id="modelTechCustom" class="model-custom" placeholder="VD: deepseek/deepseek-v4-flash-0731" spellcheck="false" style="display:none;">
         </div>
         <div>
           <label class="f">🐋 Whale (Quỹ &amp; NHTW)</label>
+          <select id="provWhale" class="provider-sel">
+            <option value="openrouter">OpenRouter (trả phí/free)</option>
+            <option value="gemini">Gemini — AI Studio (FREE)</option>
+            <option value="groq">Groq (FREE)</option>
+          </select>
           <select id="modelWhale" class="model-sel"></select>
-          <input type="text" id="modelWhaleCustom" class="model-custom" placeholder="VD: google/gemini-2.5-flash" spellcheck="false" style="display:none;">
+          <input type="text" id="modelWhaleCustom" class="model-custom" placeholder="VD: qwen/qwen3-32b" spellcheck="false" style="display:none;">
         </div>
         <div>
           <label class="f">👥 Retail (Đám đông nhỏ lẻ)</label>
+          <select id="provRetail" class="provider-sel">
+            <option value="openrouter">OpenRouter (trả phí/free)</option>
+            <option value="gemini">Gemini — AI Studio (FREE)</option>
+            <option value="groq">Groq (FREE)</option>
+          </select>
           <select id="modelRetail" class="model-sel"></select>
-          <input type="text" id="modelRetailCustom" class="model-custom" placeholder="VD: google/gemini-2.5-flash" spellcheck="false" style="display:none;">
+          <input type="text" id="modelRetailCustom" class="model-custom" placeholder="VD: qwen/qwen3-32b" spellcheck="false" style="display:none;">
         </div>
-        <div class="hint" style="grid-column:1/-1;">Mỗi chuyên gia chọn 1 model riêng: để <b>✨ Mặc định</b> (free) hoặc chọn model trả phí rẻ như <b>google/gemini-2.5-flash</b> cho phản hồi nhanh &amp; ổn định. Chọn <b>✏️ Nhập model khác…</b> để gõ tay model ID bất kỳ.</div>
+        <div class="hint" style="grid-column:1/-1;">💡 <b>Bộ khuyên dùng (theo yêu cầu của bạn):</b> Macro = Gemini free · Technical = Gemini free · Whale = DeepSeek V4 Flash (OpenRouter trả phí) · Retail = Qwen3-32b (OpenRouter trả phí). 2 model trả phí này chỉ ~$0.0017/phiên → $5 dùng ~3.000 phiên. Đổi nhà cung cấp = đổi dropdown đầu tiên của từng chuyên gia.</div>
       </div>
 
       <div class="grid" style="grid-template-columns:1fr 260px; gap:14px; align-items:end;">
@@ -444,6 +458,51 @@ const FREE_FALLBACK_CHAIN = [
   'nvidia/nemotron-3-super-120b-a12b:free',
   'openrouter/free',
 ];
+
+/* =====================================================================
+   🌐 NHÀ CUNG CẤP — OpenRouter (trả phí/free) + Gemini AI Studio (free) + Groq (free)
+   Tất cả đều dùng chuẩn API OpenAI-compatible (chat/completions).
+   ===================================================================== */
+const PROVIDERS = {
+  openrouter:{
+    label:'OpenRouter',
+    url:'https://openrouter.ai/api/v1/chat/completions',
+    key:()=>$('apiKey').value.trim(),
+    models:[...FREE_MODELS, ...PAID_MODELS],
+    free:[...FREE_FALLBACK_CHAIN],
+  },
+  gemini:{
+    label:'Gemini (AI Studio)',
+    url:'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+    key:()=>$('geminiKey').value.trim(),
+    models:['gemini-2.5-flash','gemini-2.5-flash-lite','gemini-2.5-pro'],
+    free:['gemini-2.5-flash','gemini-2.5-flash-lite'],
+  },
+  groq:{
+    label:'Groq',
+    url:'https://api.groq.com/openai/v1/chat/completions',
+    key:()=>$('groqKey').value.trim(),
+    models:['llama-3.3-70b-versatile','llama-3.1-8b-instant','qwen/qwen3-32b','qwen/qwen3-8b','deepseek-r1-distill-llama-70b','llama-3.3-70b-specdec'],
+    free:['llama-3.3-70b-versatile','llama-3.1-8b-instant','qwen/qwen3-32b','qwen/qwen3-8b'],
+  },
+};
+/* Giá $/1M token (vào, ra) cho model trả phí — để tính chi phí mỗi phiên */
+const PRICE_MAP = {
+  'deepseek/deepseek-v4-flash-0731':[0.09,0.18],
+  'deepseek/deepseek-v4-flash':[0.14,0.28],
+  'qwen/qwen3-32b':[0.08,0.28],
+  'qwen/qwen3-8b':[0.117,0.455],
+  'mistralai/mistral-small-3.2-24b-instruct':[0.075,0.2],
+  'openai/gpt-4o-mini':[0.15,0.6],
+  'openai/gpt-4.1-mini':[0.4,1.6],
+  'meta-llama/llama-3.3-70b-instruct':[0.13,0.4],
+  'google/gemini-2.5-flash':[0.3,2.5],
+  'google/gemini-2.5-flash-lite':[0.1,0.4],
+  'deepseek/deepseek-chat':[0.257,1.029],
+  'deepseek/deepseek-chat-v3-0324':[0.27,1.12],
+};
+const AID = {Macro_Analyst:'Macro', Technical_Analyst:'Tech', Institutional_Whale:'Whale', Retail_Crowd:'Retail'};
+const getAgentProvider = key => $( 'prov'+AID[key]).value || 'openrouter';
 const delay = ms => new Promise(r=>setTimeout(r, ms));
 
 /* =====================================================================
@@ -477,6 +536,7 @@ function recordSession(){
     p90: S.mc ? S.mc.p90 : null,
     probUp: S.mc ? S.mc.probUp : null,
     agents: S.finals.reduce((o,f)=>{ o[f.key]=f.stance; return o; }, {}),
+    cost: S.sessionCost,
     evaluated: false,
   });
   saveHistory(h);
@@ -657,7 +717,7 @@ const S = {
   price:null, priceSrc:'', klines:[], klineSrc:'',
   ind:{}, vol:0, momentum:0,
   debate:null, consensus:0, verdict:'', target:null,
-  crowd:null, mc:null, running:false, autoTimer:null, autoLeft:0,
+  crowd:null, mc:null, running:false, autoTimer:null, autoLeft:0, sessionCost:0,
 };
 
 /* ---------------- Utils ---------------- */
@@ -1107,20 +1167,22 @@ Trả về DUY NHẤT một JSON hợp lệ:
 {"sentiment_score": <số -1.0 đến +1.0>, "confidence": <số 0.0-1.0>, "reasoning": "<lập trường cuối cùng, 2-3 câu, tiếng Việt>"}`;
 }
 
-async function callLLM(agent, round, roundData, apiKey, modelOverride){
-  const model = modelOverride || getModels()[agent.key];
+async function callLLM(agent, round, roundData, entry){
+  const {provider, model} = entry;
+  const prov = PROVIDERS[provider];
+  const key = prov.key();
+  if(!key) throw new Error('Thiếu API key cho ' + prov.label);
   const ctl = new AbortController();
   const t = setTimeout(()=>ctl.abort(), 90000);
   try{
-    const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const r = await fetch(prov.url, {
       method:'POST',
       headers:{
         'Content-Type':'application/json',
-        'Authorization':'Bearer '+apiKey,
-        'HTTP-Referer':'https://localhost',
-        'X-Title':'XAUUSD AI Debate Arena',
+        'Authorization':'Bearer '+key,
+        ...(provider==='openrouter' ? {'HTTP-Referer':'https://localhost','X-Title':'XAUUSD AI Debate Arena'} : {}),
       },
-      body: JSON.stringify({model, messages:[{role:'user', content:buildRoundPrompt(agent, round, roundData)}], temperature:0.4, max_tokens:600}),
+      body: JSON.stringify({model, messages:[{role:'user', content:buildRoundPrompt(agent, round, roundData)}], temperature:0.4, max_tokens:700}),
       signal: ctl.signal,
     });
     const remaining = r.headers.get('x-ratelimit-remaining');
@@ -1137,7 +1199,12 @@ async function callLLM(agent, round, roundData, apiKey, modelOverride){
     // Model suy luận (DeepSeek R1, thinking...) thường trả lời nằm trong trường reasoning, content rỗng
     if(!content) content = msg.reasoning || msg.reasoning_content || '';
     if(!content) throw new Error('API trả về nội dung rỗng');
-    return {content, model, remaining, limit};
+    const usage = d?.usage || {};
+    return {
+      content, model, provider, remaining, limit,
+      promptTokens: usage.prompt_tokens || 0,
+      completionTokens: usage.completion_tokens || 0,
+    };
   } finally { clearTimeout(t); }
 }
 
@@ -1181,19 +1248,27 @@ async function runDebate(apiKey, onStatus){
 
   for(let r=1; r<=rounds; r++){
     onStatus(`Vòng ${r}/${rounds} — ${r===1?'Khởi tạo lập trường':r===2?'Phản biện chéo':'Điều chỉnh cuối'}`, 'Đang hỏi ' + AGENTS.length + ' chuyên gia AI...');
-    /* Chạy tuần tự nếu có model free (giảm bùng nổ 429) — song song nếu toàn model trả phí */
+    /* Chạy tuần tự nếu có nguồn free (giảm bùng nổ 429) — song song nếu toàn trả phí */
+    const anyKey = getApiKey() || $('geminiKey').value.trim() || $('groqKey').value.trim();
     const chosen = getModels();
-    const anyFree = Object.values(chosen).some(m=>m.includes(':free') || m==='openrouter/free');
+    const anyFree = AGENTS.some(a=>getAgentProvider(a.key)!=='openrouter')
+      || Object.values(chosen).some(m=>m.includes(':free') || m==='openrouter/free');
     const runAgentTask = async (agent) => {
       onStatus(null, null, agent.key, 'run');
-      if(!apiKey){
+      if(!anyKey){
         await delay(300);
         const m = mockAgent(agent, r, prev);
         return {key:agent.key, title:agent.title, icon:agent.icon, stance:m.stance, conf:m.conf, reason:m.reason, critique:m.critique, model:'', fallback:false, mock:true};
       }
-      const chosenModel = getModels()[agent.key];
-      /* Chuỗi model: chọn của bạn → nếu 429/lỗi thì lần lượt thử model free khác */
-      const chain = [...new Set([chosenModel, ...FREE_FALLBACK_CHAIN])];
+      const prov = getAgentProvider(agent.key);
+      const selId = 'model'+AID[agent.key], cusId = 'model'+AID[agent.key]+'Custom';
+      const chosenModel = modelOf(selId, cusId) || (PROVIDERS[prov].models[0] || '');
+      /* Chuỗi gọi: nhà cung cấp+model bạn chọn → model free cùng nhà cung cấp → OpenRouter free (nếu có key) */
+      const chain = [];
+      const addChain = (p,m)=>{ if(m && !chain.some(x=>x.provider===p && x.model===m)) chain.push({provider:p, model:m}); };
+      addChain(prov, chosenModel);
+      (PROVIDERS[prov].free||[]).forEach(m=>{ if(m!==chosenModel) addChain(prov, m); });
+      if(prov!=='openrouter' && getApiKey()) FREE_FALLBACK_CHAIN.forEach(m=>addChain('openrouter', m));
       /* Thử tối đa 2 lần: lần 2 khi model trả sai JSON HOẶC trả số mà thiếu lý do */
       const parseEntry = (j, round)=>{
         if(round===1 || round===3){
@@ -1210,12 +1285,14 @@ async function runDebate(apiKey, onStatus){
         };
       };
       try{
-        let entry = null, model = '', lastErr = '';
-        for(const m of chain){
+        let entry = null, model = '', lastErr = '', lastUsage = null;
+        for(let ci=0; ci<chain.length && !entry; ci++){
+          const ce = chain[ci];
           for(let attempt=1; attempt<=2 && !entry; attempt++){
             try{
-              const res = await callLLM(agent, r, prev, apiKey, m);
+              const res = await callLLM(agent, r, prev, ce);
               model = res.model;
+              lastUsage = res;
               // hiển thị quota còn lại nếu OpenRouter trả header
               if(res.remaining != null && res.limit != null){
                 log(`📊 ${agent.title} (${model}): còn ${res.remaining}/${res.limit} lượt gọi hôm nay.`, 'info');
@@ -1247,20 +1324,25 @@ async function runDebate(apiKey, onStatus){
               const is429 = e.status === 429 || /429/.test(lastErr);
               if(is429){
                 const wait = Math.min(e.retryAfter || 0, 30);
-                log(`⏳ ${agent.title} (${m}): bị giới hạn (429) — chờ ${wait || 3}s rồi ${chain.length>1 ? 'thử model khác.' : 'thử lại.'}`, 'warn');
+                log(`⏳ ${agent.title} (${ce.model} · ${PROVIDERS[ce.provider].label}): bị giới hạn (429) — chờ ${wait || 3}s rồi ${chain.length>1 ? 'thử nguồn khác.' : 'thử lại.'}`, 'warn');
                 await delay((wait || 3) * 1000 + Math.random() * 800);
-                if(wait >= 30) break; // chờ quá lâu → chuyển model dự phòng
+                if(wait >= 30) break; // chờ quá lâu → chuyển nguồn dự phòng
                 continue;
               }
-              if(attempt===1) log(`🔁 ${agent.title} (${m}) lỗi gọi: ${lastErr} — thử lại lần 2...`, 'warn');
+              if(attempt===1) log(`🔁 ${agent.title} (${ce.model} · ${PROVIDERS[ce.provider].label}) lỗi gọi: ${lastErr} — thử lại lần 2...`, 'warn');
             }
           }
           if(entry) break;
-          if(chain.indexOf(m) < chain.length - 1){
-            log(`🔄 ${agent.title}: đổi sang model dự phòng "${chain[chain.indexOf(m)+1]}"...`, 'warn');
+          if(ci < chain.length - 1){
+            log(`🔄 ${agent.title}: đổi sang dự phòng "${chain[ci+1].model}" (${PROVIDERS[chain[ci+1].provider].label})...`, 'warn');
           }
         }
         if(!entry) throw new Error(lastErr || 'lỗi không xác định');
+        // 💵 Tính chi phí phiên (chỉ model trả phí có trong bảng giá)
+        if(lastUsage && PRICE_MAP[model]){
+          const [pi, po] = PRICE_MAP[model];
+          S.sessionCost += (lastUsage.promptTokens*pi + lastUsage.completionTokens*po) / 1e6;
+        }
         // hiển thị: nếu vòng 2 còn thiếu lý do (hiếm) → dùng critique hoặc placeholder
         if(r===2 && (!entry.reason || entry.reason.length < 15)){
           entry.reason = (entry.critique && entry.critique.trim()) ? entry.critique + ' (đã cập nhật tâm lý sau phản biện)' : '(đã cập nhật sau phản biện)';
@@ -1270,13 +1352,13 @@ async function runDebate(apiKey, onStatus){
           log(`⚠️ ${agent.title} (${model}) đưa ra mức ${entry.stance>=0?'+':''}${entry.stance.toFixed(2)}/tự tin ${(entry.conf*100).toFixed(0)}% — điểm cực đoan, hãy đọc kỹ lý do của nó.`, 'warn');
         }
         onStatus(null, null, agent.key, 'done');
-        return {key:agent.key, title:agent.title, icon:agent.icon, stance:entry.stance, conf:entry.conf, reason:entry.reason, critique:entry.critique, model, fallback:false, mock:false};
+        return {key:agent.key, title:agent.title, icon:agent.icon, stance:entry.stance, conf:entry.conf, reason:entry.reason, critique:entry.critique, model, provider:chain.find(x=>x.model===model)?.provider || prov, fallback:false, mock:false};
       }catch(e){
         const errMsg = String(e?.message || e).slice(0, 120);
-        log(`⚠️ ${agent.title} (${chosenModel}) lỗi: ${errMsg} — dùng dữ liệu dự phòng.`, 'warn');
+        log(`⚠️ ${agent.title} (${chosenModel} · ${PROVIDERS[prov].label}) lỗi: ${errMsg} — dùng dữ liệu dự phòng.`, 'warn');
         const m = mockAgent(agent, r, prev);
         onStatus(null, null, agent.key, 'fail');
-        return {key:agent.key, title:agent.title, icon:agent.icon, stance:m.stance, conf:m.conf, reason:m.reason, critique:m.critique, model:chosenModel, fallback:true, mock:true, err:errMsg};
+        return {key:agent.key, title:agent.title, icon:agent.icon, stance:m.stance, conf:m.conf, reason:m.reason, critique:m.critique, model:chosenModel, provider:prov, fallback:true, mock:true, err:errMsg};
       }
     };
     const results = anyFree
@@ -1727,6 +1809,7 @@ function renderAll(){
 async function run(manual=true){
   if(S.running) return;
   S.running = true;
+  S.sessionCost = 0; // reset chi phí phiên
   S.voters = clamp(parseInt($('voters').value)||80, 10, 500);
   S.paths = clamp(parseInt($('paths').value)||300, 50, 1000);
   $('btnRun').disabled = true;
@@ -1777,39 +1860,45 @@ async function run(manual=true){
     }
 
     const apiKey = getApiKey();
-    $('badge-mode').textContent = apiKey ? '🔌 LIVE — OpenRouter' : '🧪 CHẾ ĐỘ MẪU (chưa có API Key)';
-    $('badge-mode').className = 'badge ' + (apiKey?'live':'mock');
+    const gemKey = $('geminiKey').value.trim();
+    const groqKey = $('groqKey').value.trim();
+    const anyKey = apiKey || gemKey || groqKey;
+    $('badge-mode').textContent = anyKey ? '🔌 LIVE — ' + [apiKey&&'OpenRouter', gemKey&&'Gemini', groqKey&&'Groq'].filter(Boolean).join(' + ') : '🧪 CHẾ ĐỘ MẪU (chưa có API Key)';
+    $('badge-mode').className = 'badge ' + (anyKey?'live':'mock');
 
-    // kiểm tra model gõ tay có tồn tại trên OpenRouter không
+    // kiểm tra model gõ tay có tồn tại trên OpenRouter không (chỉ khi agent dùng OpenRouter)
     const allModels = window.__OPENROUTER_MODELS || [];
     if(apiKey && allModels.length){
-      const models = getModels();
       for(const a of AGENTS){
-        const m = models[a.key];
+        if(getAgentProvider(a.key)!=='openrouter') continue;
+        const m = modelOf('model'+AID[a.key], 'model'+AID[a.key]+'Custom');
         if(m && !allModels.includes(m)){
           log(`⚠️ Model "${m}" (${a.title}) KHÔNG có trong danh sách OpenRouter hiện tại — kiểm tra lại ID, dễ bị lỗi "rỗng" hoặc 404.`, 'warn');
         }
       }
     }
-    // kiểm tra tài khoản & hạn mức
-    if(apiKey){
+    // kiểm tra tài khoản OpenRouter + điền số dư
+    if(apiKey && AGENTS.some(a=>getAgentProvider(a.key)==='openrouter')){
       try{
         const d = await fetchTimeout('https://openrouter.ai/api/v1/auth/key', 8000, {headers:{'Authorization':'Bearer '+apiKey}});
         const k = d?.data;
         if(k){
           const used = (k.usage||0);
           const lim = (k.limit!=null && k.limit>0) ? '$'+k.limit.toFixed(2) : 'không giới hạn';
+          $('balanceBox').value = `${k.is_free_tier ? 'FREE TIER' : 'Credits'}: đã dùng $${used.toFixed(2)} / ${lim}`;
           log(`👤 Tài khoản OpenRouter: ${k.is_free_tier ? 'FREE TIER' : 'Có credits'} · đã dùng $${used.toFixed(2)} / ${lim}`, 'info');
           if(k.is_free_tier) log('⚠️ Free tier: model :free giới hạn ~50 lượt/ngày và 20 lượt/phút. Nạp $10 MỘT LẦN → nâng vĩnh viễn lên 1.000 lượt/ngày cho model free.', 'warn');
         }
       }catch(e){ /* bỏ qua */ }
-      const models = getModels();
-      if(Object.values(models).some(m=>m.includes(':free') || m==='openrouter/free')){
-        log('🧘 Có model free → tranh luận chạy TUẦN TỰ (giãn cách 1s/agent) để tránh vượt giới hạn 20 lượt/phút. Model trả phí sẽ chạy song song nhanh hơn.', 'info');
-      }
+    }
+    if(anyKey && AGENTS.some(a=>getAgentProvider(a.key)!=='openrouter')){
+      log('🌐 Đa nhà cung cấp: ' + AGENTS.map(a=>`${a.title}=${PROVIDERS[getAgentProvider(a.key)].label}`).join(' · '), 'info');
+    }
+    if(anyKey && (AGENTS.some(a=>getAgentProvider(a.key)!=='openrouter') || Object.values(getModels()).some(m=>m.includes(':free')||m==='openrouter/free'))){
+      log('🧘 Có nguồn free → tranh luận chạy TUẦN TỰ (giãn cách 1s/agent) để tránh vượt giới hạn lượt/phút. Toàn trả phí sẽ chạy song song nhanh hơn.', 'info');
     }
 
-    setStep('Vòng tranh luận AI đang diễn ra...', apiKey?'Gọi các model qua OpenRouter (model miễn phí có thể chậm 20-60s — xin chờ):':'Không có API Key — chạy dữ liệu mẫu để xem trước giao diện.');
+    setStep('Vòng tranh luận AI đang diễn ra...', anyKey?'Gọi các chuyên gia AI (model free có thể chậm 20-60s — xin chờ):':'Không có API Key — chạy dữ liệu mẫu để xem trước giao diện.');
     const t0 = Date.now();
     S.debate = await runDebate(apiKey, (step, sub, key, st)=>{ if(step) setStep(step, sub); if(key) setChip(key, st); });
     S.finals = S.debate.finals;
@@ -1830,6 +1919,9 @@ async function run(manual=true){
 
     updateElo(S.crowd.votes);
     recordSession(); // ghi phiên vào lịch sử để sau này tự rút kinh nghiệm
+    if(S.sessionCost > 0){
+      log(`💵 Chi phí phiên: ~$${S.sessionCost.toFixed(4)} (chỉ model trả phí OpenRouter — Gemini/Groq miễn phí)`, 'info');
+    }
     // 📈 Tự chạy backtest sau mỗi phiên để theo dõi sự trưởng thành
     const btRes = runBacktest();
     if(btRes){
@@ -1903,23 +1995,39 @@ function initUI(){
   // nạp cấu hình đã lưu
   const saved = store.get('arena_cfg_v2', {});
   if(saved.apiKey) $('apiKey').value = saved.apiKey;
+  if(saved.geminiKey) $('geminiKey').value = saved.geminiKey;
+  if(saved.groqKey) $('groqKey').value = saved.groqKey;
   if(saved.ctx) $('ctxInput').value = saved.ctx;
   if(saved.autoNews) $('autoNews').checked = true;
   if(saved.tf && TF[saved.tf]) selectTF(saved.tf);
   if(saved.rounds) selectRounds(saved.rounds);
   if(saved.voters) $('voters').value = saved.voters;
   if(saved.paths) $('paths').value = saved.paths;
-  // model pickers — chọn model tay cho từng chuyên gia
-  buildModelPicker('modelMacro','modelMacroCustom', AGENTS[0].defaultModel, saved.models?.Macro_Analyst);
-  buildModelPicker('modelTech','modelTechCustom', AGENTS[1].defaultModel, saved.models?.Technical_Analyst);
-  buildModelPicker('modelWhale','modelWhaleCustom', AGENTS[2].defaultModel, saved.models?.Institutional_Whale);
-  buildModelPicker('modelRetail','modelRetailCustom', AGENTS[3].defaultModel, saved.models?.Retail_Crowd);
-  loadAllModels(); // tải thêm toàn bộ model từ OpenRouter (nếu mạng OK)
+  // nhà cung cấp + model pickers — chọn nguồn & model tay cho từng chuyên gia
+  const provs = saved.providers || {};
+  AGENTS.forEach((a, i)=>{
+    const pid = 'prov'+AID[a.key], sid = 'model'+AID[a.key], cid = 'model'+AID[a.key]+'Custom';
+    $(pid).value = provs[a.key] || 'openrouter';
+    buildModelPicker(sid, cid, [AGENTS[0].defaultModel, AGENTS[1].defaultModel, AGENTS[2].defaultModel, AGENTS[3].defaultModel][i], saved.models?.[a.key], $(pid).value);
+    $(pid).addEventListener('change', ()=>{
+      buildModelPicker(sid, cid, [AGENTS[0].defaultModel, AGENTS[1].defaultModel, AGENTS[2].defaultModel, AGENTS[3].defaultModel][i], null, $(pid).value);
+      saveCfg();
+    });
+  });
+  loadAllModels(); // tải thêm toàn bộ model OpenRouter (nếu mạng OK)
 
   // events
   $('btnRun').addEventListener('click', ()=>{ saveCfg(); run(true); });
   $('btnToggleKey').addEventListener('click', ()=>{
     const i = $('apiKey');
+    i.type = i.type==='password' ? 'text':'password';
+  });
+  $('btnToggleGem').addEventListener('click', ()=>{
+    const i = $('geminiKey');
+    i.type = i.type==='password' ? 'text':'password';
+  });
+  $('btnToggleGroq').addEventListener('click', ()=>{
+    const i = $('groqKey');
     i.type = i.type==='password' ? 'text':'password';
   });
   $('btnTest').addEventListener('click', async ()=>{
@@ -1972,8 +2080,10 @@ function initUI(){
   $('paths').addEventListener('change', ()=>{ S.paths = clamp(parseInt($('paths').value)||300, 50, 1000); $('paths').value = S.paths; });
   $('autoSel').addEventListener('change', scheduleAuto);
   ['modelMacro','modelTech','modelWhale','modelRetail',
-   'modelMacroCustom','modelTechCustom','modelWhaleCustom','modelRetailCustom'].forEach(id=>{
+   'modelMacroCustom','modelTechCustom','modelWhaleCustom','modelRetailCustom',
+   'geminiKey','groqKey'].forEach(id=>{
     document.getElementById(id).addEventListener('change', saveCfg);
+    if(id==='geminiKey' || id==='groqKey') document.getElementById(id).addEventListener('input', saveCfg);
   });
 
   // tabs
@@ -2011,37 +2121,48 @@ function selectRounds(r){
 function saveCfg(){
   store.set('arena_cfg_v2', {
     apiKey: getApiKey(),
+    geminiKey: $('geminiKey').value.trim(),
+    groqKey: $('groqKey').value.trim(),
     tf: S.tf, rounds: S.rounds,
     voters: parseInt($('voters').value)||80,
     paths: parseInt($('paths').value)||300,
     models: getModels(),
+    providers: Object.fromEntries(AGENTS.map(a=>[a.key, getAgentProvider(a.key)])),
     ctx: $('ctxInput').value,
     autoNews: !!document.getElementById('autoNews')?.checked,
   });
 }
 
-/* ---- Model picker: dropdown + nhập tay ---- */
-function buildModelPicker(selId, customId, defModel, saved){
+/* ---- Model picker: dropdown theo nhà cung cấp + nhập tay ---- */
+function buildModelPicker(selId, customId, defModel, saved, provider){
   const sel = $(selId), cust = $(customId);
-  const oDef = document.createElement('option');
-  oDef.value = ''; oDef.textContent = '✨ Mặc định: ' + defModel;
-  sel.appendChild(oDef);
-  [['🧪 Miễn phí (free)', FREE_MODELS], ['💳 Trả phí (ổn định, rẻ)', PAID_MODELS]].forEach(([g, list])=>{
-    const og = document.createElement('optgroup'); og.label = g;
-    list.forEach(m=>{ const o = document.createElement('option'); o.value = m; o.textContent = m; og.appendChild(o); });
-    sel.appendChild(og);
+  sel.innerHTML = '';
+  const provModels = PROVIDERS[provider]?.models || [];
+  if(defModel && provModels.includes(defModel)){
+    const oDef = document.createElement('option');
+    oDef.value = defModel; oDef.textContent = '✨ Gợi ý: ' + defModel;
+    sel.appendChild(oDef);
+  }
+  const og = document.createElement('optgroup');
+  og.label = PROVIDERS[provider]?.label + ' — chọn model';
+  provModels.forEach(m=>{
+    if(m === defModel) return;
+    const o = document.createElement('option'); o.value = m; o.textContent = m; og.appendChild(o);
   });
+  sel.appendChild(og);
   const oCus = document.createElement('option');
   oCus.value = '__custom__'; oCus.textContent = '✏️ Nhập model khác…';
   sel.appendChild(oCus);
   const apply = ()=>{ cust.style.display = (sel.value === '__custom__') ? 'block' : 'none'; };
   sel.addEventListener('change', apply);
-  if(saved){
-    if(FREE_MODELS.includes(saved) || PAID_MODELS.includes(saved)){
-      sel.value = saved;
-    }else{
-      sel.value = '__custom__'; cust.value = saved;
-    }
+  if(saved && provModels.includes(saved)){
+    sel.value = saved;
+  }else if(saved && (FREE_MODELS.includes(saved) || PAID_MODELS.includes(saved))){
+    sel.value = '__custom__'; cust.value = saved;
+  }else if(saved){
+    sel.value = '__custom__'; cust.value = saved;
+  }else if(defModel && provModels.includes(defModel)){
+    sel.value = defModel;
   }
   apply();
 }
@@ -2054,8 +2175,9 @@ async function loadAllModels(){
     window.__OPENROUTER_MODELS = (d.data||[]).map(m=>m.id).filter(Boolean); // lưu cả free để kiểm tra
     const known = new Set([...FREE_MODELS, ...PAID_MODELS]);
     const others = ids.filter(x=>!known.has(x));
-    ['modelMacro','modelTech','modelWhale','modelRetail'].forEach(id=>{
-      const sel = $(id);
+    AGENTS.forEach(a=>{
+      const sel = $('model'+AID[a.key]);
+      if(getAgentProvider(a.key) !== 'openrouter') return; // chỉ gắn cho agent dùng OpenRouter
       const og = document.createElement('optgroup'); og.label = '🌐 Toàn bộ model OpenRouter (' + others.length + ')';
       others.forEach(m=>{ const o = document.createElement('option'); o.value = m; o.textContent = m; og.appendChild(o); });
       sel.appendChild(og);
@@ -2068,5 +2190,5 @@ async function loadAllModels(){
 
 document.addEventListener('DOMContentLoaded', initUI);
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a255cba038b1ce02',t:'MTc4NTc2NTA2OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
