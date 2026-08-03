@@ -4,6 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>XAU/USD AI Debate Arena — Mô phỏng đa tác nhân &amp; Đám đông</title>
+<script>
+/* Bắt lỗi JS sớm nhất có thể → hiện banner đỏ để dễ chẩn đoán (thay vì app chết âm thầm) */
+window.addEventListener('error', function(e){
+  try{
+    var el = document.getElementById('jsErrorBanner');
+    if(el){ el.style.display = 'block';
+      el.textContent = '⚠️ Lỗi JavaScript: ' + (e.message || 'không xác định') + ' — thử mở bằng Chrome/Edge MỚI NHẤT, hoặc tải lại file từ workspace.';
+    }
+  }catch(_){}
+});
+window.addEventListener('unhandledrejection', function(e){
+  try{
+    var el = document.getElementById('jsErrorBanner');
+    if(el){ el.style.display = 'block';
+      el.textContent = '⚠️ Lỗi bất đồng bộ: ' + ((e.reason && e.reason.message) || e.reason || 'không xác định');
+    }
+  }catch(_){}
+});
+</script>
 <style>
   :root{
     --bg:#0b1220; --bg2:#0f172a; --panel:#111c30; --panel2:#16223a; --border:#1e2c47;
@@ -136,6 +155,7 @@
 </style>
 </head>
 <body>
+<div id="jsErrorBanner" style="display:none; background:#7f1d1d; color:#fecaca; border:1px solid #f87171; border-radius:10px; padding:12px 16px; margin:12px auto 0; max-width:1280px; font-weight:600; font-size:13px;"></div>
 <div class="wrap">
 
   <!-- ================= HEADER ================= -->
@@ -190,13 +210,52 @@
 
       <div class="grid g4" style="margin-bottom:14px;">
         <div>
+          <label class="f">⏱️ Khung thời gian</label>
+          <div class="seg" id="tfSeg">
+            <button data-tf="15m">15m</button>
+            <button data-tf="1h" class="active">1H</button>
+            <button data-tf="4h">4H</button>
+            <button data-tf="1D">1D</button>
+          </div>
+          <div class="hint" id="tfHint">Dự báo 24 nến ≈ 24 giờ tới</div>
+        </div>
+        <div>
+          <label class="f">💬 Số vòng tranh luận</label>
+          <div class="seg" id="roundSeg">
+            <button data-r="1">1 · Nhanh</button>
+            <button data-r="2" class="active">2 · Chuẩn</button>
+            <button data-r="3">3 · Sâu</button>
+          </div>
+          <div class="hint">1: Lập trường · 2: + Phản biện · 3: + Điều chỉnh cuối</div>
+        </div>
+        <div>
+          <label class="f">🗳️ Số cử tri (đám đông)</label>
+          <input type="number" id="voters" value="80" min="10" max="500" step="10">
+        </div>
+        <div>
+          <label class="f">🎲 Số kịch bản Monte Carlo</label>
+          <input type="number" id="paths" value="300" min="50" max="1000" step="50">
+        </div>
+      </div>
+
+      <div class="grid g4" style="margin-bottom:14px;">
+        <div>
           <label class="f">🤖 Macro (Vĩ mô)</label>
           <select id="provMacro" class="provider-sel">
             <option value="openrouter">OpenRouter (trả phí/free)</option>
             <option value="gemini">Gemini — AI Studio (FREE)</option>
             <option value="groq">Groq (FREE)</option>
           </select>
-          <select id="modelMacro" class="model-sel"></select>
+          <select id="modelMacro" class="model-sel">
+            <option value="google/gemini-2.5-flash">google/gemini-2.5-flash</option>
+            <option value="deepseek/deepseek-v4-flash-0731">deepseek/deepseek-v4-flash-0731</option>
+            <option value="qwen/qwen3-32b">qwen/qwen3-32b</option>
+            <option value="openai/gpt-4o-mini">openai/gpt-4o-mini</option>
+            <option value="mistralai/mistral-small-3.2-24b-instruct">mistralai/mistral-small-3.2-24b-instruct</option>
+            <option value="google/gemma-4-31b-it:free">google/gemma-4-31b-it:free</option>
+            <option value="openai/gpt-oss-20b:free">openai/gpt-oss-20b:free</option>
+            <option value="openrouter/free">openrouter/free</option>
+          </select>
           <input type="text" id="modelMacroCustom" class="model-custom" placeholder="VD: deepseek/deepseek-v4-flash-0731" spellcheck="false" style="display:none;">
         </div>
         <div>
@@ -206,7 +265,16 @@
             <option value="gemini">Gemini — AI Studio (FREE)</option>
             <option value="groq">Groq (FREE)</option>
           </select>
-          <select id="modelTech" class="model-sel"></select>
+          <select id="modelTech" class="model-sel">
+            <option value="google/gemini-2.5-flash">google/gemini-2.5-flash</option>
+            <option value="deepseek/deepseek-v4-flash-0731">deepseek/deepseek-v4-flash-0731</option>
+            <option value="qwen/qwen3-32b">qwen/qwen3-32b</option>
+            <option value="openai/gpt-4o-mini">openai/gpt-4o-mini</option>
+            <option value="mistralai/mistral-small-3.2-24b-instruct">mistralai/mistral-small-3.2-24b-instruct</option>
+            <option value="google/gemma-4-31b-it:free">google/gemma-4-31b-it:free</option>
+            <option value="openai/gpt-oss-20b:free">openai/gpt-oss-20b:free</option>
+            <option value="openrouter/free">openrouter/free</option>
+          </select>
           <input type="text" id="modelTechCustom" class="model-custom" placeholder="VD: deepseek/deepseek-v4-flash-0731" spellcheck="false" style="display:none;">
         </div>
         <div>
@@ -216,7 +284,16 @@
             <option value="gemini">Gemini — AI Studio (FREE)</option>
             <option value="groq">Groq (FREE)</option>
           </select>
-          <select id="modelWhale" class="model-sel"></select>
+          <select id="modelWhale" class="model-sel">
+            <option value="google/gemini-2.5-flash">google/gemini-2.5-flash</option>
+            <option value="deepseek/deepseek-v4-flash-0731">deepseek/deepseek-v4-flash-0731</option>
+            <option value="qwen/qwen3-32b">qwen/qwen3-32b</option>
+            <option value="openai/gpt-4o-mini">openai/gpt-4o-mini</option>
+            <option value="mistralai/mistral-small-3.2-24b-instruct">mistralai/mistral-small-3.2-24b-instruct</option>
+            <option value="google/gemma-4-31b-it:free">google/gemma-4-31b-it:free</option>
+            <option value="openai/gpt-oss-20b:free">openai/gpt-oss-20b:free</option>
+            <option value="openrouter/free">openrouter/free</option>
+          </select>
           <input type="text" id="modelWhaleCustom" class="model-custom" placeholder="VD: qwen/qwen3-32b" spellcheck="false" style="display:none;">
         </div>
         <div>
@@ -226,7 +303,16 @@
             <option value="gemini">Gemini — AI Studio (FREE)</option>
             <option value="groq">Groq (FREE)</option>
           </select>
-          <select id="modelRetail" class="model-sel"></select>
+          <select id="modelRetail" class="model-sel">
+            <option value="google/gemini-2.5-flash">google/gemini-2.5-flash</option>
+            <option value="deepseek/deepseek-v4-flash-0731">deepseek/deepseek-v4-flash-0731</option>
+            <option value="qwen/qwen3-32b">qwen/qwen3-32b</option>
+            <option value="openai/gpt-4o-mini">openai/gpt-4o-mini</option>
+            <option value="mistralai/mistral-small-3.2-24b-instruct">mistralai/mistral-small-3.2-24b-instruct</option>
+            <option value="google/gemma-4-31b-it:free">google/gemma-4-31b-it:free</option>
+            <option value="openai/gpt-oss-20b:free">openai/gpt-oss-20b:free</option>
+            <option value="openrouter/free">openrouter/free</option>
+          </select>
           <input type="text" id="modelRetailCustom" class="model-custom" placeholder="VD: qwen/qwen3-32b" spellcheck="false" style="display:none;">
         </div>
         <div class="hint" style="grid-column:1/-1;">💡 <b>Bộ khuyên dùng (theo yêu cầu của bạn):</b> Macro = Gemini free · Technical = Gemini free · Whale = DeepSeek V4 Flash (OpenRouter trả phí) · Retail = Qwen3-32b (OpenRouter trả phí). 2 model trả phí này chỉ ~$0.0017/phiên → $5 dùng ~3.000 phiên. Đổi nhà cung cấp = đổi dropdown đầu tiên của từng chuyên gia.</div>
@@ -2190,5 +2276,5 @@ async function loadAllModels(){
 
 document.addEventListener('DOMContentLoaded', initUI);
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a255cba038b1ce02',t:'MTc4NTc2NTA2OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a255f1e35926fde8',t:'MTc4NTc2NjYzNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
