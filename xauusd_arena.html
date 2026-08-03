@@ -1,0 +1,2072 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XAU/USD AI Debate Arena — Mô phỏng đa tác nhân &amp; Đám đông</title>
+<style>
+  :root{
+    --bg:#0b1220; --bg2:#0f172a; --panel:#111c30; --panel2:#16223a; --border:#1e2c47;
+    --text:#e2e8f0; --muted:#8ea3c0; --accent:#38bdf8; --gold:#f5c518;
+    --up:#10b981; --down:#ef4444; --neutral:#94a3b8;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,-apple-system,sans-serif; font-size:14px; line-height:1.5;}
+  ::selection{background:rgba(56,189,248,.3);}
+  .wrap{max-width:1280px; margin:0 auto; padding:16px;}
+  /* ===== Header ===== */
+  header{display:flex; align-items:center; gap:14px; flex-wrap:wrap; background:linear-gradient(135deg,#0f2239,#0e1a2e); border:1px solid var(--border); border-radius:14px; padding:16px 20px; margin-bottom:14px;}
+  .logo{width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#f5c518,#d97706); display:flex;align-items:center;justify-content:center;font-size:24px; flex-shrink:0;}
+  header h1{font-size:19px; font-weight:700; letter-spacing:.2px;}
+  header h1 span{color:var(--gold);}
+  header .sub{color:var(--muted); font-size:12.5px; margin-top:2px;}
+  .spacer{flex:1;}
+  .badge{padding:4px 12px; border-radius:999px; font-size:11.5px; font-weight:600; border:1px solid var(--border); background:var(--panel2); white-space:nowrap;}
+  .badge.live{color:#4ade80; border-color:rgba(74,222,128,.35); background:rgba(74,222,128,.08);}
+  .badge.mock{color:#fbbf24; border-color:rgba(251,191,36,.35); background:rgba(251,191,36,.08);}
+  .badge.err{color:#f87171; border-color:rgba(248,113,113,.35); background:rgba(248,113,113,.08);}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4ade80;margin-right:6px;animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  /* ===== Panels ===== */
+  .panel{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:16px 18px; margin-bottom:14px;}
+  .panel h2{font-size:14px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin-bottom:12px; display:flex; align-items:center; gap:8px;}
+  .panel h2 .ico{font-size:15px;}
+  details.settings{border:1px solid var(--border); border-radius:14px; background:var(--panel); margin-bottom:14px; overflow:hidden;}
+  details.settings summary{cursor:pointer; padding:14px 18px; font-weight:700; font-size:14px; color:var(--accent); user-select:none; list-style:none; display:flex; align-items:center; gap:8px;}
+  details.settings summary::-webkit-details-marker{display:none;}
+  details.settings summary .chev{transition:transform .2s; margin-left:auto; color:var(--muted);}
+  details.settings[open] summary .chev{transform:rotate(180deg);}
+  .settings-body{padding:4px 18px 18px; border-top:1px solid var(--border);}
+  .grid{display:grid; gap:14px;}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));}
+  .g4{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));}
+  label.f{display:block; font-size:12px; color:var(--muted); margin-bottom:6px; font-weight:600; text-transform:uppercase; letter-spacing:.4px;}
+  input[type=text],input[type=password],input[type=number],select,textarea{
+    width:100%; background:var(--bg2); border:1px solid var(--border); color:var(--text);
+    border-radius:8px; padding:9px 12px; font-size:13.5px; outline:none; transition:border .15s;}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+  textarea{resize:vertical; min-height:52px;}
+  .hint{font-size:11.5px; color:var(--muted); margin-top:5px; line-height:1.45;}
+  /* segmented */
+  .seg{display:flex; background:var(--bg2); border:1px solid var(--border); border-radius:9px; padding:3px; gap:3px;}
+  .seg button{flex:1; background:transparent; border:none; color:var(--muted); padding:7px 6px; border-radius:7px; cursor:pointer; font-weight:700; font-size:12.5px; transition:all .15s;}
+  .seg button.active{background:var(--accent); color:#062033;}
+  /* run button */
+  .run-btn{display:flex; align-items:center; justify-content:center; gap:10px; width:100%; background:linear-gradient(135deg,#f5c518,#eab308); color:#1a1204; border:none; border-radius:10px; padding:13px; font-size:15px; font-weight:800; cursor:pointer; transition:transform .1s, box-shadow .2s; box-shadow:0 4px 18px rgba(245,197,24,.25);}
+  .run-btn:hover{transform:translateY(-1px); box-shadow:0 6px 22px rgba(245,197,24,.35);}
+  .run-btn:disabled{opacity:.55; cursor:not-allowed; transform:none;}
+  /* ===== Ticker ===== */
+  .ticker{display:flex; align-items:center; gap:16px; flex-wrap:wrap; background:var(--panel2); border:1px solid var(--border); border-radius:12px; padding:12px 16px; margin-bottom:14px;}
+  .tick-price{font-size:26px; font-weight:800; font-family:Consolas,monospace;}
+  .tick-price small{font-size:13px; color:var(--muted); font-weight:500;}
+  .tick-chg{font-size:14px; font-weight:700; padding:3px 10px; border-radius:7px;}
+  .tick-meta{color:var(--muted); font-size:12px;}
+  /* ===== Metrics ===== */
+  .metrics{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin-bottom:14px;}
+  .mcard{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:14px 16px;}
+  .mcard .lbl{font-size:11px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); font-weight:600;}
+  .mcard .val{font-size:21px; font-weight:800; margin-top:4px; font-family:Consolas,monospace;}
+  .mcard .sub2{font-size:11.5px; color:var(--muted); margin-top:3px;}
+  /* ===== Tabs ===== */
+  .tabs{display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;}
+  .tabs button{background:var(--panel2); border:1px solid var(--border); color:var(--muted); padding:9px 18px; border-radius:9px; cursor:pointer; font-weight:700; font-size:13px; transition:all .15s;}
+  .tabs button.active{background:var(--accent); border-color:var(--accent); color:#062033;}
+  .tabview{display:none;}
+  .tabview.active{display:block;}
+  /* ===== Agent cards ===== */
+  .agent-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:12px;}
+  .agent{background:var(--panel2); border:1px solid var(--border); border-radius:12px; padding:14px; position:relative; overflow:hidden;}
+  .agent .head{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+  .agent .avatar{width:36px;height:36px;border-radius:9px; display:flex;align-items:center;justify-content:center;font-size:18px; background:var(--bg); border:1px solid var(--border); flex-shrink:0;}
+  .agent .name{font-weight:700; font-size:13.5px;}
+  .agent .model{font-size:10.5px; color:var(--muted); font-family:Consolas,monospace; word-break:break-all; margin-top:1px;}
+  .stance{font-size:11px; font-weight:800; padding:3px 9px; border-radius:999px; margin-left:auto; white-space:nowrap;}
+  .bar{height:7px; background:var(--bg); border-radius:99px; overflow:hidden; margin:8px 0 6px; position:relative;}
+  .bar .fill{height:100%; border-radius:99px; transition:width .6s;}
+  .bar .mid{position:absolute; left:50%; top:-2px; bottom:-2px; width:1.5px; background:rgba(255,255,255,.25);}
+  .bar-row{display:flex; justify-content:space-between; font-size:11.5px; color:var(--muted);}
+  .reason{margin-top:8px; font-size:12.5px; color:#c3d2e8; background:var(--bg); border-radius:8px; padding:9px 11px; border-left:3px solid var(--border);}
+  .status-line{font-size:11px; color:var(--muted); margin-top:7px; font-family:Consolas,monospace;}
+  /* ===== Timeline ===== */
+  .tl{border-left:2px solid var(--border); margin-left:9px; padding-left:20px;}
+  .tl-round{margin-bottom:16px;}
+  .tl-round .rh{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+  .tl-round .rnum{width:24px;height:24px;border-radius:50%; background:var(--accent); color:#062033; font-weight:800; font-size:12px; display:flex;align-items:center;justify-content:center; flex-shrink:0;}
+  .tl-round .rtitle{font-weight:700; font-size:13.5px;}
+  .tl-round .rsub{font-size:11px; color:var(--muted);}
+  .tl-item{background:var(--panel2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:8px; font-size:12.5px;}
+  .tl-item .who{display:flex; align-items:center; gap:7px; margin-bottom:4px;}
+  .tl-item .who b{font-size:12.5px;}
+  .tl-item .who .mdl{font-size:10px; color:var(--muted); font-family:Consolas,monospace;}
+  .tl-item p{color:#c3d2e8;}
+  .tl-item .tag{font-size:10px; padding:2px 7px; border-radius:5px; background:var(--bg); margin-left:auto; font-weight:700;}
+  /* ===== Table ===== */
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th,td{padding:9px 10px; text-align:left; border-bottom:1px solid var(--border);}
+  th{color:var(--muted); text-transform:uppercase; font-size:10.5px; letter-spacing:.5px;}
+  tr:hover td{background:rgba(56,189,248,.04);}
+  /* ===== Log ===== */
+  #log{background:#070d18; border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-family:Consolas,monospace; font-size:11.5px; color:#9fb3d1; height:170px; overflow-y:auto; white-space:pre-wrap; line-height:1.65;}
+  /* ===== Overlay ===== */
+  #overlay{position:fixed; inset:0; background:rgba(5,10,20,.82); backdrop-filter:blur(3px); display:none; align-items:center; justify-content:center; z-index:99; flex-direction:column; gap:18px; padding:20px;}
+  #overlay.show{display:flex;}
+  .spinner{width:54px;height:54px;border-radius:50%; border:4px solid rgba(56,189,248,.15); border-top-color:var(--accent); animation:spin .9s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #ov-step{font-size:15px; font-weight:700; text-align:center;}
+  #ov-sub{font-size:12px; color:var(--muted); text-align:center; max-width:640px;}
+  #ov-status{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; max-width:700px;}
+  .chip{font-size:11px; padding:4px 10px; border-radius:999px; border:1px solid var(--border); background:var(--panel2); color:var(--muted);}
+  .chip.done{color:#4ade80; border-color:rgba(74,222,128,.4);}
+  .chip.fail{color:#f87171; border-color:rgba(248,113,113,.4);}
+  .chip.run{color:var(--accent); border-color:rgba(56,189,248,.4); animation:pulse 1.2s infinite;}
+  .foot{margin-top:22px; text-align:center; font-size:11.5px; color:var(--muted); border-top:1px solid var(--border); padding-top:14px;}
+  .foot b{color:#fbbf24;}
+  a{color:var(--accent);}
+  .consensus-box{background:linear-gradient(135deg,rgba(56,189,248,.12),rgba(16,185,129,.08)); border:1px solid rgba(56,189,248,.3); border-radius:12px; padding:16px; margin-bottom:14px; display:flex; gap:18px; align-items:center; flex-wrap:wrap;}
+  .consensus-box .big{font-size:30px; font-weight:800; font-family:Consolas,monospace;}
+  .warn{background:rgba(251,191,36,.09); border:1px solid rgba(251,191,36,.35); color:#fde68a; border-radius:10px; padding:10px 14px; font-size:12.5px; margin-bottom:14px;}
+  .mini-btn{background:var(--panel2); border:1px solid var(--border); color:var(--muted); padding:6px 12px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:600;}
+  .mini-btn:hover{color:var(--text); border-color:var(--accent);}
+  .model-custom{margin-top:6px;}
+  .chart-holder{width:100%; height:520px;}
+  .vote-bar{display:flex; height:26px; border-radius:8px; overflow:hidden; border:1px solid var(--border); margin:10px 0 4px;}
+  .vote-bar div{display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#062033;}
+  .kbd{background:var(--bg2); border:1px solid var(--border); border-bottom-width:2px; padding:1px 7px; border-radius:5px; font-family:Consolas,monospace; font-size:11px;}
+  @media (max-width:760px){ .chart-holder{height:400px;} .tick-price{font-size:22px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= HEADER ================= -->
+  <header>
+    <div class="logo">🥇</div>
+    <div>
+      <h1>XAU/USD <span>AI Debate Arena</span></h1>
+      <div class="sub">Mô phỏng đa tác nhân tranh luận + Bỏ phiếu đám đông + Monte Carlo — Vàng / Đô la Mỹ</div>
+    </div>
+    <div class="spacer"></div>
+    <span id="badge-src" class="badge">⏳ Chưa chạy</span>
+    <span id="badge-mode" class="badge mock">🧪 CHẾ ĐỘ MẪU</span>
+    <span id="badge-auto" class="badge" style="display:none;"></span>
+    <span id="badge-live" class="badge live"><span class="dot"></span>Giao diện sẵn sàng</span>
+  </header>
+
+  <!-- ================= SETTINGS ================= -->
+  <details class="settings" open>
+    <summary>⚙️ Cấu hình &amp; API Key <span class="chev">▼</span></summary>
+    <div class="settings-body">
+      <div class="grid g4" style="margin-bottom:14px;">
+        <div>
+          <label class="f">🔑 OpenRouter API Key</label>
+          <div style="display:flex; gap:6px;">
+            <input type="password" id="apiKey" placeholder="sk-or-v1-..." autocomplete="off" spellcheck="false">
+            <button class="mini-btn" id="btnToggleKey" type="button" title="Hiện/ẩn key">👁️</button>
+          </div>
+          <div class="hint">Lấy tại <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> — được lưu tự động trong trình duyệt. <b>Để trống = chạy dữ liệu mẫu.</b></div>
+        </div>
+        <div>
+          <label class="f">⏱️ Khung thời gian</label>
+          <div class="seg" id="tfSeg">
+            <button data-tf="15m">15m</button>
+            <button data-tf="1h" class="active">1H</button>
+            <button data-tf="4h">4H</button>
+            <button data-tf="1D">1D</button>
+          </div>
+          <div class="hint" id="tfHint">Dự báo 24 nến ≈ 24 giờ tới</div>
+        </div>
+        <div>
+          <label class="f">💬 Số vòng tranh luận</label>
+          <div class="seg" id="roundSeg">
+            <button data-r="1">1 · Nhanh</button>
+            <button data-r="2" class="active">2 · Chuẩn</button>
+            <button data-r="3">3 · Sâu</button>
+          </div>
+          <div class="hint">1: Lập trường · 2: + Phản biện · 3: + Điều chỉnh cuối</div>
+        </div>
+        <div>
+          <label class="f">🗳️ Cử tri / Kịch bản MC</label>
+          <div style="display:flex; gap:8px;">
+            <input type="number" id="voters" value="80" min="10" max="500" step="10" title="Số cử tri mô phỏng">
+            <input type="number" id="paths" value="300" min="50" max="1000" step="50" title="Số kịch bản Monte Carlo">
+          </div>
+          <div class="hint">Cử tri (đám đông) · Kịch bản giá ngẫu nhiên</div>
+        </div>
+      </div>
+
+      <div class="grid g4" style="margin-bottom:14px;">
+        <div>
+          <label class="f">🤖 Macro (Vĩ mô)</label>
+          <select id="modelMacro" class="model-sel"></select>
+          <input type="text" id="modelMacroCustom" class="model-custom" placeholder="VD: google/gemini-2.5-flash" spellcheck="false" style="display:none;">
+        </div>
+        <div>
+          <label class="f">📐 Technical (Kỹ thuật)</label>
+          <select id="modelTech" class="model-sel"></select>
+          <input type="text" id="modelTechCustom" class="model-custom" placeholder="VD: google/gemini-2.5-flash" spellcheck="false" style="display:none;">
+        </div>
+        <div>
+          <label class="f">🐋 Whale (Quỹ &amp; NHTW)</label>
+          <select id="modelWhale" class="model-sel"></select>
+          <input type="text" id="modelWhaleCustom" class="model-custom" placeholder="VD: google/gemini-2.5-flash" spellcheck="false" style="display:none;">
+        </div>
+        <div>
+          <label class="f">👥 Retail (Đám đông nhỏ lẻ)</label>
+          <select id="modelRetail" class="model-sel"></select>
+          <input type="text" id="modelRetailCustom" class="model-custom" placeholder="VD: google/gemini-2.5-flash" spellcheck="false" style="display:none;">
+        </div>
+        <div class="hint" style="grid-column:1/-1;">Mỗi chuyên gia chọn 1 model riêng: để <b>✨ Mặc định</b> (free) hoặc chọn model trả phí rẻ như <b>google/gemini-2.5-flash</b> cho phản hồi nhanh &amp; ổn định. Chọn <b>✏️ Nhập model khác…</b> để gõ tay model ID bất kỳ.</div>
+      </div>
+
+      <div class="grid" style="grid-template-columns:1fr 260px; gap:14px; align-items:end;">
+        <div>
+          <label class="f">📰 Bối cảnh bổ sung <span style="text-transform:none; letter-spacing:0;">(tin tức / dữ liệu được đưa vào cho 4 AI phân tích)</span></label>
+          <textarea id="ctxInput" placeholder="VD: Fed công bố CPI tháng 7 tăng 2.9% YoY... Các NHTW châu Á tăng mua vàng tháng thứ 9 liên tiếp..." style="min-height:58px;"></textarea>
+          <div style="display:flex; gap:10px; margin-top:8px; flex-wrap:wrap; align-items:center;">
+            <button class="mini-btn" id="btnScout" type="button">🔍 Tự tìm tin nóng &amp; điền vào</button>
+            <label style="display:flex; gap:6px; align-items:center; font-size:12px; color:var(--muted); cursor:pointer; user-select:none;">
+              <input type="checkbox" id="autoNews" style="width:auto;"> Tự tìm tin trước mỗi phiên
+            </label>
+            <span class="hint" id="newsStatus" style="margin:0;">Chưa tìm tin</span>
+          </div>
+          <div class="hint">AI quét tin nóng về vàng từ Google News (tiếng Anh + Việt) → có API key thì AI tổng hợp tin quan trọng nhất → tự điền vào ô này trước khi tranh luận.</div>
+        </div>
+        <div>
+          <label class="f">🔁 Tự động chạy lại</label>
+          <select id="autoSel">
+            <option value="0">Tắt</option>
+            <option value="5">Mỗi 5 phút</option>
+            <option value="15" selected>Mỗi 15 phút</option>
+            <option value="30">Mỗi 30 phút</option>
+            <option value="60">Mỗi 60 phút</option>
+          </select>
+          <div class="hint">Chọn là kích hoạt ngay — đồng hồ đếm ngược hiện trên tiêu đề. Hết giờ tự chạy phiên mới (kể cả phiên trước lỗi).</div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <button class="run-btn" id="btnRun">🚀 Bắt đầu mô phỏng Real-time</button>
+      </div>
+    </div>
+  </details>
+
+  <div class="warn" id="warnBox" style="display:none;"></div>
+
+  <!-- ================= TICKER ================= -->
+  <div class="ticker">
+    <div>
+      <div class="tick-price" id="tickPrice">— <small>USD/oz</small></div>
+      <div class="tick-meta" id="tickSrc">Chưa có dữ liệu</div>
+    </div>
+    <div class="tick-chg" id="tickChg" style="background:var(--bg2); border:1px solid var(--border);">—</div>
+    <div class="tick-meta" style="flex:1; min-width:200px;" id="tickInfo">Bấm <b>🚀 Bắt đầu</b> để tải giá realtime, chạy tranh luận AI và mô phỏng giá.</div>
+    <button class="mini-btn" id="btnTest" type="button">🧪 Kiểm tra kết nối nguồn giá</button>
+  </div>
+
+  <!-- ================= METRICS ================= -->
+  <div class="metrics" id="metrics">
+    <div class="mcard"><div class="lbl">🧠 Đồng thuận ròng</div><div class="val" id="mConsensus">—</div><div class="sub2" id="mConsensusSub">Chờ chạy</div></div>
+    <div class="mcard"><div class="lbl">🎯 Giá mục tiêu</div><div class="val" id="mTarget">—</div><div class="sub2" id="mTargetSub">—</div></div>
+    <div class="mcard"><div class="lbl">📊 Biên độ xác suất 80%</div><div class="val" id="mRange" style="font-size:15px; line-height:1.35; padding-top:5px;">—</div><div class="sub2">P10 – P90</div></div>
+    <div class="mcard"><div class="lbl">📈 Xác suất tăng giá</div><div class="val" id="mProb">—</div><div class="sub2" id="mProbSub">—</div></div>
+  </div>
+
+  <!-- ================= TABS ================= -->
+  <div class="tabs">
+    <button class="active" data-tab="tabChart">📈 Biểu đồ dự báo</button>
+    <button data-tab="tabCrowd">🗳️ Đám đông bỏ phiếu</button>
+    <button data-tab="tabDebate">💬 Diễn biến tranh luận</button>
+    <button data-tab="tabLearn">🧠 Học hỏi &amp; Lịch sử</button>
+    <button data-tab="tabRank">🏆 Xếp hạng AI</button>
+    <button data-tab="tabLog">🖥️ Nhật ký hệ thống</button>
+  </div>
+
+  <!-- Tab: Chart -->
+  <div class="tabview active" id="tabChart">
+    <div class="consensus-box" id="consensusBox" style="display:none;">
+      <div>
+        <div class="lbl" style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;letter-spacing:.6px;">📢 Phán quyết của đám đông AI</div>
+        <div class="big" id="cVerdict">—</div>
+      </div>
+      <div style="flex:1; min-width:220px;" id="cVerdictText"></div>
+    </div>
+    <div class="panel">
+      <h2><span class="ico">🕯️</span> Nến thực tế + Dự báo Monte Carlo <span style="margin-left:auto; text-transform:none; font-size:11px; font-family:Consolas,monospace;" id="chartLegend">—</span></h2>
+      <div class="chart-holder" id="chart"></div>
+    </div>
+    <div class="panel" id="tradingPanel" style="display:none;">
+      <h2><span class="ico">🎯</span> Kế hoạch thực chiến (tham khảo — KHÔNG phải lời khuyên tài chính)</h2>
+      <div id="tradingPlan"></div>
+    </div>
+  </div>
+
+  <!-- Tab: Crowd -->
+  <div class="tabview" id="tabCrowd">
+    <div class="panel">
+      <h2><span class="ico">🗳️</span> Kết quả bỏ phiếu đám đông (mô phỏng cử tri)</h2>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:16px;">
+        <div>
+          <div class="chart-holder" id="voteChart" style="height:330px;"></div>
+        </div>
+        <div>
+          <div class="vote-bar" id="voteBar"></div>
+          <div class="bar-row" style="margin-bottom:10px;"><span>🟢 Mua</span><span>⚪ Trung lập</span><span>🔴 Bán</span></div>
+          <div id="voteStats" style="font-size:13px; color:#c3d2e8; line-height:1.9;"></div>
+          <div style="margin-top:10px;">
+            <div class="lbl" style="text-transform:none; font-size:12px; color:var(--muted);">🏅 Phiếu thuyết phục giành được từ đám đông</div>
+            <div id="persuasionBars"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Debate -->
+  <div class="tabview" id="tabDebate">
+    <div class="panel">
+      <h2><span class="ico">💬</span> Diễn biến tranh luận giữa các tác nhân AI</h2>
+      <div id="debateLog" style="padding-top:4px;">
+        <div style="color:var(--muted); padding:30px 10px; text-align:center;">Chưa có phiên tranh luận nào — bấm 🚀 Bắt đầu.</div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2><span class="ico">🤖</span> Lập trường cuối cùng của từng chuyên gia</h2>
+      <div class="agent-grid" id="agentCards"></div>
+    </div>
+  </div>
+
+  <!-- Tab: Học hỏi -->
+  <div class="tabview" id="tabLearn">
+    <div class="panel">
+      <h2><span class="ico">📈</span> Backtest &amp; Trưởng thành của hệ thống
+        <button class="mini-btn" id="btnBT" style="margin-left:auto;">▶️ Chạy Backtest ngay</button>
+      </h2>
+      <div id="btMetrics"></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:12px;">
+        <div><div style="font-size:12px; color:var(--muted); margin-bottom:6px;">📊 Win rate &amp; lãi/lỗ qua các lần chạy (backtest trên nến thực, không tốn API) + độ chính xác phiên thực tích lũy</div><div class="chart-holder" id="btChart" style="height:260px;"></div></div>
+        <div><div style="font-size:12px; color:var(--muted); margin-bottom:6px;">✅/❌ Kết quả từng phiên thực đã đối chiếu giá</div><div class="chart-holder" id="btSessions" style="height:260px;"></div></div>
+      </div>
+      <div class="hint" style="margin-top:10px;">Backtest chạy tự động sau mỗi phiên: trượt dọc nến lịch sử thực, dùng tín hiệu kỹ thuật chuẩn (EMA/RSI/MACD/ATR) làm proxy cho đám đông, dự đoán hướng N nến rồi đối chiếu giá thật. Không gọi API nên không tốn quota — đây là "cân đo" hệ thống có thực sự khôn hơn theo thời gian không.</div>
+    </div>
+    <div class="panel">
+      <h2><span class="ico">🧠</span> Rút kinh nghiệm độc lập — hệ thống tự học từ kết quả thực tế
+        <button class="mini-btn" id="btnEvalNow" style="margin-left:auto;">🔎 Đánh giá các phiên cũ ngay</button>
+      </h2>
+      <div id="learnStats"></div>
+      <div class="hint" style="margin-top:10px;">Vòng tự học: mỗi phiên chạy xong được ghi lại → khi đủ thời gian (theo khung TF), hệ thống so với <b>giá thực tế</b> → cập nhật độ chính xác từng chuyên gia → <b>tự tăng trọng số người đoán đúng, giảm trọng số kẻ đoán sai</b> trong các phiên sau. Đám đông AI ngày càng khôn hơn theo thời gian.</div>
+    </div>
+    <div class="panel">
+      <h2><span class="ico">🤖</span> Kinh nghiệm của từng chuyên gia</h2>
+      <div id="learnAgents"></div>
+    </div>
+    <div class="panel">
+      <h2><span class="ico">🗂️</span> Lịch sử các phiên dự đoán</h2>
+      <div id="learnHistory" style="overflow-x:auto;"></div>
+    </div>
+  </div>
+
+  <!-- Tab: Ranking -->
+  <div class="tabview" id="tabRank">
+    <div class="panel">
+      <h2><span class="ico">🏆</span> Bảng xếp hạng ELO qua các phiên <button class="mini-btn" id="btnResetElo" style="margin-left:auto;">↺ Đặt lại</button></h2>
+      <div id="rankWrap" style="overflow-x:auto;"></div>
+      <div class="hint" style="margin-top:10px;">ELO cập nhật theo số phiếu thuyết phục mà mỗi chuyên gia giành được từ đám đông cử tri, lưu trong trình duyệt (localStorage).</div>
+    </div>
+  </div>
+
+  <!-- Tab: Log -->
+  <div class="tabview" id="tabLog">
+    <div class="panel">
+      <h2><span class="ico">🖥️</span> Nhật ký hệ thống <button class="mini-btn" id="btnClearLog" style="margin-left:auto;">🗑️ Xóa</button></h2>
+      <div id="log"></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <b>⚠️ Tuyên bố miễn trừ:</b> Đây là công cụ mô phỏng AI phục vụ nghiên cứu &amp; giáo dục. Kết quả dự báo không phải lời khuyên tài chính. Giao dịch vàng có rủi ro — bạn tự chịu trách nhiệm với quyết định của mình.<br>
+    Nguồn giá: Binance PAXG (24/7) → gold-api.com → Yahoo Finance GC=F · Model: OpenRouter · Xây dựng 03/08/2026
+  </div>
+</div>
+
+<!-- ================= OVERLAY ================= -->
+<div id="overlay">
+  <div class="spinner"></div>
+  <div id="ov-step">Đang khởi tạo...</div>
+  <div id="ov-sub"></div>
+  <div id="ov-status"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.27.0/plotly.min.js" onerror="window.__plotlyFallback=true"></script>
+<script>
+if (window.__plotlyFallback) {
+  var s = document.createElement('script');
+  s.src = 'https://cdn.plot.ly/plotly-2.27.0.min.js';
+  document.head.appendChild(s);
+}
+</script>
+
+<script>
+/* =====================================================================
+   XAU/USD AI DEBATE ARENA — multi-agent debate + crowd voting + Monte Carlo
+   ===================================================================== */
+'use strict';
+
+/* ---------------- Cấu hình khung thời gian ---------------- */
+const TF = {
+  '15m': {label:'15 phút', stepMin:15, binance:'15m', yahoo:'15m', yahooRange:'2d',  vol:0.0009, steps:16, resample:1, weights:{macro:0.15,tech:0.45,whale:0.25,retail:0.15}, horizon:'4 giờ tới'},
+  '1h':  {label:'1 giờ',  stepMin:60, binance:'1h',  yahoo:'60m', yahooRange:'5d',  vol:0.0018, steps:24, resample:1, weights:{macro:0.25,tech:0.35,whale:0.25,retail:0.15}, horizon:'24 giờ tới'},
+  '4h':  {label:'4 giờ',  stepMin:240,binance:'4h',  yahoo:'60m', yahooRange:'12d', vol:0.0035, steps:18, resample:4, weights:{macro:0.35,tech:0.25,whale:0.30,retail:0.10}, horizon:'3 ngày tới'},
+  '1D':  {label:'1 ngày', stepMin:1440,binance:'1d', yahoo:'1d',  yahooRange:'6mo', vol:0.0075, steps:30, resample:1, weights:{macro:0.40,tech:0.15,whale:0.35,retail:0.10}, horizon:'30 ngày tới'},
+};
+
+const AGENTS = [
+  {key:'Macro_Analyst',    title:'Chuyên gia Vĩ mô',        icon:'🏛️', persona:'Bạn là chuyên gia kinh tế vĩ mô cấp cao tại một quỹ đầu tư toàn cầu. Trọng tâm: chính sách lãi suất Fed, chỉ số DXY, lạm phát CPI/PCE, lợi suất trái phiếu Mỹ, rủi ro địa chính trị và vai trò trú ẩn của vàng.', defaultModel:'google/gemma-4-31b-it:free'},
+  {key:'Technical_Analyst',title:'Chuyên gia Kỹ thuật',     icon:'📐', persona:'Bạn là chuyên gia phân tích kỹ thuật với 15 năm kinh nghiệm giao dịch vàng. Trọng tâm: RSI, MACD, EMA, ATR, vùng hỗ trợ/kháng cự, mô hình nến và cấu trúc xu hướng.', defaultModel:'nvidia/nemotron-3-super-120b-a12b:free'},
+  {key:'Institutional_Whale',title:'Quỹ & Ngân hàng TW',    icon:'🐋', persona:'Bạn đại diện cho ngân hàng trung ương và quỹ ETF vàng lớn (SPDR Gold, iShares). Trọng tâm: dòng tiền tổ chức, nhu cầu tích trữ, giao dịch OTC, thanh khoản và chi phí cơ hội.', defaultModel:'openai/gpt-oss-20b:free'},
+  {key:'Retail_Crowd',     title:'Đám đông Nhỏ lẻ',          icon:'👥', persona:'Bạn đại diện cho tâm lý nhà đầu tư cá nhân trên mạng xã hội. Trọng tâm: FOMO, bắt đáy, chốt lời, đòn bẩy, dòng tiền nhỏ lẻ và tâm lý theo đám đông.', defaultModel:'openrouter/free'},
+];
+
+const FREE_MODELS = [
+  'openrouter/free','google/gemma-4-31b-it:free','google/gemma-4-26b-a4b-it:free',
+  'nvidia/nemotron-3-super-120b-a12b:free','nvidia/nemotron-3-ultra-550b-a55b:free',
+  'nvidia/nemotron-3-nano-30b-a3b:free','nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+  'nvidia/nemotron-nano-12b-v2-vl:free','openai/gpt-oss-20b:free','cohere/north-mini-code:free',
+  'inclusionai/ling-3.0-flash:free','poolside/laguna-s-2.1:free','poolside/laguna-xs-2.1:free',
+  'nvidia/nemotron-3-content-safety:free'
+];
+const PAID_MODELS = ['google/gemini-2.5-flash','google/gemini-2.5-pro','openai/gpt-4o-mini','openai/gpt-4.1-mini','deepseek/deepseek-chat','deepseek/deepseek-chat-v3-0324','qwen/qwen3-32b','meta-llama/llama-3.3-70b-instruct','mistralai/mistral-small-3.2-24b-instruct','openrouter/auto'];
+
+/* Chuỗi model dự phòng MIỄN PHÍ — khi model chính bị 429 (hết quota) hoặc trả lỗi,
+   app tự đổi sang model free khác thay vì bỏ cuộc. KHÔNG tự chuyển sang model trả phí. */
+const FREE_FALLBACK_CHAIN = [
+  'google/gemma-4-31b-it:free',
+  'openai/gpt-oss-20b:free',
+  'nvidia/nemotron-3-super-120b-a12b:free',
+  'openrouter/free',
+];
+const delay = ms => new Promise(r=>setTimeout(r, ms));
+
+/* =====================================================================
+   🧠 RÚT KINH NGHIỆM ĐỘC LẬP (Learning Loop)
+   - Mỗi phiên được ghi vào lịch sử (giá, đồng thuận, mục tiêu, lập trường từng AI)
+   - Khi thời gian trôi qua (đủ tuổi theo khung TF), so với giá THỰC TẾ:
+       • Phiên đoán đúng hướng giá? Sai số bao nhiêu %?
+       • Từng chuyên gia: lập trường của họ trùng hướng giá thực bao nhiêu lần?
+   - Từ đó tự ĐIỀU CHỈNH TRỌNG SỐ: chuyên gia càng đoán đúng → trọng số càng lớn
+   ===================================================================== */
+const LEARN_TF_MIN_AGE = {'15m': 4*3600e3, '1h': 8*3600e3, '4h': 2*86400e3, '1D': 7*86400e3};
+const HISTORY_MAX = 60;
+
+function loadHistory(){ return store.get('arena_history_v2', []); }
+function saveHistory(h){ store.set('arena_history_v2', h.slice(-HISTORY_MAX)); }
+function loadLearn(){ return store.get('arena_agent_learn_v2', {}); }
+function saveLearn(l){ store.set('arena_agent_learn_v2', l); }
+
+/* Ghi phiên vừa chạy vào lịch sử */
+function recordSession(){
+  const h = loadHistory();
+  h.push({
+    id: Date.now(),
+    time: new Date().toISOString(),
+    tf: S.tf,
+    price: S.price,
+    consensus: S.consensus,
+    verdict: S.verdict,
+    target: S.target,
+    p10: S.mc ? S.mc.p10 : null,
+    p90: S.mc ? S.mc.p90 : null,
+    probUp: S.mc ? S.mc.probUp : null,
+    agents: S.finals.reduce((o,f)=>{ o[f.key]=f.stance; return o; }, {}),
+    evaluated: false,
+  });
+  saveHistory(h);
+}
+
+/* Đánh giá các phiên cũ đã đủ tuổi so với giá thực tế hiện tại */
+function evaluateHistory(currentPrice, nowTs){
+  const h = loadHistory();
+  const learn = loadLearn();
+  let evaluated = 0;
+  for(const s of h){
+    if(s.evaluated) continue;
+    const minAge = LEARN_TF_MIN_AGE[s.tf] || 4*3600e3;
+    if(nowTs - s.id < minAge) continue;
+    const move = currentPrice - s.price;
+    if(Math.abs(move)/s.price < 0.0008){ // giá gần như đứng yên → không có tín hiệu
+      s.evaluated = true; s.actualPrice = currentPrice; s.skip = 'giá quá phẳng';
+      continue;
+    }
+    const actDir = Math.sign(move);
+    const predDir = Math.sign(s.target - s.price);
+    s.evaluated = true; s.actualPrice = currentPrice;
+    s.hit = (predDir === actDir);
+    s.errorPct = Math.abs(s.target - currentPrice)/s.price*100;
+    for(const [key, stance] of Object.entries(s.agents||{})){
+      if(Math.abs(stance) < 0.02) continue;
+      const st = learn[key] || (learn[key] = {hits:0, misses:0, evals:0});
+      st.evals++;
+      if(Math.sign(stance) === actDir) st.hits++; else st.misses++;
+    }
+    evaluated++;
+  }
+  saveHistory(h); saveLearn(learn);
+  return {evaluated, stats: computeLearnStats(h), learn};
+}
+
+function computeLearnStats(h){
+  const ev = h.filter(s=>s.evaluated && !s.skip);
+  const hits = ev.filter(s=>s.hit).length;
+  const errs = ev.map(s=>s.errorPct).filter(x=>x!=null);
+  const byTf = {};
+  for(const s of ev){ (byTf[s.tf] = byTf[s.tf] || {n:0, hits:0}); byTf[s.tf].n++; if(s.hit) byTf[s.tf].hits++; }
+  return {
+    n: ev.length,
+    accuracy: ev.length ? hits/ev.length*100 : null,
+    avgErr: errs.length ? errs.reduce((a,x)=>a+x,0)/errs.length : null,
+    byTf,
+  };
+}
+
+/* Trọng số học được: accuracy 100% → ×1.5 · 50% → ×1.0 · 0% → ×0.5 */
+function learnedMultipliers(learn){
+  const mult = {};
+  for(const a of AGENTS){
+    const st = learn[a.key];
+    if(!st || !st.evals){ mult[a.key] = 1; continue; }
+    const acc = st.hits/st.evals;
+    mult[a.key] = Math.max(0.5, Math.min(1.5, 0.5 + acc));
+  }
+  return mult;
+}
+
+/* =====================================================================
+   📈 BACKTEST — đo lường sự trưởng thành của hệ thống
+   Chạy trên nến lịch sử THỰC (không tốn API): tại mỗi điểm trượt,
+   dùng tín hiệu kỹ thuật chuẩn (EMA/RSU/MACD/ATR) làm "proxy" cho
+   đám đông → dự đoán hướng N nến tới → đối chiếu giá thực tế.
+   Mỗi lần chạy lưu 1 mốc → vẽ đường cong trưởng thành theo thời gian.
+   ===================================================================== */
+const BT_KEYS = {'15m':'bt15', '1h':'bt1h', '4h':'bt4h', '1D':'bt1d'};
+function loadBT(){ return store.get('arena_bt_history_v2', {}); }
+function saveBT(o){ store.set('arena_bt_history_v2', o); }
+
+function runBacktest(){
+  const closes = S.klines.map(k=>k.c);
+  const n = closes.length;
+  const cfg = TF[S.tf];
+  const steps = cfg.steps;
+  const minN = 40; // tối thiểu để có EMA50 xấp xỉ + RSI ổn định
+  if(n < minN + steps) return null;
+  let equity = 1, trades = 0, wins = 0, grossWin = 0, grossLoss = 0, peak = 1, maxDD = 0;
+  for(let i=minN; i <= n-1-steps; i += steps){
+    const sl = closes.slice(0, i+1);
+    const ks = S.klines.slice(0, i+1);
+    const rsi = calcRSI(sl,14).at(-1);
+    const e20 = calcEMA(sl,20).at(-1), e50 = calcEMA(sl,50).at(-1);
+    const hist = calcMACD(sl).hist.at(-1);
+    const atr = calcATR(ks,14);
+    const lastRet = sl[sl.length-1]/sl[sl.length-2]-1;
+    let score = (e20>e50 ? 0.30 : -0.30);
+    score += clamp((50-rsi)/30*0.2, -0.2, 0.2);
+    score += clamp(hist/(atr||1e-9)*0.25, -0.25, 0.25);
+    score += clamp(lastRet*20, -0.15, 0.15);
+    if(Math.abs(score) < 0.15) continue; // tín hiệu yếu → đứng ngoài
+    const dir = score>0 ? 1 : -1;
+    const ret = (closes[i+steps]/closes[i] - 1) * dir;
+    trades++;
+    if(ret > 0){ wins++; grossWin += ret; } else { grossLoss += -ret; }
+    equity *= (1 + ret);
+    peak = Math.max(peak, equity);
+    maxDD = Math.max(maxDD, (peak - equity)/peak);
+  }
+  if(!trades) return null;
+  const res = {
+    ts: Date.now(), time: new Date().toLocaleString('vi-VN'),
+    tf: S.tf, trades, winRate: wins/trades*100,
+    totalReturn: (equity-1)*100,
+    pf: grossLoss>0 ? grossWin/grossLoss : null,
+    maxDD: maxDD*100,
+    src: S.klineSrc, n: Math.floor((n - minN - steps)/steps) + 1,
+  };
+  const bt = loadBT();
+  (bt[BT_KEYS[S.tf]] = bt[BT_KEYS[S.tf]] || []).push(res);
+  saveBT(bt);
+  return res;
+}
+
+/* Độ chính xác tích lũy của các phiên THỰC đã được đánh giá (theo thời gian) */
+function cumulativeAccuracySeries(){
+  const h = loadHistory().filter(s=>s.evaluated && !s.skip).sort((a,b)=>a.id-b.id);
+  const out = [];
+  let hits = 0;
+  h.forEach((s,i)=>{ if(s.hit) hits++; out.push({t: new Date(s.time).getTime(), acc: hits/(i+1)*100, hit: s.hit}); });
+  return out;
+}
+
+function renderBacktestPanel(){
+  const bt = loadBT();
+  const key = BT_KEYS[S.tf];
+  const runs = bt[key] || [];
+  const last = runs.length ? runs[runs.length-1] : null;
+  const accSeries = cumulativeAccuracySeries();
+  $('btMetrics').innerHTML = last ? `
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px;">
+      <div class="mcard"><div class="lbl">Lần chạy gần nhất</div><div class="val" style="font-size:15px;">${last.time}</div><div class="sub2">${last.src.split('·')[0].trim()} · ${last.n} điểm backtest</div></div>
+      <div class="mcard"><div class="lbl">Win rate</div><div class="val" style="color:${last.winRate>=50?'var(--up)':'var(--down)'};">${last.winRate.toFixed(0)}%</div><div class="sub2">${last.trades} giao dịch mô phỏng</div></div>
+      <div class="mcard"><div class="lbl">Tổng lãi/lỗ (nếu theo tín hiệu)</div><div class="val" style="color:${last.totalReturn>=0?'var(--up)':'var(--down)'};">${last.totalReturn>=0?'+':''}${last.totalReturn.toFixed(1)}%</div><div class="sub2">compound</div></div>
+      <div class="mcard"><div class="lbl">Profit factor</div><div class="val" style="font-size:17px;">${last.pf==null?'∞':last.pf.toFixed(2)}</div><div class="sub2">Drawdown tối đa ${last.maxDD.toFixed(1)}%</div></div>
+    </div>` : '<div style="color:var(--muted); padding:12px 6px;">Chưa có kết quả backtest — chạy 1 phiên để tự backtest trên nến lịch sử thực.</div>';
+  // Chart 1: đường cong trưởng thành (các lần chạy backtest)
+  ensurePlotly(()=>{
+    const x1 = runs.map(r=>r.time), y1 = runs.map(r=>r.winRate), y2 = runs.map(r=>r.totalReturn);
+    const d1 = [];
+    if(x1.length){
+      d1.push({x:x1, y:y1, type:'scatter', mode:'lines+markers', name:'Win rate (%)', line:{color:'#38bdf8', width:2}, yaxis:'y'});
+      d1.push({x:x1, y:y2, type:'scatter', mode:'lines+markers', name:'Tổng lãi/lỗ (%)', line:{color:'#f5c518', width:2}, yaxis:'y2'});
+    }
+    if(accSeries.length){
+      d1.push({x:accSeries.map(p=>new Date(p.t)), y:accSeries.map(p=>p.acc), type:'scatter', mode:'lines+markers',
+        name:'Độ chính xác phiên thực (tích lũy %)', line:{color:'#10b981', width:2, dash:'dot'}, yaxis:'y'});
+    }
+    const layout1 = {
+      paper_bgcolor:'#111c30', plot_bgcolor:'#0b1220', font:{color:'#8ea3c0'},
+      xaxis:{gridcolor:'#1e2c47', type:'category'}, yaxis:{gridcolor:'#1e2c47', title:'%'},
+      yaxis2:{overlaying:'y', side:'right', title:'Lãi/lỗ %', gridcolor:'transparent'},
+      margin:{t:30, l:50, r:50, b:40}, legend:{orientation:'h', y:1.12, font:{size:11}},
+    };
+    Plotly.react('btChart', d1, layout1, {responsive:true, displaylogo:false});
+  });
+  // Chart 2: từng phiên thực — đúng/sai (bar màu)
+  ensurePlotly(()=>{
+    const ev = loadHistory().filter(s=>s.evaluated && !s.skip).sort((a,b)=>a.id-b.id);
+    if(!ev.length){ Plotly.react('btSessions', [], {paper_bgcolor:'#111c30'}); return; }
+    const x = ev.map(s=>new Date(s.time).toLocaleDateString('vi-VN')+' '+s.tf);
+    const y = ev.map(s=> s.hit ? 1 : -1);
+    const colors = ev.map(s=> s.hit ? '#10b981' : '#ef4444');
+    Plotly.react('btSessions', [{x, y, type:'bar', marker:{color:colors}, text:ev.map(s=>s.hit?'✅':'❌'), textposition:'outside'}], {
+      paper_bgcolor:'#111c30', plot_bgcolor:'#0b1220', font:{color:'#8ea3c0'},
+      xaxis:{gridcolor:'#1e2c47'}, yaxis:{gridcolor:'#1e2c47', tickvals:[-1,1], ticktext:['Sai','Đúng'], range:[-1.6,1.6]},
+      margin:{t:20, l:40, r:20, b:50}, showlegend:false,
+    }, {responsive:true, displaylogo:false});
+  });
+}
+
+/* ---------------- State ---------------- */
+const S = {
+  tf:'1h', rounds:2, voters:80, paths:300,
+  price:null, priceSrc:'', klines:[], klineSrc:'',
+  ind:{}, vol:0, momentum:0,
+  debate:null, consensus:0, verdict:'', target:null,
+  crowd:null, mc:null, running:false, autoTimer:null, autoLeft:0,
+};
+
+/* ---------------- Utils ---------------- */
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b) => Math.max(a, Math.min(b,v));
+const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmtPrice = v => '$' + Number(v).toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtNum = (v,d=3) => Number(v).toFixed(d);
+const now = () => new Date().toLocaleTimeString('vi-VN');
+
+function log(msg, level='info'){
+  const t = '[' + now() + '] ';
+  const colors = {info:'#9fb3d1', ok:'#4ade80', warn:'#fbbf24', err:'#f87171'};
+  $('log').insertAdjacentHTML('beforeend',
+    `<span style="color:${colors[level]||colors.info}">${esc(t)}</span>${esc(msg)}\n`);
+  $('log').scrollTop = $('log').scrollHeight;
+}
+
+async function fetchTimeout(url, ms, opts={}){
+  const ctl = new AbortController();
+  const t = setTimeout(()=>ctl.abort(), ms);
+  try{
+    const r = await fetch(url, {...opts, signal:ctl.signal});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return await r.json();
+  } finally { clearTimeout(t); }
+}
+
+async function fetchTextTimeout(url, ms){
+  const ctl = new AbortController();
+  const t = setTimeout(()=>ctl.abort(), ms);
+  try{
+    const r = await fetch(url, {signal:ctl.signal});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return await r.text();
+  } finally { clearTimeout(t); }
+}
+
+/* =====================================================================
+   📰 AI NHÀ BÁO — tự tìm tin nóng về vàng & điền vào ô bối cảnh
+   ===================================================================== */
+const NEWS_QUERIES = [
+  {q:'gold price',          hl:'en-US', gl:'US', ceid:'US:en'},
+  {q:'XAU/USD',             hl:'en-US', gl:'US', ceid:'US:en'},
+  {q:'gold ETF Fed interest rate', hl:'en-US', gl:'US', ceid:'US:en'},
+  {q:'central bank gold buying',   hl:'en-US', gl:'US', ceid:'US:en'},
+  {q:'gold forecast analysis',     hl:'en-US', gl:'US', ceid:'US:en'},
+  {q:'giá vàng',            hl:'vi-VN', gl:'VN', ceid:'VN:vi'},
+];
+
+/* Nguồn rác / spam — KHÔNG đưa vào bối cảnh */
+const JUNK_SOURCES = ['moomoo', 'cryptorank', 'stocktwits', 'tradingview', 'wallstreetbets'];
+/* Cụm từ rác trong tiêu đề */
+const JUNK_PHRASES = ['good luck', ' to the moon', 'yolo', '🤣', '😂', 'lol', 'short squeeze', 'khối vàng nặng', 'đào trúng vàng', 'phong toả khối vàng', 'phong tỏa khối vàng'];
+/* Nguồn uy tín — ưu tiên xếp lên đầu */
+const PREF_SOURCES = ['reuters', 'kitco', 'fxstreet', 'fxleaders', 'forex.com', 'world gold council', 'goldsilver', 'the banker', 'bloomberg', 'cnbc', 'marketwatch', 'mining.com', 'fortune', 'investing.com', 'wsj', 'vnexpress', 'dân việt', 'lao cai', 'tien phong', 'tuoitre', 'vietnamnet', 'tinnhanhchungkhoan'];
+
+function isJunkNews(it){
+  const src = (it.src||'').toLowerCase();
+  if(JUNK_SOURCES.some(j=>src.includes(j))) return true;
+  // tiêu đề chứa mã chứng khoán kiểu $XAU/USD$ / $GCmain.US$ (spam ticker)
+  if(/\$[a-z0-9.:/]+\$/i.test(it.title)) return true;
+  const t = it.title.toLowerCase();
+  if(JUNK_PHRASES.some(p=>t.includes(p))) return true;
+  if(it.title.length < 15) return true;
+  return false;
+}
+function normKey(t){
+  return String(t||'').toLowerCase().replace(/[^a-z0-9\u00c0-\u1ef9]+/g,'').slice(0,60);
+}
+
+function cleanHTML(s){
+  const d = document.createElement('div');
+  d.innerHTML = s || '';
+  return (d.textContent || '').replace(/\s+/g,' ').trim();
+}
+function timeAgo(dateStr){
+  const t = new Date(dateStr).getTime();
+  if(!t) return '';
+  const m = Math.floor((Date.now()-t)/60000);
+  if(m<1) return 'vừa xong';
+  if(m<60) return m+' phút trước';
+  if(m<1440) return Math.floor(m/60)+' giờ trước';
+  return Math.floor(m/1440)+' ngày trước';
+}
+function parseRSS(xmlText){
+  const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
+  const items = [...doc.querySelectorAll('item')].map(it=>({
+    title: cleanHTML(it.querySelector('title')?.textContent),
+    date: it.querySelector('pubDate')?.textContent || '',
+    src: it.querySelector('source')?.textContent || '',
+  })).filter(x=>x.title);
+  return items;
+}
+function rssUrl(q){
+  return 'https://news.google.com/rss/search?q=' + encodeURIComponent(q.q)
+       + '&hl=' + q.hl + '&gl=' + q.gl + '&ceid=' + q.ceid;
+}
+
+async function callLLMRaw(model, prompt, apiKey){
+  const d = await fetchTimeout('https://openrouter.ai/api/v1/chat/completions', 60000, {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'Authorization':'Bearer '+apiKey,
+      'HTTP-Referer':'https://localhost',
+      'X-Title':'XAUUSD AI Debate Arena',
+    },
+    body: JSON.stringify({model, messages:[{role:'user', content:prompt}], temperature:0.3, max_tokens:700}),
+  });
+  return d?.choices?.[0]?.message?.content || '';
+}
+
+async function scoutNews(quiet){
+  const st = $('newsStatus');
+  if(quiet){
+    log('🔍 AI nhà báo đang quét tin nóng về vàng...');
+  }else{
+    st.textContent = '⏳ Đang quét Google News...';
+    st.style.color = 'var(--accent)';
+  }
+  const results = await Promise.allSettled(NEWS_QUERIES.map(async q=>{
+    try{
+      // rss2json: chuyển RSS → JSON, có CORS mở cho trình duyệt
+      const d = await fetchTimeout('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(rssUrl(q)), 15000);
+      return (d?.items||[]).map(it=>{
+        const m = String(it.title||'').match(/^(.*?)\s+-\s+([^-]+)$/);
+        return {
+          title: m ? m[1].trim() : cleanHTML(it.title),
+          date: it.pubDate || '',
+          src: m ? m[2].trim() : (it.source || it.author || 'tin'),
+        };
+      }).filter(x=>x.title);
+    }catch(e){ return []; }
+  }));
+  const all = results.flatMap(r=>r.status==='fulfilled' ? r.value : []);
+  // 1) Lọc tin rác/spam, 2) chuẩn hoá tiêu đề để lọc trùng tốt hơn
+  const clean = [];
+  for(const it of all){
+    it.title = cleanHTML(it.title).replace(/\$[^$]*\$/g,'').replace(/\s+/g,' ').trim();
+    if(!it.title || isJunkNews(it)) continue;
+    const key = normKey(it.title);
+    if(!clean.some(x=>normKey(x.title)===key)) clean.push(it);
+  }
+  // 3) Ưu tiên nguồn uy tín, sau đó mới tới tin mới nhất
+  clean.sort((a,b)=>{
+    const pa = PREF_SOURCES.some(p=>a.src.toLowerCase().includes(p)) ? 1 : 0;
+    const pb = PREF_SOURCES.some(p=>b.src.toLowerCase().includes(p)) ? 1 : 0;
+    if(pa!==pb) return pb-pa;
+    return new Date(b.date) - new Date(a.date);
+  });
+  const top = clean.slice(0, 12);
+  if(!top.length){
+    st.textContent = '⚠️ Không tìm được tin (mạng/proxy)';
+    st.style.color = 'var(--down)';
+    log('⚠️ AI nhà báo không tìm được tin tức nào — kiểm tra mạng, vẫn chạy bình thường.', 'warn');
+    return null;
+  }
+  const rawBlock = top.map(t=>`• [${t.src||'?'}] ${t.title} (${timeAgo(t.date)})`).join('\n');
+  const filtered = all.length - clean.length;
+  if(filtered > 0) log(`🗞️ Đã lọc ${filtered} tin rác/trùng (mạng xã hội, ticker spam, clickbait) — giữ ${clean.length} tin, ưu tiên nguồn uy tín.`, 'info');
+  let final = rawBlock;
+  const apiKey = getApiKey();
+  if(apiKey){
+    try{
+      const model = getModels().Macro_Analyst || AGENTS[0].defaultModel;
+      const summary = await callLLMRaw(model,
+        'Bạn là trợ lý phân tích tin tức thị trường vàng. Dưới đây là các tiêu đề tin mới nhất về vàng/thị trường tài chính:\n\n'+rawBlock+
+        '\n\nNhiệm vụ: chọn ra 3-6 thông tin QUAN TRỌNG NHẤT ảnh hưởng tới giá vàng ngắn hạn, tóm tắt mỗi thông tin 1 câu tiếng Việt, ghi nguồn trong ngoặc. Trả về danh sách gạch đầu dòng, không markdown, không chữ thừa.', apiKey);
+      if(summary && summary.trim()){
+        final = '📰 TIN NÓNG (AI tổng hợp ' + new Date().toLocaleDateString('vi-VN') + '):\n' + summary.trim();
+      }
+    }catch(e){
+      log('⚠️ Tổng hợp tin bằng AI lỗi — dùng tiêu đề thô: ' + e.message, 'warn');
+    }
+  }else{
+    final = '📰 TIN NÓNG (tìm lúc ' + new Date().toLocaleTimeString('vi-VN') + '):\n' + rawBlock;
+  }
+  $('ctxInput').value = final;
+  saveCfg();
+  st.textContent = '✅ ' + top.length + ' tin đã điền vào ô bối cảnh' + (apiKey?' (AI tổng hợp)':' (tiêu đề thô)') + ' · ' + new Date().toLocaleTimeString('vi-VN');
+  st.style.color = 'var(--up)';
+  log('📰 Đã tự tìm ' + top.length + ' tin nóng về vàng và điền vào ô bối cảnh' + (apiKey?' — có tổng hợp AI.':' — chưa có key nên dùng tiêu đề thô.'), 'ok');
+  return final;
+}
+
+/* Bóc tách JSON từ text của LLM (xử lý <think>, markdown, văn bản thừa) */
+function extractJson(text){
+  if(!text) return null;
+  let s = String(text);
+  s = s.replace(/<think[\s\S]*?<\/think>/gi,'');
+  s = s.replace(/```(?:json)?/gi,'');
+  // thử parse toàn bộ
+  try{ const o = JSON.parse(s); if(o && typeof o==='object') return o; }catch(e){}
+  // quét tìm khối JSON cân bằng ngoặc trong văn bản
+  for(let i=0;i<s.length;i++){
+    if(s[i]!=='{') continue;
+    let depth = 0;
+    for(let j=i;j<s.length;j++){
+      if(s[j]==='{') depth++;
+      else if(s[j]==='}'){ depth--; if(depth===0){
+        try{ const o = JSON.parse(s.slice(i,j+1)); if(o && typeof o==='object') return o; }catch(e){}
+        break;
+      }}
+    }
+  }
+  // cuối cùng: trích số sentiment kiểu "sentiment: 0.3" / "0.3"
+  const m = s.match(/sentiment[^\d-]*(-?\d+\.?\d*)/i);
+  if(m) return {sentiment_score: parseFloat(m[1])};
+  return null;
+}
+function gfloat(obj, keys, def=0){
+  for(const k of keys){ const v = obj[k]; if(typeof v==='number' && isFinite(v)) return v; }
+  const m = JSON.stringify(obj).match(/-?\d+\.?\d*/); 
+  return m ? parseFloat(m[0]) : def;
+}
+
+function randomNormal(){
+  let u=0,v=0;
+  while(u===0) u=Math.random();
+  while(v===0) v=Math.random();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+}
+
+/* ---------------- Storage (an toàn với file://) ---------------- */
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} },
+};
+
+/* =====================================================================
+   1. DỮ LIỆU REALTIME
+   ===================================================================== */
+async function fetchPrice(){
+  const errs=[];
+  // 1) Binance PAXG (CORS OK, 24/7)
+  try{
+    const d = await fetchTimeout('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT', 6000);
+    const p = parseFloat(d.price);
+    if(p>0){ S.price=p; S.priceSrc='Binance · PAXG (1 PAXG ≈ 1 oz)'; return; }
+  }catch(e){ errs.push('Binance: '+e.message); }
+  // 2) gold-api.com (CORS OK, free)
+  try{
+    const d = await fetchTimeout('https://api.gold-api.com/price/XAU', 6000);
+    const p = parseFloat(d.price);
+    if(p>0){ S.price=p; S.priceSrc='gold-api.com · XAU spot'; return; }
+  }catch(e){ errs.push('gold-api: '+e.message); }
+  // 3) Yahoo qua proxy CORS
+  try{
+    const url = 'https://query1.finance.yahoo.com/v8/finance/chart/GC%3DF?interval=1d&range=1d';
+    const d = await fetchTimeout('https://api.allorigins.win/raw?url='+encodeURIComponent(url), 10000);
+    const p = parseFloat(d?.chart?.result?.[0]?.meta?.regularMarketPrice);
+    if(p>0){ S.price=p; S.priceSrc='Yahoo Finance · GC=F (proxy)'; return; }
+  }catch(e){ errs.push('Yahoo: '+e.message); }
+  log('Không lấy được giá realtime ('+errs.join(' | ')+') — dùng giá mặc định.', 'warn');
+  S.price = 4050; S.priceSrc='Mặc định (offline)';
+}
+
+async function fetchKlines(){
+  const cfg = TF[S.tf];
+  const errs=[];
+  // 1) Binance klines PAXG
+  try{
+    const d = await fetchTimeout(`https://api.binance.com/api/v3/klines?symbol=PAXGUSDT&interval=${cfg.binance}&limit=260`, 8000);
+    if(Array.isArray(d) && d.length>10){
+      S.klines = d.map(k=>({t:k[0], o:+k[1], h:+k[2], l:+k[3], c:+k[4]}));
+      S.klineSrc = 'Binance · PAXGUSDT ' + cfg.label;
+      return;
+    }
+  }catch(e){ errs.push('Binance: '+e.message); }
+  // 2) Yahoo qua proxy (resample 4h nếu cần)
+  try{
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/GC%3DF?interval=${cfg.yahoo}&range=${cfg.yahooRange}`;
+    const d = await fetchTimeout('https://api.allorigins.win/raw?url='+encodeURIComponent(url), 12000);
+    const r = d?.chart?.result?.[0];
+    if(r && r.timestamp && r.indicators?.quote?.[0]){
+      const ts = r.timestamp, q = r.indicators.quote[0];
+      let raw = ts.map((t,i)=>({t:t*1000, o:q.open[i], h:q.high[i], l:q.low[i], c:q.close[i]})).filter(x=>x.c!=null && x.o!=null);
+      if(cfg.resample>1) raw = resample(raw, cfg.stepMin*60000);
+      // bỏ nến cuối chưa đóng
+      raw = raw.slice(0,-1);
+      if(raw.length>10){ S.klines=raw; S.klineSrc='Yahoo · GC=F ' + cfg.label + ' (proxy)'; return; }
+    }
+  }catch(e){ errs.push('Yahoo: '+e.message); }
+  // 3) Mock klines
+  log('Không lấy được nến lịch sử ('+errs.join(' | ')+') — sinh dữ liệu mẫu.', 'warn');
+  S.klines = mockKlines(S.price || 4050, cfg.stepMin, 120, cfg.vol);
+  S.klineSrc = 'Dữ liệu mẫu (offline)';
+}
+
+function resample(klines, stepMs){
+  const out=[];
+  for(const k of klines){
+    const bucket = Math.floor(k.t / stepMs) * stepMs;
+    const last = out[out.length-1];
+    if(last && last.t===bucket){
+      last.h=Math.max(last.h,k.h); last.l=Math.min(last.l,k.l); last.c=k.c;
+    } else {
+      out.push({t:bucket, o:k.o, h:k.h, l:k.l, c:k.c});
+    }
+  }
+  return out;
+}
+
+function mockKlines(price, stepMin, n, vol){
+  const out=[]; let p=price*0.98; const step=stepMin*60000;
+  const t0 = Math.floor(Date.now()/step)*step - (n-1)*step;
+  for(let i=0;i<n;i++){
+    const r = randomNormal()*vol;
+    const o=p; const c=p*(1+r);
+    const h=Math.max(o,c)*(1+Math.abs(randomNormal())*vol*0.5);
+    const l=Math.min(o,c)*(1-Math.abs(randomNormal())*vol*0.5);
+    out.push({t:t0+i*step, o, h, l, c});
+    p=c;
+  }
+  return out;
+}
+
+/* =====================================================================
+   2. CHỈ BÁO KỸ THUẬT
+   ===================================================================== */
+function computeIndicators(){
+  const closes = S.klines.map(k=>k.c);
+  const n = closes.length;
+  const rsi = calcRSI(closes, 14);
+  const ema20 = lastOf(calcEMA(closes,20)), ema50 = lastOf(calcEMA(closes,50));
+  const macd = calcMACD(closes);
+  const atr = calcATR(S.klines, 14);
+  const highs = S.klines.slice(-30).map(k=>k.h);
+  const lows = S.klines.slice(-30).map(k=>k.l);
+  const res = Math.max(...highs), sup = Math.min(...lows);
+  // realized vol từ 48 nến gần nhất (chuẩn hoá theo năm để so sánh)
+  const rets = [];
+  for(let i=Math.max(1,n-48); i<n; i++) rets.push(Math.log(closes[i]/closes[i-1]));
+  const sd = Math.sqrt(rets.reduce((a,x)=>a+x*x,0)/Math.max(1,rets.length-1)) || 0;
+  const candlesPerDay = 1440 / TF[S.tf].stepMin;
+  S.vol = clamp(sd*Math.sqrt(Math.max(1,candlesPerDay)), 0.0003, 0.05);
+  const lastRet = (closes[n-1]/closes[n-2]-1) || 0;
+  S.momentum = clamp(lastRet*50, -1, 1); // đà 1 nến, chuẩn hoá
+  S.ind = {rsi: rsi.at(-1), ema20, ema50, macd: macd.macd.at(-1), macdSig: macd.signal.at(-1), macdHist: macd.hist.at(-1), atr, res, sup,
+           lastRet: (closes[n-1]/closes[n-2]-1)*100, trend: ema20>ema50?'TĂNG':'GIẢM',
+           close: closes[n-1], n};
+}
+function lastOf(a){ return a.length? a[a.length-1] : null; }
+function calcRSI(c, p){
+  const r=[50]; let g=0,l=0;
+  for(let i=1;i<c.length;i++){
+    const d=c[i]-c[i-1];
+    if(i<=p){ g+=Math.max(d,0)/p; l+=Math.max(-d,0)/p; if(i===p) r.push(100-100/(1+(g/l||1e-9))); }
+    else{
+      g=(g*(p-1)+Math.max(d,0))/p; l=(l*(p-1)+Math.max(-d,0))/p;
+      r.push(100-100/(1+(g/l||1e-9)));
+    }
+  }
+  return r;
+}
+function calcEMA(c, p){
+  const k=2/(p+1), out=[]; let e=c[0];
+  for(let i=0;i<c.length;i++){ e = i===0? c[0] : c[i]*k + e*(1-k); out.push(e); }
+  return out;
+}
+function calcMACD(c){
+  const e12=calcEMA(c,12), e26=calcEMA(c,26);
+  const macd = c.map((_,i)=>e12[i]-e26[i]);
+  const signal=calcEMA(macd,9);
+  return {macd, signal, hist: macd.map((m,i)=>m-signal[i])};
+}
+function calcATR(k, p){
+  const trs=[];
+  for(let i=1;i<k.length;i++){
+    trs.push(Math.max(k[i].h-k[i].l, Math.abs(k[i].h-k[i-1].c), Math.abs(k[i].l-k[i-1].c)));
+  }
+  const slice=trs.slice(-p);
+  return slice.reduce((a,x)=>a+x,0)/slice.length;
+}
+
+/* =====================================================================
+   3. TÁC NHÂN AI — GỌI OPENROUTER (hoặc mock)
+   ===================================================================== */
+function getApiKey(){ return $('apiKey').value.trim(); }
+function modelOf(selId, customId){
+  const sel = $(selId), cust = $(customId);
+  if(sel.value === '__custom__') return cust.value.trim();
+  return sel.value;
+}
+function getModels(){
+  return {
+    Macro_Analyst: modelOf('modelMacro','modelMacroCustom') || AGENTS[0].defaultModel,
+    Technical_Analyst: modelOf('modelTech','modelTechCustom') || AGENTS[1].defaultModel,
+    Institutional_Whale: modelOf('modelWhale','modelWhaleCustom') || AGENTS[2].defaultModel,
+    Retail_Crowd: modelOf('modelRetail','modelRetailCustom') || AGENTS[3].defaultModel,
+  };
+}
+
+function marketSnapshot(){
+  const i = S.ind;
+  const tf = TF[S.tf];
+  let lines = [];
+  lines.push(`Giá hiện tại: ${fmtPrice(S.price)}/oz (nguồn: ${S.priceSrc}).`);
+  lines.push(`Khung ${tf.label}: dự báo ${tf.steps} nến ≈ ${tf.horizon}.`);
+  if(i){
+    lines.push(`Dữ liệu ${i.n} nến gần nhất — RSI(14): ${fmtNum(i.rsi,1)} | EMA20: ${fmtPrice(i.ema20)} | EMA50: ${fmtPrice(i.ema50)} | MACD hist: ${fmtNum(i.macdHist,2)} | ATR: ${fmtPrice(i.atr)} | Xu hướng EMA20/50: ${i.trend}.`);
+    lines.push(`Hỗ trợ gần nhất: ${fmtPrice(i.sup)} | Kháng cự gần nhất: ${fmtPrice(i.res)} | Biến động thực tế: ${(S.vol*100).toFixed(2)}%/nến | Nến gần nhất: ${i.lastRet>=0?'+':''}${i.lastRet.toFixed(2)}%.`);
+  }
+  const ctx = $('ctxInput').value.trim();
+  if(ctx) lines.push(`Bối cảnh bổ sung từ người điều hành: ${ctx}`);
+  return lines.join('\n');
+}
+
+function personaOf(a){ return a.persona; }
+
+function buildRoundPrompt(agent, round, roundData){
+  const snap = marketSnapshot();
+  // Ràng buộc chung: cấm bịa số liệu (các model hay hallucination mức giá)
+  const NO_FAB = '\nTUYỆT ĐỐI chỉ dùng các con số, mức giá, vùng hỗ trợ/kháng cự CÓ TRONG dữ liệu được cung cấp ở trên. KHÔNG bịa ra mức giá, chỉ báo hay sự kiện không có trong dữ liệu.\n';
+  if(round===1){
+    return `${personaOf(agent)}
+Đọc kỹ dữ liệu thị trường sau và đưa ra LẬP TRƯỜNG BAN ĐẦU của bạn về giá vàng trong ${TF[S.tf].horizon}:
+---
+${snap}
+---
+${NO_FAB}
+Trả về DUY NHẤT một JSON hợp lệ (không markdown, không giải thích thêm):
+{"sentiment_score": <số từ -1.0 (rất tiêu cực/bán mạnh) đến +1.0 (rất tích cực/mua mạnh)>, "confidence": <số 0.0-1.0>, "reasoning": "<luận điểm chính bằng tiếng Việt, 2-3 câu, nêu rõ con số/căn cứ>"}`;
+  }
+  if(round===2){
+    const others = roundData.filter(x=>x.key!==agent.key).map(x=>`• ${x.title} (tâm lý ${x.stance>=0?'+':''}${x.stance.toFixed(2)}): ${x.reasoning}`).join('\n');
+    return `${personaOf(agent)}
+Lập trường ban đầu của bạn: ${roundData.find(x=>x.key===agent.key)?.reasoning || ''}
+Đây là lập trường của các chuyên gia khác trong HỘI ĐỒNG:
+${others}
+Nhiệm vụ PHẢN BIỆN: chỉ ra 1-2 lỗ hổng logic / luận điểm yếu / rủi ro bị bỏ sót quan trọng nhất trong các quan điểm trên (đặc biệt quan điểm đối lập với bạn), rồi CẬP NHẬT tâm lý của bạn sau khi nghe phản biện.
+${NO_FAB}
+Trả về DUY NHẤT một JSON hợp lệ:
+{"critique": "<phản biện ngắn gọn, sắc bén, tiếng Việt>", "revised_sentiment": <số -1.0 đến +1.0>, "confidence": <số 0.0-1.0>, "reasoning": "<lập trường sau phản biện, 2 câu>"}`;
+  }
+  // round 3
+  const myEntry = roundData.find(x=>x.key===agent.key);
+  const critiques = roundData.filter(x=>x.key!==agent.key).map(x=>`• Phản biện của ${x.title}: ${x.critique || '(không có)'}`).join('\n');
+  return `${personaOf(agent)}
+Lập trường hiện tại của bạn: ${myEntry?.reasoning || ''} (tâm lý ${myEntry?.stance>=0?'+':''}${myEntry?.stance.toFixed(2)})
+Các phản biện dành cho lập trường của bạn:
+${critiques}
+Nhiệm vụ ĐIỀU CHỈNH CUỐI CÙNG: cân nhắc các phản biện (giữ vững nếu phản biện không thuyết phục, điều chỉnh nếu có cơ sở), đưa ra LẬP TRƯỜNG CUỐI CÙNG cho ${TF[S.tf].horizon}.
+${NO_FAB}
+Trả về DUY NHẤT một JSON hợp lệ:
+{"sentiment_score": <số -1.0 đến +1.0>, "confidence": <số 0.0-1.0>, "reasoning": "<lập trường cuối cùng, 2-3 câu, tiếng Việt>"}`;
+}
+
+async function callLLM(agent, round, roundData, apiKey, modelOverride){
+  const model = modelOverride || getModels()[agent.key];
+  const ctl = new AbortController();
+  const t = setTimeout(()=>ctl.abort(), 90000);
+  try{
+    const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer '+apiKey,
+        'HTTP-Referer':'https://localhost',
+        'X-Title':'XAUUSD AI Debate Arena',
+      },
+      body: JSON.stringify({model, messages:[{role:'user', content:buildRoundPrompt(agent, round, roundData)}], temperature:0.4, max_tokens:600}),
+      signal: ctl.signal,
+    });
+    const remaining = r.headers.get('x-ratelimit-remaining');
+    const limit = r.headers.get('x-ratelimit-limit');
+    if(!r.ok){
+      const retryAfter = parseInt(r.headers.get('retry-after') || '0', 10) || 0;
+      const err = new Error('HTTP ' + r.status + (retryAfter ? ' (chờ '+retryAfter+'s)' : ''));
+      err.status = r.status; err.retryAfter = retryAfter;
+      throw err;
+    }
+    const d = await r.json();
+    const msg = d?.choices?.[0]?.message || {};
+    let content = msg.content || '';
+    // Model suy luận (DeepSeek R1, thinking...) thường trả lời nằm trong trường reasoning, content rỗng
+    if(!content) content = msg.reasoning || msg.reasoning_content || '';
+    if(!content) throw new Error('API trả về nội dung rỗng');
+    return {content, model, remaining, limit};
+  } finally { clearTimeout(t); }
+}
+
+/* Mock dữ liệu khi không có API key hoặc lỗi kết nối */
+function mockAgent(agent, round, r1){
+  const M = {
+    Macro_Analyst: {
+      r1:{stance:0.55, conf:0.8, reason:'DXY suy yếu và kỳ vọng Fed hạ lãi suất từ quý IV củng cố vai trò trú ẩn của vàng; rủi ro địa chính trị duy trì dòng mua phòng thủ của các NHTW.'},
+      r2:{critique:'Quan điểm kỹ thuật quá nhấn mạnh RSI ngắn hạn — vàng trong chu kỳ vĩ mô nới lỏng thường vượt vùng quá mua trong thời gian dài; bỏ qua sức ép DXY.'},
+      r3:{stance:0.5, conf:0.82, reason:'Sau khi cân nhắc phản biện: vẫn duy trì xu hướng tăng vĩ mô nhưng thừa nhận khả năng điều chỉnh kỹ thuật ngắn hạn trước vùng kháng cự; hạ nhẹ mức độ tích cực.'},
+    },
+    Technical_Analyst: {
+      r1:{stance:-0.2, conf:0.75, reason:'RSI tiệm cận vùng quá mua 68-70, MACD có dấu hiệu phân kỳ âm nhẹ; giá chạm vùng kháng cự nhiều lần chưa phá — xác suất điều chỉnh ngắn hạn cao.'},
+      r2:{critique:'Lập luận vĩ mô đúng hướng nhưng chưa định lượng: nếu Fed hạ lãi suất, mô hình nến tăng vẫn chiếm ưu thế; kháng cự có thể bị phá trong 1-2 phiên.'},
+      r3:{stance:-0.1, conf:0.72, reason:'Giữ quan điểm thận trọng ngắn hạn: chờ xác nhận phá kháng cự đi kèm khối lượng trước khi đuổi mua; nâng nhẹ điểm do lực vĩ mô hỗ trợ.'},
+    },
+    Institutional_Whale: {
+      r1:{stance:0.4, conf:0.9, reason:'Lượng vàng do các NHTW nắm giữ tăng tháng thứ 9 liên tiếp; dòng vốn ETF vàng toàn cầu chuyển sang ròng dương, tạo lớp hỗ trợ mua tại vùng giá hiện tại.'},
+      r2:{critique:'Phản biện kỹ thuật chỉ đúng cho nhà giao dịch lướt sóng; dòng tiền tổ chức quan tâm tích trữ 6-12 tháng, đợt điều chỉnh 1-2% không thay đổi chiến lược.'},
+      r3:{stance:0.45, conf:0.88, reason:'Giữ lập trường tích cực: đợt điều chỉnh kỹ thuật nếu xảy ra sẽ là cơ hội gia tăng vị thế của dòng tiền lớn tại vùng hỗ trợ EMA50.'},
+    },
+    Retail_Crowd: {
+      r1:{stance:0.1, conf:0.6, reason:'Tâm lý mạng xã hội phân hoá: một bộ phận FOMO đuổi mua phá đỉnh, phần còn lại chờ điều chỉnh để bắt đáy; chưa có dòng tiền nhỏ lẻ áp đảo.'},
+      r2:{critique:'Quan điểm quỹ bỏ qua rủi ro thanh khoản: nếu thanh khoản toàn cầu thắt chặt bất ngờ, dòng tiền tổ chức cũng có thể đảo chiều nhanh; nhỏ lẻ thường bị cuốn theo.'},
+      r3:{stance:0.05, conf:0.58, reason:'Sau phản biện, giữ tâm lý trung lập nhẹ: phần lớn nhỏ lẻ đang đứng ngoài quan sát, chỉ tham gia khi có tín hiệu phá đỉnh rõ ràng kèm khối lượng.'},
+    },
+  };
+  const m = M[agent.key];
+  if(round===1) return {stance:m.r1.stance, conf:m.r1.conf, reason:m.r1.reason, model:'(mẫu)'};
+  if(round===2) return {critique:m.r2.critique, stance:m.r2.stance ?? m.r1.stance, conf:m.r2.conf ?? m.r1.conf, reason:m.r2.reason || m.r1.reason, model:'(mẫu)'};
+  return {stance:m.r3.stance, conf:m.r3.conf, reason:m.r3.reason, model:'(mẫu)'};
+}
+
+/* =====================================================================
+   4. ĐIỀU PHỐI TRANH LUẬN NHIỀU VÒNG
+   ===================================================================== */
+async function runDebate(apiKey, onStatus){
+  const rounds = S.rounds;
+  const timeline = [];
+  let prev = null; // kết quả vòng trước: [{key, title, stance, conf, reason, critique, model}]
+
+  for(let r=1; r<=rounds; r++){
+    onStatus(`Vòng ${r}/${rounds} — ${r===1?'Khởi tạo lập trường':r===2?'Phản biện chéo':'Điều chỉnh cuối'}`, 'Đang hỏi ' + AGENTS.length + ' chuyên gia AI...');
+    /* Chạy tuần tự nếu có model free (giảm bùng nổ 429) — song song nếu toàn model trả phí */
+    const chosen = getModels();
+    const anyFree = Object.values(chosen).some(m=>m.includes(':free') || m==='openrouter/free');
+    const runAgentTask = async (agent) => {
+      onStatus(null, null, agent.key, 'run');
+      if(!apiKey){
+        await delay(300);
+        const m = mockAgent(agent, r, prev);
+        return {key:agent.key, title:agent.title, icon:agent.icon, stance:m.stance, conf:m.conf, reason:m.reason, critique:m.critique, model:'', fallback:false, mock:true};
+      }
+      const chosenModel = getModels()[agent.key];
+      /* Chuỗi model: chọn của bạn → nếu 429/lỗi thì lần lượt thử model free khác */
+      const chain = [...new Set([chosenModel, ...FREE_FALLBACK_CHAIN])];
+      /* Thử tối đa 2 lần: lần 2 khi model trả sai JSON HOẶC trả số mà thiếu lý do */
+      const parseEntry = (j, round)=>{
+        if(round===1 || round===3){
+          const stance = clamp(gfloat(j,['sentiment_score','sentiment']), -1, 1);
+          const conf = clamp(gfloat(j,['confidence'], 0.7), 0, 1);
+          const reason = String(j.reasoning || j.reason || '').slice(0, 600);
+          return {stance, conf, reason, critique:null};
+        }
+        return {
+          critique: String(j.critique || '').slice(0, 500),
+          stance: clamp(gfloat(j,['revised_sentiment','sentiment_score','sentiment'], 0), -1, 1),
+          conf: clamp(gfloat(j,['confidence'], 0.7), 0, 1),
+          reason: String(j.reasoning || '').slice(0, 400).trim(), // rỗng = chưa có lý do, sẽ xử lý sau
+        };
+      };
+      try{
+        let entry = null, model = '', lastErr = '';
+        for(const m of chain){
+          for(let attempt=1; attempt<=2 && !entry; attempt++){
+            try{
+              const res = await callLLM(agent, r, prev, apiKey, m);
+              model = res.model;
+              // hiển thị quota còn lại nếu OpenRouter trả header
+              if(res.remaining != null && res.limit != null){
+                log(`📊 ${agent.title} (${model}): còn ${res.remaining}/${res.limit} lượt gọi hôm nay.`, 'info');
+              }
+              const j = extractJson(res.content);
+              if(!j){ lastErr = 'JSON không hợp lệ'; if(attempt===1) log(`🔁 ${agent.title} (${model}) trả lời sai định dạng — thử lại lần 2...`, 'warn'); continue; }
+              const e = parseEntry(j, r);
+              const reasonOk = e.reason && e.reason.trim().length >= 15;
+              const critiqueOk = e.critique && e.critique.trim().length >= 10;
+              if(r===2){
+                // Vòng phản biện phải có critique HOẶC reasoning — tránh hiện "(đã cập nhật sau phản biện)" vô nghĩa
+                if(!reasonOk && !critiqueOk){
+                  lastErr = 'thiếu phản biện/lý do';
+                  if(attempt===1) log(`🔁 ${agent.title} (${model}) trả điểm mà KHÔNG kèm phản biện/lý do — thử lại lần 2...`, 'warn');
+                  continue;
+                }
+                if(!reasonOk && critiqueOk) e.reason = e.critique + ' (đã cập nhật tâm lý sau phản biện)';
+              }else{
+                // Vòng 1 & 3 bắt buộc phải có lý do — model trả số "mù" (+1.0/100% không giải thích) là đáng ngờ
+                if(!reasonOk){
+                  lastErr = 'thiếu lý do phân tích';
+                  if(attempt===1) log(`🔁 ${agent.title} (${model}) trả về điểm nhưng KHÔNG kèm lý do (${e.stance>=0?'+':''}${e.stance.toFixed(2)}) — thử lại lần 2...`, 'warn');
+                  continue;
+                }
+              }
+              entry = e;
+            }catch(e){
+              lastErr = String(e?.message || e).slice(0, 120);
+              const is429 = e.status === 429 || /429/.test(lastErr);
+              if(is429){
+                const wait = Math.min(e.retryAfter || 0, 30);
+                log(`⏳ ${agent.title} (${m}): bị giới hạn (429) — chờ ${wait || 3}s rồi ${chain.length>1 ? 'thử model khác.' : 'thử lại.'}`, 'warn');
+                await delay((wait || 3) * 1000 + Math.random() * 800);
+                if(wait >= 30) break; // chờ quá lâu → chuyển model dự phòng
+                continue;
+              }
+              if(attempt===1) log(`🔁 ${agent.title} (${m}) lỗi gọi: ${lastErr} — thử lại lần 2...`, 'warn');
+            }
+          }
+          if(entry) break;
+          if(chain.indexOf(m) < chain.length - 1){
+            log(`🔄 ${agent.title}: đổi sang model dự phòng "${chain[chain.indexOf(m)+1]}"...`, 'warn');
+          }
+        }
+        if(!entry) throw new Error(lastErr || 'lỗi không xác định');
+        // hiển thị: nếu vòng 2 còn thiếu lý do (hiếm) → dùng critique hoặc placeholder
+        if(r===2 && (!entry.reason || entry.reason.length < 15)){
+          entry.reason = (entry.critique && entry.critique.trim()) ? entry.critique + ' (đã cập nhật tâm lý sau phản biện)' : '(đã cập nhật sau phản biện)';
+        }
+        // cảnh báo điểm cực đoan hợp lệ nhưng hiếm gặp
+        if(Math.abs(entry.stance) >= 0.95 && entry.conf >= 0.95){
+          log(`⚠️ ${agent.title} (${model}) đưa ra mức ${entry.stance>=0?'+':''}${entry.stance.toFixed(2)}/tự tin ${(entry.conf*100).toFixed(0)}% — điểm cực đoan, hãy đọc kỹ lý do của nó.`, 'warn');
+        }
+        onStatus(null, null, agent.key, 'done');
+        return {key:agent.key, title:agent.title, icon:agent.icon, stance:entry.stance, conf:entry.conf, reason:entry.reason, critique:entry.critique, model, fallback:false, mock:false};
+      }catch(e){
+        const errMsg = String(e?.message || e).slice(0, 120);
+        log(`⚠️ ${agent.title} (${chosenModel}) lỗi: ${errMsg} — dùng dữ liệu dự phòng.`, 'warn');
+        const m = mockAgent(agent, r, prev);
+        onStatus(null, null, agent.key, 'fail');
+        return {key:agent.key, title:agent.title, icon:agent.icon, stance:m.stance, conf:m.conf, reason:m.reason, critique:m.critique, model:chosenModel, fallback:true, mock:true, err:errMsg};
+      }
+    };
+    const results = anyFree
+      ? await (async ()=>{ const arr=[]; for(const a of AGENTS){ arr.push(await runAgentTask(a)); await delay(900); } return arr; })()
+      : await Promise.all(AGENTS.map(runAgentTask));
+    const ordered = AGENTS.map(a=>results.find(x=>x.key===a.key));
+    timeline.push({round:r, entries: ordered});
+    prev = ordered.map(x=>({key:x.key, title:x.title, stance:x.stance, conf:x.conf, reason:x.reason, critique:x.critique}));
+  }
+
+  // Lập trường cuối = vòng cuối
+  const finals = timeline[timeline.length-1].entries.map(e=>({...e, round:timeline.length}));
+  return {timeline, finals};
+}
+
+/* =====================================================================
+   5. ĐỒNG THUẬN + TRỌNG SỐ THEO KHUNG + TRỌNG SỐ HỌC ĐƯỢC
+   ===================================================================== */
+function computeConsensus(finals){
+  const w = TF[S.tf].weights;
+  const wmap = {Macro_Analyst:w.macro, Technical_Analyst:w.tech, Institutional_Whale:w.whale, Retail_Crowd:w.retail};
+  const mult = learnedMultipliers(loadLearn());
+  const rawW = {}; let sumW = 0;
+  for(const a of AGENTS){ rawW[a.key] = wmap[a.key] * (mult[a.key] || 1); sumW += rawW[a.key]; }
+  let num=0, den=0;
+  for(const f of finals){
+    const eff = (rawW[f.key]/sumW) * (0.5 + f.conf/2); // trọng số điều chỉnh theo độ tự tin
+    num += eff * f.stance; den += eff;
+  }
+  const consensus = den>0 ? num/den : 0;
+  let verdict;
+  if(consensus>=0.3) verdict='MUA MẠNH 📈';
+  else if(consensus>=0.1) verdict='MUA NHẸ 📈';
+  else if(consensus>-0.1) verdict='TRUNG LẬP ↔️';
+  else if(consensus>-0.3) verdict='BÁN NHẸ 📉';
+  else verdict='BÁN MẠNH 📉';
+  return {consensus, verdict, mult};
+}
+
+/* =====================================================================
+   6. ĐÁM ĐÔNG BỎ PHIẾU
+   ===================================================================== */
+function simulateCrowd(finals, nVoters){
+  const mb = clamp(S.momentum*0.35 + randomNormal()*0.05, -0.4, 0.4);
+  const voters = [];
+  for(let i=0;i<nVoters;i++){
+    const bias = clamp(mb + randomNormal()*0.35, -1, 1);
+    const pers = finals.map(f=>({
+      key:f.key, title:f.title,
+      p: clamp(f.conf*(1-0.85*Math.abs(f.stance-bias)) + randomNormal()*0.12, 0, 1.5),
+    }));
+    const total = pers.reduce((a,x)=>a+x.p,0);
+    const pos = total>0 ? pers.reduce((a,x,i)=>a+x.p*finals[i].stance,0)/total : 0;
+    voters.push({bias, pos, pers});
+  }
+  const bull = voters.filter(v=>v.pos>0.12).length;
+  const bear = voters.filter(v=>v.pos<-0.12).length;
+  const neu = nVoters-bull-bear;
+  const crowdMean = voters.reduce((a,v)=>a+v.pos,0)/nVoters;
+  // phiếu thuyết phục theo từng agent
+  const votes = {};
+  finals.forEach(f=>votes[f.key]=0);
+  voters.forEach(v=>{
+    const winner = v.pers.reduce((a,x)=>x.p>a.p?x:a, v.pers[0]);
+    votes[winner.key]++;
+  });
+  return {nVoters, bull, bear, neu, crowdMean, votes, momentum:mb, voters};
+}
+
+/* =====================================================================
+   7. MONTE CARLO — GBM với drift từ đồng thuận
+   ===================================================================== */
+function runMonteCarlo(){
+  const cfg = TF[S.tf];
+  const steps = cfg.steps;
+  const vol = S.vol;
+  const drift = S.consensus * vol * 0.45 + S.momentum * vol * 0.10;
+  const last = S.klines[S.klines.length-1].c;
+  const start = S.price || last;
+  const stepMs = cfg.stepMin*60000;
+  const t0 = (S.klines[S.klines.length-1].t + stepMs);
+  const paths = [];
+  const rows = [];
+  for(let i=0;i<S.paths;i++){
+    let p = start; const path=[p];
+    for(let s=0;s<steps;s++){
+      p = p * Math.exp((drift - 0.5*vol*vol) + vol*randomNormal());
+      path.push(p);
+    }
+    paths.push(path);
+  }
+  for(let s=0;s<=steps;s++){
+    const vals = paths.map(p=>p[s]);
+    vals.sort((a,b)=>a-b);
+    const mean = vals.reduce((a,x)=>a+x,0)/vals.length;
+    const p10 = vals[Math.floor(vals.length*0.10)];
+    const p90 = vals[Math.floor(vals.length*0.90)];
+    const p50 = vals[Math.floor(vals.length*0.50)];
+    const probUp = vals.filter(v=>v>start).length/vals.length;
+    rows.push({t: t0+s*stepMs, open: s===0?start:rows[s-1]?.close??start, close:mean, high:Math.max(mean,p90), low:Math.min(mean,p10), p10, p50, p90, probUp});
+  }
+  const lastRow = rows[rows.length-1];
+  return {rows, steps, start, drift, target:lastRow.close, p10:lastRow.p10, p90:lastRow.p90, p50:lastRow.p50, probUp:lastRow.probUp};
+}
+
+/* =====================================================================
+   8. ELO
+   ===================================================================== */
+function loadElo(){ return store.get('arena_elo_v2', {}); }
+function updateElo(votes){
+  const elo = loadElo(); const total = Object.values(votes).reduce((a,x)=>a+x,0)||1;
+  for(const f of AGENTS){
+    const wins = votes[f.key]||0;
+    const share = wins/total;
+    const e = elo[f.key] || {elo:1200, runs:0, wins:0};
+    e.elo = Math.round(clamp(e.elo + 24*(share-0.25), 800, 1600));
+    e.runs++; e.wins += wins;
+    elo[f.key] = e;
+  }
+  store.set('arena_elo_v2', elo);
+  return elo;
+}
+
+/* =====================================================================
+   9. RENDER
+   ===================================================================== */
+function renderTicker(){
+  $('tickPrice').innerHTML = fmtPrice(S.price) + ' <small>USD/oz</small>';
+  $('tickSrc').textContent = 'Nguồn: ' + S.priceSrc + ' · Cập nhật ' + new Date().toLocaleTimeString('vi-VN');
+}
+function renderMetrics(){
+  const c = S.consensus, t = S.target;
+  const col = c>=0.1?'var(--up)': c<=-0.1?'var(--down)':'var(--neutral)';
+  const el = $('mConsensus'); el.textContent = (c>=0?'+':'') + c.toFixed(3);
+  el.style.color = col;
+  $('mConsensusSub').textContent = S.verdict;
+  $('mTarget').textContent = t? fmtPrice(t):'—';
+  $('mTargetSub').textContent = t? ((t/S.price-1)*100>=0?'+':'') + ((t/S.price-1)*100).toFixed(2)+'% so với giá hiện tại' : '—';
+  $('mRange').textContent = S.mc? fmtPrice(S.mc.p10)+' – '+fmtPrice(S.mc.p90) : '—';
+  $('mProb').textContent = S.mc? (S.mc.probUp*100).toFixed(1)+'%' : '—';
+  $('mProbSub').textContent = 'trong ' + TF[S.tf].steps + ' nến (' + TF[S.tf].horizon + ')';
+}
+function renderConsensusBox(){
+  const box = $('consensusBox');
+  if(!S.debate){ box.style.display='none'; return; }
+  box.style.display='flex';
+  $('cVerdict').textContent = S.verdict;
+  $('cVerdict').style.color = S.consensus>=0.1?'var(--up)': S.consensus<=-0.1?'var(--down)':'var(--neutral)';
+  const parts = S.finals.map(f=>{
+    const color = f.stance>0?'var(--up)': f.stance<0?'var(--down)':'var(--neutral)';
+    return `<b style="color:${color}">${f.icon} ${f.title} ${f.stance>=0?'+':''}${f.stance.toFixed(2)}</b>`;
+  }).join(' &nbsp;·&nbsp; ');
+  $('cVerdictText').innerHTML =
+    `Điểm đồng thuận ròng từ ${S.finals.length} chuyên gia: <b>${(S.consensus>=0?'+':'')+S.consensus.toFixed(3)}</b> (trọng số theo khung ${TF[S.tf].label} + độ tự tin).<br>`+
+    `Đám đông ${S.crowd.nVoters} cử tri: <span style="color:var(--up)">Mua ${S.crowd.bull}</span> · <span style="color:var(--muted)">Trung lập ${S.crowd.neu}</span> · <span style="color:var(--down)">Bán ${S.crowd.bear}</span>.<br>`+
+    `<div style="margin-top:6px; font-size:12.5px; color:var(--muted);">${parts}</div>`;
+}
+
+function ensurePlotly(cb, tries=0){
+  if(window.Plotly) return cb();
+  if(tries>40){ log('Không tải được thư viện biểu đồ Plotly (kiểm tra mạng).','err'); return; }
+  setTimeout(()=>ensurePlotly(cb, tries+1), 250);
+}
+
+function renderChart(){
+  ensurePlotly(()=>{
+    const k = S.klines, mc = S.mc, cfg = TF[S.tf];
+    const real = k.slice(-90);
+    const xReal = real.map(c=>c.t), xFc = mc.rows.map(r=>r.t);
+    const realDates = xReal.map(t=>new Date(t));
+    const fcDates = xFc.map(t=>new Date(t));
+    const traceReal = {x:realDates, open:real.map(c=>c.o), high:real.map(c=>c.h), low:real.map(c=>c.l), close:real.map(c=>c.c), type:'candlestick', name:'Thực tế ('+S.klineSrc.split('·')[0].trim()+')',
+      increasing:{line:{color:'#10b981',width:1}, fillcolor:'#10b981'},
+      decreasing:{line:{color:'#ef4444',width:1}, fillcolor:'#ef4444'}, whiskerwidth:0.3};
+    const traceFc = {x:fcDates, open:mc.rows.map(r=>r.open), high:mc.rows.map(r=>r.high), low:mc.rows.map(r=>r.low), close:mc.rows.map(r=>r.close), type:'candlestick', name:'Dự báo (đường kỳ vọng)',
+      increasing:{line:{color:'#22d3ee',width:1}, fillcolor:'rgba(34,211,238,.55)'}, decreasing:{line:{color:'#fb923c',width:1}, fillcolor:'rgba(251,146,60,.55)'}, whiskerwidth:0.3};
+    const traceP90 = {x:fcDates, y:mc.rows.map(r=>r.p90), type:'scatter', mode:'lines', name:'P90 (biên trên)',
+      line:{color:'rgba(56,189,248,.45)', width:1, dash:'dot'}};
+    const traceP10 = {x:fcDates, y:mc.rows.map(r=>r.p10), type:'scatter', mode:'lines', name:'P10–P90 (xác suất 80%)', fill:'tonexty', fillcolor:'rgba(56,189,248,.08)',
+      line:{color:'rgba(56,189,248,.45)', width:1, dash:'dot'}};
+    const traceMean = {x:fcDates, y:mc.rows.map(r=>r.close), type:'scatter', mode:'lines', name:'Kỳ vọng trung bình',
+      line:{color:'#f5c518', width:2}};
+    const shapes = [{
+      type:'line', x0:realDates[realDates.length-1], x1:realDates[realDates.length-1],
+      y0:Math.min(...real.map(c=>c.l), mc.p10), y1:Math.max(...real.map(c=>c.h), mc.p90),
+      line:{color:'rgba(255,255,255,.25)', width:1, dash:'dash'}
+    }];
+    const layout = {
+      paper_bgcolor:'#111c30', plot_bgcolor:'#0b1220',
+      font:{color:'#8ea3c0', family:'Segoe UI, sans-serif'},
+      xaxis:{gridcolor:'#1e2c47', type:'date', rangeslider:{visible:false},
+             tickformat: cfg.stepMin>=1440?'%d/%m/%Y':'%d/%m %H:%M'},
+      yaxis:{gridcolor:'#1e2c47', title:{text:'USD / oz', font:{size:12}}},
+      margin:{t:30, l:60, r:20, b:45},
+      legend:{orientation:'h', y:1.12, font:{size:11}},
+      shapes,
+      annotations:[{
+        x: fcDates[fcDates.length-1], y: mc.target, ax: -70, ay: -30,
+        text: 'Mục tiêu ' + fmtPrice(mc.target), showarrow:true,
+        arrowcolor:'#f5c518', font:{color:'#f5c518', size:12}, bgcolor:'rgba(245,197,24,.1)'
+      }]
+    };
+    Plotly.react('chart', [traceP90, traceP10, traceReal, traceFc, traceMean], layout, {responsive:true, displaylogo:false});
+    $('chartLegend').textContent = 'Biến động ' + (S.vol*100).toFixed(2) + '%/nến · Drift ' + (mc.drift>=0?'+':'') + (mc.drift*100).toFixed(3) + '% · ' + S.paths + ' kịch bản';
+  });
+}
+
+function renderAgentCards(){
+  const html = S.finals.map(f=>{
+    const col = f.stance>0?'var(--up)': f.stance<0?'var(--down)':'var(--neutral)';
+    const lbl = f.stance>=0.3?'MUA MẠNH': f.stance>=0.1?'MUA': f.stance>-0.1?'TRUNG LẬP': f.stance>-0.3?'BÁN':'BÁN MẠNH';
+    const pct = (f.stance+1)/2*100;
+    let modelLine;
+    if(f.mock && !f.fallback){
+      modelLine = '<span style="color:#fbbf24;">(dữ liệu mẫu — chưa có API key)</span>';
+    }else if(f.fallback){
+      modelLine = `${esc(f.model||'?')} · <span style="color:#f87171;">⚠️ API lỗi (${esc(f.err||'lỗi')}) — dữ liệu dự phòng</span>`;
+    }else{
+      modelLine = esc(f.model||'');
+    }
+    return `<div class="agent">
+      <div class="head">
+        <div class="avatar">${f.icon}</div>
+        <div>
+          <div class="name">${esc(f.title)}</div>
+          <div class="model" translate="no">${modelLine}</div>
+        </div>
+        <span class="stance" style="background:${col}; color:#04121a;">${lbl}</span>
+      </div>
+      <div class="bar" style="background:linear-gradient(90deg, rgba(239,68,68,.35), rgba(148,163,184,.2) 50%, rgba(16,185,129,.35));">
+        <div class="fill" style="width:${pct}%; background:${col};"></div>
+        <div class="mid"></div>
+      </div>
+      <div class="bar-row"><span>Tâm lý: ${f.stance>=0?'+':''}${f.stance.toFixed(2)}</span><span>Tự tin: ${(f.conf*100).toFixed(0)}%</span></div>
+      <div class="reason">💡 ${esc(f.reason||'')}</div>
+    </div>`;
+  }).join('');
+  $('agentCards').innerHTML = html;
+}
+
+function renderDebateLog(){
+  const tl = S.debate.timeline;
+  const roundNames = {1:'Lập trường ban đầu', 2:'Phản biện chéo', 3:'Điều chỉnh cuối cùng'};
+  let html = '<div class="tl">';
+  tl.forEach((r, ri)=>{
+    html += `<div class="tl-round">
+      <div class="rh"><span class="rnum">${r.round}</span><div><div class="rtitle">Vòng ${r.round}: ${roundNames[r.round]||''}</div>
+      <div class="rsub">${r.entries.length} chuyên gia · ${ri===0?'AI đọc dữ liệu thị trường & nêu lập trường': ri===1?'AI phản biện lẫn nhau, chỉ ra lỗ hổng logic': 'AI tổng hợp phản biện, chốt lập trường cuối'}</div></div></div>`;
+    r.entries.forEach(e=>{
+      const col = e.stance>=0?'var(--up)': e.stance<0?'var(--down)':'var(--neutral)';
+      let body = esc(e.reason||'');
+      if(e.critique) body = `<p style="margin-bottom:6px;"><span class="tag" style="background:rgba(248,113,113,.12); color:#f87171;">🔻 PHẢN BIỆN</span></p><p>${esc(e.critique)}</p>` + (e.reason? `<p style="margin-top:6px; color:#8ea3c0;"><i>↪ Cập nhật: ${esc(e.reason)}</i></p>`:'');
+      html += `<div class="tl-item">
+        <div class="who"><span>${e.icon}</span><b>${esc(e.title)}</b><span class="mdl" translate="no">${esc(e.mock && !e.fallback ? '(dữ liệu mẫu)' : (e.model||''))}</span>
+        <span class="tag" style="color:${col}; border:1px solid ${col};">${e.stance>=0?'+':''}${e.stance.toFixed(2)}</span></div>
+        ${body}
+      </div>`;
+    });
+  });
+  html += '</div>';
+  $('debateLog').innerHTML = html;
+}
+
+function renderCrowd(){
+  const c = S.crowd;
+  ensurePlotly(()=>{
+    const data = [{values:[c.bull, c.neu, c.bear], labels:['Mua ('+c.bull+')','Trung lập ('+c.neu+')','Bán ('+c.bear+')'],
+      type:'pie', hole:0.55,
+      marker:{colors:['#10b981','#64748b','#ef4444']},
+      textinfo:'label+percent', textfont:{color:'#e2e8f0', size:12},
+      hoverinfo:'label+value'}];
+    Plotly.react('voteChart', data, {
+      paper_bgcolor:'#111c30', font:{color:'#8ea3c0'}, showlegend:false,
+      margin:{t:10,b:10,l:10,r:10},
+      annotations:[{text:'<b>'+c.nVoters+'</b><br>cử tri', showarrow:false, font:{color:'#e2e8f0', size:15}}]
+    }, {responsive:true, displaylogo:false});
+  });
+  const total = c.nVoters||1;
+  $('voteBar').innerHTML =
+    `<div style="width:${c.bull/total*100}%; background:#10b981;">${(c.bull/total*100).toFixed(0)}%</div>`+
+    `<div style="width:${c.neu/total*100}%; background:#64748b;">${(c.neu/total*100).toFixed(0)}%</div>`+
+    `<div style="width:${c.bear/total*100}%; background:#ef4444;">${(c.bear/total*100).toFixed(0)}%</div>`;
+  const dir = c.crowdMean>0?'Mua': c.crowdMean<0?'Bán':'Trung lập';
+  $('voteStats').innerHTML =
+    `🧠 <b>Quan điểm bình quân của đám đông: ${dir}</b> (${(c.crowdMean>=0?'+':'')+c.crowdMean.toFixed(3)})<br>`+
+    `⚖️ Thiên kiến thị trường đưa vào: ${(c.momentum>=0?'+':'')+c.momentum.toFixed(2)} (đà giá gần nhất)<br>`+
+    `📊 Độ phân tán: ${((c.bull+c.bear)/total*100).toFixed(0)}% cử tri có quan điểm rõ ràng, ${(c.neu/total*100).toFixed(0)}% đứng ngoài.`;
+  const maxV = Math.max(1, ...Object.values(c.votes));
+  $('persuasionBars').innerHTML = S.finals.map(f=>{
+    const v = c.votes[f.key]||0;
+    const col = f.stance>=0?'#10b981': f.stance<0?'#ef4444':'#64748b';
+    return `<div style="margin-bottom:8px;">
+      <div class="bar-row"><span>${f.icon} ${esc(f.title)}</span><span>${v}/${c.nVoters} phiếu</span></div>
+      <div class="bar"><div class="fill" style="width:${v/maxV*100}%; background:${col};"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderRanking(){
+  const elo = loadElo();
+  const rows = AGENTS.map(a=>{
+    const e = elo[a.key] || {elo:1200, runs:0, wins:0};
+    const winRate = e.runs>0? (e.wins/(e.runs*S.voters||1))*100 : 0;
+    return {icon:a.icon, title:a.title, elo:e.elo, runs:e.runs, wins:e.wins, winRate};
+  }).sort((a,b)=>b.elo-a.elo);
+  if(rows.every(r=>r.runs===0)){
+    $('rankWrap').innerHTML = '<div style="color:var(--muted); padding:20px 6px;">Chưa có dữ liệu — chạy ít nhất 1 phiên mô phỏng để khởi tạo bảng xếp hạng.</div>';
+    return;
+  }
+  $('rankWrap').innerHTML = `<table>
+    <tr><th>#</th><th>Chuyên gia</th><th>ELO</th><th>Số phiên</th><th>Phiếu thuyết phục</th><th>Win rate</th></tr>
+    ${rows.map((r,i)=>`<tr>
+      <td>${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</td>
+      <td>${r.icon} ${esc(r.title)}</td>
+      <td><b>${r.elo}</b></td>
+      <td>${r.runs}</td>
+      <td>${r.wins}</td>
+      <td>${r.winRate.toFixed(1)}%</td>
+    </tr>`).join('')}
+  </table>`;
+}
+
+/* =====================================================================
+   🎯 KẾ HOẠCH THỰC CHIẾN — vùng vào lệnh, chốt lời, cắt lỗ, mức rủi ro
+   ===================================================================== */
+function renderTradingPlan(){
+  const panel = $('tradingPanel');
+  if(!S.debate || !S.mc || !S.ind){ panel.style.display='none'; return; }
+  panel.style.display = 'block';
+  const price = S.price, c = S.consensus, atr = S.ind.atr;
+  const long = c > 0.1, short = c < -0.1, flat = !long && !short;
+  const rangeW = (S.mc.p90 - S.mc.p10) / price;
+  const risk = !flat && Math.abs(c) >= 0.25 ? (rangeW>0.09?'Cao':'Thấp') : (rangeW>0.09?'Cao':'Trung bình');
+  const strength = Math.abs(c) >= 0.25 ? 'Mạnh' : Math.abs(c) >= 0.1 ? 'Trung bình' : 'Yếu';
+  const color = long ? 'var(--up)' : short ? 'var(--down)' : 'var(--neutral)';
+  const dirLabel = flat ? 'ĐỨNG NGOÀI ↔️' : long ? 'MUA 📈' : 'BÁN 📉';
+  const slDist = Math.max(1.5 * atr, price * 0.002);
+  const tpDist = Math.abs(S.target - price);
+  const rr = tpDist > 0 ? (tpDist / slDist) : 0;
+  const entryZone = long
+    ? `Mua khi giá về vùng hỗ trợ <b>${fmtPrice(S.ind.sup)}</b> (pullback) hoặc phá vững kháng cự <b>${fmtPrice(S.ind.res)}</b> (breakout)`
+    : short
+    ? `Bán khi giá lên vùng kháng cự <b>${fmtPrice(S.ind.res)}</b> (pullback) hoặc thủng hỗ trợ <b>${fmtPrice(S.ind.sup)}</b>`
+    : 'Tín hiệu chưa đủ rõ — chờ đồng thuận mạnh hơn hoặc bứt phá khỏi vùng dao động.';
+  const sl = flat ? '—' : fmtPrice(long ? price - slDist : price + slDist);
+  const tp = flat ? '—' : fmtPrice(S.target);
+  $('tradingPlan').innerHTML = `
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px;">
+    <div><div class="lbl" style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;">Hành động</div>
+      <div style="font-size:20px;font-weight:800;color:${color};margin-top:3px;">${dirLabel}</div>
+      <div style="font-size:11px;color:var(--muted);">Tín hiệu ${strength} · Rủi ro ${risk}</div></div>
+    <div><div class="lbl" style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;">Vùng vào lệnh</div>
+      <div style="font-size:13px;margin-top:5px;line-height:1.6;">${entryZone}</div></div>
+    <div><div class="lbl" style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;">Chốt lời (TP)</div>
+      <div style="font-size:17px;font-weight:700;font-family:Consolas,monospace;margin-top:3px;color:var(--up);">${tp}</div>
+      <div style="font-size:11px;color:var(--muted);">Kỳ vọng ${TF[S.tf].horizon}</div></div>
+    <div><div class="lbl" style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;">Cắt lỗ (SL)</div>
+      <div style="font-size:17px;font-weight:700;font-family:Consolas,monospace;margin-top:3px;color:var(--down);">${sl}</div>
+      <div style="font-size:11px;color:var(--muted);">1.5×ATR (${fmtPrice(atr)}/nến)</div></div>
+    <div><div class="lbl" style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;">Tỷ lệ TP/SL</div>
+      <div style="font-size:20px;font-weight:800;font-family:Consolas,monospace;margin-top:3px;color:var(--accent);">1:${rr.toFixed(1)}</div>
+      <div style="font-size:11px;color:var(--muted);">Biên độ 80%: ${fmtPrice(S.mc.p10)} – ${fmtPrice(S.mc.p90)}</div></div>
+  </div>
+  <div style="margin-top:10px;font-size:11.5px;color:var(--muted);">⚠️ Kế hoạch do máy tạo từ dữ liệu mô phỏng — không phải lời khuyên tài chính. Luôn tự kiểm chứng trước khi giao dịch.</div>`;
+}
+
+/* =====================================================================
+   🧠 TAB HỌC HỎI — thống kê độ chính xác + kinh nghiệm từng AI + lịch sử
+   ===================================================================== */
+function renderLearnTab(){
+  const h = loadHistory();
+  const learn = loadLearn();
+  const stats = computeLearnStats(h);
+  const mult = learnedMultipliers(learn);
+  // 1) Thống kê hệ thống
+  if(!h.length){
+    $('learnStats').innerHTML = '<div style="color:var(--muted); padding:14px 6px;">Chưa có dữ liệu — chạy ít nhất 1 phiên. Sau khi các phiên "chín" (đủ thời gian theo khung), hệ thống tự so với giá thực tế và rút kinh nghiệm.</div>';
+  }else{
+    const tfChips = Object.entries(stats.byTf||{}).map(([tf,o])=>{
+      const acc = o.hits/o.n*100;
+      const col = acc>=60?'var(--up)': acc>=40?'var(--neutral)':'var(--down)';
+      return `<span class="chip" style="border-color:${col}; color:${col};">${tf}: ${o.hits}/${o.n} đúng (${acc.toFixed(0)}%)</span>`;
+    }).join(' ');
+    $('learnStats').innerHTML = `
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px;">
+      <div class="mcard"><div class="lbl">Số phiên đã đánh giá</div><div class="val">${stats.n||0}</div></div>
+      <div class="mcard"><div class="lbl">Độ chính xác hướng</div><div class="val" style="color:${stats.accuracy==null?'var(--neutral)':stats.accuracy>=60?'var(--up)':'var(--down)'};">${stats.accuracy==null?'—':stats.accuracy.toFixed(0)+'%'}</div></div>
+      <div class="mcard"><div class="lbl">Sai số trung bình</div><div class="val" style="font-size:17px;">${stats.avgErr==null?'—':stats.avgErr.toFixed(2)+'%'}</div></div>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">${tfChips || '<span class="hint">Chưa có phiên đủ tuổi để đánh giá.</span>'}</div>`;
+  }
+  // 2) Kinh nghiệm từng chuyên gia
+  const rows = AGENTS.map(a=>{
+    const st = learn[a.key];
+    if(!st || !st.evals) return null;
+    const acc = st.hits/st.evals*100;
+    const m = mult[a.key] || 1;
+    const col = acc>=60?'var(--up)': acc>=40?'var(--neutral)':'var(--down)';
+    const arrow = m>1.05 ? '▲ +' + ((m-1)*100).toFixed(0) + '%' : m<0.95 ? '▼ −' + ((1-m)*100).toFixed(0) + '%' : '＝ 0%';
+    return `<tr>
+      <td>${a.icon} ${esc(a.title)}</td>
+      <td>${st.evals}</td>
+      <td style="color:var(--up);">${st.hits}</td>
+      <td style="color:var(--down);">${st.misses}</td>
+      <td><b style="color:${col};">${acc.toFixed(0)}%</b></td>
+      <td style="color:${m>1?'var(--up)':m<1?'var(--down)':'var(--muted)'};">${arrow}</td>
+    </tr>`;
+  }).filter(Boolean).join('');
+  $('learnAgents').innerHTML = rows
+    ? `<table><tr><th>Chuyên gia</th><th>Lượt đánh giá</th><th>Đúng hướng</th><th>Sai hướng</th><th>Độ chính xác</th><th>Trọng số (tự điều chỉnh)</th></tr>${rows}</table>`
+    : '<div style="color:var(--muted); padding:12px 6px;">Chưa có đánh giá nào cho từng chuyên gia — hệ thống sẽ tự học sau vài phiên.</div>';
+  // 3) Lịch sử phiên
+  if(h.length){
+    const sorted = [...h].reverse();
+    const rows2 = sorted.map(s=>{
+      const evalInfo = !s.evaluated
+        ? '<span style="color:var(--muted);">⏳ chưa đủ tuổi</span>'
+        : s.skip
+        ? '<span style="color:var(--muted);">giá phẳng</span>'
+        : s.hit
+        ? `<span style="color:var(--up);">✅ đúng hướng (sai số ${s.errorPct.toFixed(1)}%)</span>`
+        : `<span style="color:var(--down);">❌ sai hướng (sai số ${s.errorPct.toFixed(1)}%)</span>`;
+      return `<tr>
+        <td style="white-space:nowrap;">${new Date(s.time).toLocaleString('vi-VN')}</td>
+        <td>${s.tf}</td>
+        <td>${fmtPrice(s.price)}</td>
+        <td style="color:${s.consensus>0?'var(--up)':s.consensus<0?'var(--down)':'var(--muted)'};">${s.consensus>=0?'+':''}${s.consensus.toFixed(2)}</td>
+        <td>${fmtPrice(s.target)}</td>
+        <td>${s.actualPrice!=null ? fmtPrice(s.actualPrice) : '—'}</td>
+        <td>${evalInfo}</td>
+      </tr>`;
+    }).join('');
+    $('learnHistory').innerHTML = `<table><tr><th>Thời gian</th><th>TF</th><th>Giá lúc đó</th><th>Đồng thuận</th><th>Mục tiêu</th><th>Giá thực tế</th><th>Kết quả</th></tr>${rows2}</table>`;
+  }else{
+    $('learnHistory').innerHTML = '<div style="color:var(--muted); padding:12px 6px;">Chưa có phiên nào.</div>';
+  }
+}
+
+function renderAll(){
+  renderTicker(); renderMetrics(); renderConsensusBox();
+  renderChart(); renderAgentCards(); renderDebateLog(); renderCrowd(); renderRanking();
+  renderTradingPlan(); renderLearnTab(); renderBacktestPanel();
+}
+
+/* =====================================================================
+   10. ORCHESTRATOR
+   ===================================================================== */
+async function run(manual=true){
+  if(S.running) return;
+  S.running = true;
+  S.voters = clamp(parseInt($('voters').value)||80, 10, 500);
+  S.paths = clamp(parseInt($('paths').value)||300, 50, 1000);
+  $('btnRun').disabled = true;
+  const ov = $('overlay'); ov.classList.add('show');
+  const chips = {};
+  const ovStatus = $('ov-status');
+  ovStatus.innerHTML = AGENTS.map(a=>`<span class="chip" id="chip-${a.key}">${a.icon} ${esc(a.title)}</span>`).join('');
+  const setChip = (key, st)=>{
+    const el = document.getElementById('chip-'+key);
+    if(el){ el.className = 'chip ' + st; }
+  };
+  const setStep = (t, sub)=>{ $('ov-step').textContent = t||'Đang xử lý...'; $('ov-sub').textContent = sub||''; };
+
+  try{
+    setStep('Đang kết nối nguồn dữ liệu realtime...', 'Lấy giá vàng & nến lịch sử (Binance PAXG → gold-api → Yahoo)');
+    await fetchPrice();
+    await fetchKlines();
+    computeIndicators();
+    renderTicker();
+    log(`✅ Giá realtime: ${fmtPrice(S.price)} (${S.priceSrc})`, 'ok');
+    log(`✅ Nến lịch sử: ${S.klines.length} nến ${TF[S.tf].label} (${S.klineSrc}) — RSI ${fmtNum(S.ind.rsi,1)}, vol ${(S.vol*100).toFixed(2)}%/nến`);
+
+    // 🧠 Rút kinh nghiệm: đối chiếu các phiên cũ đã đủ tuổi với giá thực tế
+    const evRes = evaluateHistory(S.price, Date.now());
+    if(evRes.evaluated > 0){
+      const s = evRes.stats;
+      log(`🧠 Rút kinh nghiệm: đối chiếu ${evRes.evaluated} phiên cũ với giá thực tế — độ chính xác hướng ${s.accuracy!=null?s.accuracy.toFixed(0)+'%':'—'}${s.avgErr!=null?' · sai số TB '+s.avgErr.toFixed(2)+'%':''}.`, 'ok');
+      const changed = AGENTS.filter(a=>{
+        const m = learnedMultipliers(evRes.learn)[a.key];
+        return m && (m>1.05 || m<0.95);
+      });
+      if(changed.length){
+        log('⚖️ Tự điều chỉnh trọng số: ' + changed.map(a=>{
+          const m = learnedMultipliers(evRes.learn)[a.key];
+          const st = evRes.learn[a.key];
+          return `${a.title} ${m>1?'▲+':m<1?'▼−':'＝'}${Math.abs((m-1)*100).toFixed(0)}% (đúng ${st.hits}/${st.evals})`;
+        }).join(' · '), 'info');
+      } else {
+        log('⚖️ Trọng số các chuyên gia chưa cần điều chỉnh (chưa đủ dữ liệu hoặc độ chính xác đang quanh mức chuẩn).', 'info');
+      }
+    }
+
+    // 📰 AI nhà báo: tự tìm tin nóng trước phiên nếu được bật
+    if($('autoNews').checked){
+      setStep('AI nhà báo đang quét tin nóng về vàng...', 'Google News EN + VI → tổng hợp tin quan trọng → điền vào bối cảnh');
+      try{ await scoutNews(true); }
+      catch(e){ log('⚠️ Tự tìm tin lỗi: ' + (e?.message||e), 'warn'); }
+    }
+
+    const apiKey = getApiKey();
+    $('badge-mode').textContent = apiKey ? '🔌 LIVE — OpenRouter' : '🧪 CHẾ ĐỘ MẪU (chưa có API Key)';
+    $('badge-mode').className = 'badge ' + (apiKey?'live':'mock');
+
+    // kiểm tra model gõ tay có tồn tại trên OpenRouter không
+    const allModels = window.__OPENROUTER_MODELS || [];
+    if(apiKey && allModels.length){
+      const models = getModels();
+      for(const a of AGENTS){
+        const m = models[a.key];
+        if(m && !allModels.includes(m)){
+          log(`⚠️ Model "${m}" (${a.title}) KHÔNG có trong danh sách OpenRouter hiện tại — kiểm tra lại ID, dễ bị lỗi "rỗng" hoặc 404.`, 'warn');
+        }
+      }
+    }
+    // kiểm tra tài khoản & hạn mức
+    if(apiKey){
+      try{
+        const d = await fetchTimeout('https://openrouter.ai/api/v1/auth/key', 8000, {headers:{'Authorization':'Bearer '+apiKey}});
+        const k = d?.data;
+        if(k){
+          const used = (k.usage||0);
+          const lim = (k.limit!=null && k.limit>0) ? '$'+k.limit.toFixed(2) : 'không giới hạn';
+          log(`👤 Tài khoản OpenRouter: ${k.is_free_tier ? 'FREE TIER' : 'Có credits'} · đã dùng $${used.toFixed(2)} / ${lim}`, 'info');
+          if(k.is_free_tier) log('⚠️ Free tier: model :free giới hạn ~50 lượt/ngày và 20 lượt/phút. Nạp $10 MỘT LẦN → nâng vĩnh viễn lên 1.000 lượt/ngày cho model free.', 'warn');
+        }
+      }catch(e){ /* bỏ qua */ }
+      const models = getModels();
+      if(Object.values(models).some(m=>m.includes(':free') || m==='openrouter/free')){
+        log('🧘 Có model free → tranh luận chạy TUẦN TỰ (giãn cách 1s/agent) để tránh vượt giới hạn 20 lượt/phút. Model trả phí sẽ chạy song song nhanh hơn.', 'info');
+      }
+    }
+
+    setStep('Vòng tranh luận AI đang diễn ra...', apiKey?'Gọi các model qua OpenRouter (model miễn phí có thể chậm 20-60s — xin chờ):':'Không có API Key — chạy dữ liệu mẫu để xem trước giao diện.');
+    const t0 = Date.now();
+    S.debate = await runDebate(apiKey, (step, sub, key, st)=>{ if(step) setStep(step, sub); if(key) setChip(key, st); });
+    S.finals = S.debate.finals;
+    const t1 = Date.now();
+    log(`✅ Tranh luận xong sau ${((t1-t0)/1000).toFixed(1)}s — ${S.rounds} vòng × ${S.finals.length} chuyên gia`);
+
+    const {consensus, verdict} = computeConsensus(S.finals);
+    S.consensus = consensus; S.verdict = verdict;
+
+    setStep('Đám đông đang bỏ phiếu...', `${S.voters} cử tri mô phỏng chấm điểm từng lập trường`);
+    S.crowd = simulateCrowd(S.finals, S.voters);
+    log(`🗳️ Đám đông: Mua ${S.crowd.bull} · Trung lập ${S.crowd.neu} · Bán ${S.crowd.bear} (${S.voters} cử tri)`);
+
+    setStep('Chạy Monte Carlo...', `${S.paths} kịch bản giá ngẫu nhiên với drift từ đồng thuận ${(S.consensus>=0?'+':'')+S.consensus.toFixed(3)}`);
+    S.mc = runMonteCarlo();
+    S.target = S.mc.target;
+    log(`📊 Đồng thuận: ${(S.consensus>=0?'+':'')+S.consensus.toFixed(3)} (${verdict}) · Mục tiêu ${fmtPrice(S.target)} · P10-P90: ${fmtPrice(S.mc.p10)} – ${fmtPrice(S.mc.p90)} · P(tăng)=${(S.mc.probUp*100).toFixed(1)}%`, 'ok');
+
+    updateElo(S.crowd.votes);
+    recordSession(); // ghi phiên vào lịch sử để sau này tự rút kinh nghiệm
+    // 📈 Tự chạy backtest sau mỗi phiên để theo dõi sự trưởng thành
+    const btRes = runBacktest();
+    if(btRes){
+      log(`📈 Backtest ${S.tf}: win rate ${btRes.winRate.toFixed(0)}% (${btRes.trades} lệnh) · lãi/lỗ ${btRes.totalReturn>=0?'+':''}${btRes.totalReturn.toFixed(1)}% · PF ${btRes.pf==null?'∞':btRes.pf.toFixed(2)} · DD tối đa ${btRes.maxDD.toFixed(1)}%`, 'ok');
+    }else{
+      log('📈 Backtest: chưa đủ dữ liệu lịch sử (cần ≥60 nến + ' + TF[S.tf].steps + ' nến dự báo).', 'info');
+    }
+    renderAll();
+    $('badge-src').textContent = '🟢 Phiên ' + new Date().toLocaleTimeString('vi-VN');
+    if(manual) log('🏁 Hoàn tất phiên mô phỏng.', 'ok');
+  }catch(e){
+    log('❌ Lỗi: ' + (e?.message||e), 'err');
+    $('warnBox').style.display = 'block';
+    $('warnBox').innerHTML = '⚠️ <b>Có lỗi xảy ra:</b> ' + esc(e?.message||e) + ' — kiểm tra kết nối mạng / API Key và bấm chạy lại.';
+  }finally{
+    S.running = false;
+    $('btnRun').disabled = false;
+    ov.classList.remove('show');
+    scheduleAuto(); // kể cả lỗi vẫn cài lại chu kỳ tự động
+  }
+}
+
+/* ---------------- Auto refresh ---------------- */
+function fmtCountdown(s){
+  const m = Math.floor(s/60), ss = s%60;
+  return m + ':' + String(ss).padStart(2,'0');
+}
+
+/* Tự động chạy lại: đếm ngược hiển thị trên badge tiêu đề.
+   - Chọn thời gian ở dropdown → lập tức kích hoạt (chưa cần bấm Bắt đầu)
+   - Hết giờ → tự chạy phiên mới; sau mỗi phiên (kể cả lỗi) tự cài lại
+   - Nếu đang có phiên chạy dở → chờ xong rồi mới tính tiếp (không chồng phiên) */
+function scheduleAuto(){
+  clearInterval(S.autoTimer);
+  S.autoTimer = null;
+  S.autoLeft = 0;
+  const badge = $('badge-auto');
+  const mins = parseInt($('autoSel').value, 10);
+  if(!mins || isNaN(mins)){
+    if(badge) badge.style.display = 'none';
+    return;
+  }
+  S.autoLeft = mins*60;
+  // cảnh báo nếu dùng model free kèm auto-rerun (quota thấp)
+  try{
+    if(Object.values(getModels()).some(m=>m.includes(':free') || m==='openrouter/free')){
+      log(`⚠️ Lưu ý: model free giới hạn ~50 lượt/ngày — tự chạy lại mỗi ${mins} phút sẽ hết quota nhanh. Nên nạp $10 một lần (→ 1.000 lượt/ngày) hoặc tắt auto khi dùng free.`, 'warn');
+    }
+  }catch(e){}
+  if(badge){
+    badge.style.display = 'inline-block';
+    badge.textContent = '⏰ Tự chạy lại: ' + fmtCountdown(S.autoLeft);
+  }
+  S.autoTimer = setInterval(()=>{
+    if(S.running) return; // phiên đang chạy → chờ
+    S.autoLeft--;
+    if(S.autoLeft <= 0){
+      log('🔄 Hết giờ — tự động chạy lại phiên mô phỏng...', 'info');
+      run(false); // run() tự gọi lại scheduleAuto() để cài chu kỳ mới
+      return;
+    }
+    if(badge) badge.textContent = '⏰ Tự chạy lại: ' + fmtCountdown(S.autoLeft);
+  }, 1000);
+  log(`⏰ Tự động chạy lại mỗi ${mins} phút — đã kích hoạt (xem đồng hồ trên tiêu đề).`, 'info');
+}
+
+/* =====================================================================
+   11. KHỞI TẠO UI
+   ===================================================================== */
+function initUI(){
+  // nạp cấu hình đã lưu
+  const saved = store.get('arena_cfg_v2', {});
+  if(saved.apiKey) $('apiKey').value = saved.apiKey;
+  if(saved.ctx) $('ctxInput').value = saved.ctx;
+  if(saved.autoNews) $('autoNews').checked = true;
+  if(saved.tf && TF[saved.tf]) selectTF(saved.tf);
+  if(saved.rounds) selectRounds(saved.rounds);
+  if(saved.voters) $('voters').value = saved.voters;
+  if(saved.paths) $('paths').value = saved.paths;
+  // model pickers — chọn model tay cho từng chuyên gia
+  buildModelPicker('modelMacro','modelMacroCustom', AGENTS[0].defaultModel, saved.models?.Macro_Analyst);
+  buildModelPicker('modelTech','modelTechCustom', AGENTS[1].defaultModel, saved.models?.Technical_Analyst);
+  buildModelPicker('modelWhale','modelWhaleCustom', AGENTS[2].defaultModel, saved.models?.Institutional_Whale);
+  buildModelPicker('modelRetail','modelRetailCustom', AGENTS[3].defaultModel, saved.models?.Retail_Crowd);
+  loadAllModels(); // tải thêm toàn bộ model từ OpenRouter (nếu mạng OK)
+
+  // events
+  $('btnRun').addEventListener('click', ()=>{ saveCfg(); run(true); });
+  $('btnToggleKey').addEventListener('click', ()=>{
+    const i = $('apiKey');
+    i.type = i.type==='password' ? 'text':'password';
+  });
+  $('btnTest').addEventListener('click', async ()=>{
+    log('🔍 Kiểm tra nguồn giá...');
+    $('btnTest').disabled = true;
+    try{
+      await fetchPrice(); await fetchKlines(); computeIndicators(); renderTicker();
+      log(`✅ OK — giá ${fmtPrice(S.price)} (${S.priceSrc}) · ${S.klines.length} nến (${S.klineSrc})`, 'ok');
+    }catch(e){ log('❌ Lỗi kiểm tra: '+(e?.message||e), 'err'); }
+    $('btnTest').disabled = false;
+  });
+  $('btnResetElo').addEventListener('click', ()=>{ store.set('arena_elo_v2', {}); renderRanking(); log('↺ Đã đặt lại bảng ELO.'); });
+  $('btnClearLog').addEventListener('click', ()=>{ $('log').innerHTML=''; });
+  $('btnBT').addEventListener('click', ()=>{
+    const b = $('btnBT');
+    if(S.running){ log('⚠️ Đang có phiên chạy — chờ phiên xong rồi bấm lại.', 'warn'); return; }
+    b.disabled = true;
+    const res = runBacktest();
+    if(res){
+      log(`📈 Backtest ${S.tf} (thủ công): win rate ${res.winRate.toFixed(0)}% · lãi/lỗ ${res.totalReturn>=0?'+':''}${res.totalReturn.toFixed(1)}% · ${res.trades} lệnh`, 'ok');
+    }else{
+      log('📈 Backtest: chưa đủ nến lịch sử cho khung ' + TF[S.tf].label + '.', 'warn');
+    }
+    renderBacktestPanel();
+    b.disabled = false;
+  });
+  $('btnEvalNow').addEventListener('click', async ()=>{
+    const b = $('btnEvalNow'); b.disabled = true;
+    try{
+      if(!S.price){ await fetchPrice(); }
+      const res = evaluateHistory(S.price, Date.now());
+      renderLearnTab(); renderMetrics(); renderConsensusBox();
+      if(res.evaluated > 0){
+        log(`🧠 Đã đánh giá ${res.evaluated} phiên cũ — xem tab Học hỏi.`, 'ok');
+      }else{
+        log('🧠 Chưa có phiên nào đủ tuổi để đánh giá (theo khung thời gian của từng phiên).', 'info');
+      }
+    }catch(e){ log('❌ Lỗi đánh giá: '+(e?.message||e), 'err'); }
+    b.disabled = false;
+  });
+  $('apiKey').addEventListener('input', saveCfg);
+  $('ctxInput').addEventListener('input', saveCfg);
+  $('autoNews').addEventListener('change', saveCfg);
+  $('btnScout').addEventListener('click', async ()=>{
+    const b = $('btnScout'); b.disabled = true;
+    try{ await scoutNews(false); }catch(e){ log('❌ Lỗi tìm tin: '+(e?.message||e),'err'); }
+    b.disabled = false;
+  });
+  $('voters').addEventListener('change', ()=>{ S.voters = clamp(parseInt($('voters').value)||80, 10, 500); $('voters').value = S.voters; });
+  $('paths').addEventListener('change', ()=>{ S.paths = clamp(parseInt($('paths').value)||300, 50, 1000); $('paths').value = S.paths; });
+  $('autoSel').addEventListener('change', scheduleAuto);
+  ['modelMacro','modelTech','modelWhale','modelRetail',
+   'modelMacroCustom','modelTechCustom','modelWhaleCustom','modelRetailCustom'].forEach(id=>{
+    document.getElementById(id).addEventListener('change', saveCfg);
+  });
+
+  // tabs
+  document.querySelectorAll('.tabs button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.tabview').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      document.getElementById(b.dataset.tab).classList.add('active');
+    });
+  });
+  // segmented
+  document.querySelectorAll('#tfSeg button').forEach(b=>{
+    b.addEventListener('click', ()=>{ selectTF(b.dataset.tf); saveCfg(); });
+  });
+  document.querySelectorAll('#roundSeg button').forEach(b=>{
+    b.addEventListener('click', ()=>{ selectRounds(+b.dataset.r); saveCfg(); });
+  });
+
+  log('⚡ XAU/USD AI Debate Arena sẵn sàng. Dán OpenRouter API Key (tùy chọn) → bấm 🚀 Bắt đầu.', 'ok');
+  log('💡 Không có API Key? App tự chạy dữ liệu mẫu để bạn xem toàn bộ giao diện.');
+  renderRanking();
+  renderLearnTab();
+  renderBacktestPanel();
+}
+function selectTF(tf){
+  S.tf = tf;
+  document.querySelectorAll('#tfSeg button').forEach(b=>b.classList.toggle('active', b.dataset.tf===tf));
+  $('tfHint').textContent = 'Dự báo ' + TF[tf].steps + ' nến ≈ ' + TF[tf].horizon;
+}
+function selectRounds(r){
+  S.rounds = r;
+  document.querySelectorAll('#roundSeg button').forEach(b=>b.classList.toggle('active', +b.dataset.r===r));
+}
+function saveCfg(){
+  store.set('arena_cfg_v2', {
+    apiKey: getApiKey(),
+    tf: S.tf, rounds: S.rounds,
+    voters: parseInt($('voters').value)||80,
+    paths: parseInt($('paths').value)||300,
+    models: getModels(),
+    ctx: $('ctxInput').value,
+    autoNews: !!document.getElementById('autoNews')?.checked,
+  });
+}
+
+/* ---- Model picker: dropdown + nhập tay ---- */
+function buildModelPicker(selId, customId, defModel, saved){
+  const sel = $(selId), cust = $(customId);
+  const oDef = document.createElement('option');
+  oDef.value = ''; oDef.textContent = '✨ Mặc định: ' + defModel;
+  sel.appendChild(oDef);
+  [['🧪 Miễn phí (free)', FREE_MODELS], ['💳 Trả phí (ổn định, rẻ)', PAID_MODELS]].forEach(([g, list])=>{
+    const og = document.createElement('optgroup'); og.label = g;
+    list.forEach(m=>{ const o = document.createElement('option'); o.value = m; o.textContent = m; og.appendChild(o); });
+    sel.appendChild(og);
+  });
+  const oCus = document.createElement('option');
+  oCus.value = '__custom__'; oCus.textContent = '✏️ Nhập model khác…';
+  sel.appendChild(oCus);
+  const apply = ()=>{ cust.style.display = (sel.value === '__custom__') ? 'block' : 'none'; };
+  sel.addEventListener('change', apply);
+  if(saved){
+    if(FREE_MODELS.includes(saved) || PAID_MODELS.includes(saved)){
+      sel.value = saved;
+    }else{
+      sel.value = '__custom__'; cust.value = saved;
+    }
+  }
+  apply();
+}
+
+/* Tải toàn bộ model đang có trên OpenRouter → thêm vào dropdown */
+async function loadAllModels(){
+  try{
+    const d = await fetchTimeout('https://openrouter.ai/api/v1/models', 8000);
+    const ids = (d.data||[]).map(m=>m.id).filter(x=>x && x.indexOf('free')===-1).sort();
+    window.__OPENROUTER_MODELS = (d.data||[]).map(m=>m.id).filter(Boolean); // lưu cả free để kiểm tra
+    const known = new Set([...FREE_MODELS, ...PAID_MODELS]);
+    const others = ids.filter(x=>!known.has(x));
+    ['modelMacro','modelTech','modelWhale','modelRetail'].forEach(id=>{
+      const sel = $(id);
+      const og = document.createElement('optgroup'); og.label = '🌐 Toàn bộ model OpenRouter (' + others.length + ')';
+      others.forEach(m=>{ const o = document.createElement('option'); o.value = m; o.textContent = m; og.appendChild(o); });
+      sel.appendChild(og);
+    });
+    log('🌐 Đã tải danh sách ' + others.length + ' model OpenRouter — chọn thoải mái ở dropdown.');
+  }catch(e){
+    log('⚠️ Không tải được danh sách model OpenRouter (mạng) — vẫn chọn được model trong 2 nhóm có sẵn.', 'warn');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initUI);
+</script>
+</body>
+</html>
