@@ -1,10 +1,7 @@
 name: Arena Auto-Run 24/7
 
 # Chạy tự động MỖI 1 GIỜ = 24 phiên/ngày (24/7, gồm AI Trader mô phỏng $1.000)
-# Định tuyến đa nhà cung cấp: Macro/Tech=Gemini · Whale=OpenRouter · Retail=Groq · Trader=OpenRouter
-# Cần 3 GitHub Secrets: OPENROUTER_API_KEY · GEMINI_API_KEY · GROQ_API_KEY
-# Lưu ý: GitHub Actions miễn phí 2.000 phút/tháng (repo public) — ước tính ~1.400-1.500 phút/tháng ở tần suất 1h/lần.
-# Nếu gần hết phút trong tháng: bấm "Run workflow" vẫn chạy được, hoặc tạm đổi cron xuống '0 */2 * * *'.
+# Cần 6 GitHub Secrets: OPENROUTER_API_KEY · GEMINI_API_KEY · GROQ_API_KEY · COHERE_API_KEY · TELEGRAM_BOT_TOKEN · TELEGRAM_CHAT_ID
 "on":
   schedule:
     - cron: '0 * * * *'   # chạy đầu mỗi giờ
@@ -25,6 +22,22 @@ jobs:
 
       - name: Cài thư viện
         run: pip install numpy
+
+      # ---- KIỂM TRA TELEGRAM TRƯỚC (nhìn log là biết secret đúng/sai ngay) ----
+      - name: 🔔 Kiểm tra Telegram (getMe + gửi tin test)
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          echo "Độ dài token: ${#TELEGRAM_BOT_TOKEN} ký tự (bot token chuẩn ~46)"
+          echo "--- getMe: kiểm tra token ---"
+          curl -s "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getMe" | head -c 300
+          echo ""
+          echo "--- Gửi tin test qua Telegram ---"
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            -d "text=🔔 Kết nối Telegram từ GitHub Actions OK!" | head -c 300
+          echo ""
 
       - name: Chạy phiên mô phỏng + AI Trader 24/7
         env:
