@@ -44,7 +44,9 @@ except ImportError:
 # =====================================================================
 # HẰNG SỐ
 # =====================================================================
-UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"}
+# Groq/Cloudflare chặn UA không phải trình duyệt (Python-urllib -> 403 1010).
+# Luôn gửi UA giả Chrome cho mọi request API LLM để tránh bị chặn.
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 TIMEFRAMES = {
@@ -193,7 +195,9 @@ def http_json(url, timeout=8, headers=None):
 
 def _http_post(url, payload, headers, timeout=90):
     """POST JSON → dict. Ném lỗi kèm .status và .retry_after khi HTTP lỗi."""
-    req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
+    hdrs = dict(headers)
+    hdrs.setdefault("User-Agent", UA["User-Agent"])  # bắt buộc UA trình duyệt (Groq chặn UA bot)
+    req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=hdrs)
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return json.loads(r.read().decode("utf-8"))
@@ -554,7 +558,19 @@ def call_agent_json(agent, round_no, prev, snap, cfg):
                     "prompt_tokens": res["prompt_tokens"], "completion_tokens": res["completion_tokens"]}
         except Exception as e:
             last_err = str(e)
-            is429 = getattr(e, "status", 0) == 429 or "429" in last_err
+            status = getattr(e, "status", 0)
+            is429 = status == 429 or "429" in last_err
+            if status == 403:
+                # Key provider bị từ chối -> bỏ qua mọi model còn lại CÙNG provider, chuyển thẳng sang nguồn khác
+                while ci + 1 < len(chain) and chain[ci + 1][0] == provider:
+                    ci += 1
+                if ci + 1 < len(chain):
+                    print(f"  🔄 {agent['title']} ({provider}) bị từ chối (403) — chuyển thẳng {chain[ci+1][0]}/{chain[ci+1][1]}")
+                else:
+                    print(f"  ⚠️ {agent['title']} hết chuỗi dự phòng — dùng dữ liệu mẫu. ({last_err[:80]})")
+                    break
+                ci += 1
+                continue
             if is429:
                 print(f"  ⏳ {agent['title']} ({provider}/{model}) bị 429 (rate limit) — chờ 5s thử lại...")
                 time.sleep(5)
@@ -595,6 +611,7 @@ def run_debate(cfg, snap, rounds):
         for agent in AGENTS:
             conf = agent_conf(cfg, agent["key"])
             print(f"  🤖 [Vòng {r}] {agent['title']}... ({conf['provider']}/{conf['model']})")
+            time.sleep(1.2)  # giãn cách giữa các agent — tránh rate limit, tôn trọng giới hạn
             if not live:
                 print("     (chưa có API key — dữ liệu mẫu)")
                 time.sleep(0.1)
@@ -1046,6 +1063,41 @@ def trader_status_line(st, price):
 
 
 # =====================================================================
+# 🔑 KIỂM TRA API KEY
+# =====================================================================
+def check_api_keys(cfg):
+    """Gọi 1 request nhỏ tới từng provider để kiểm tra key còn hiệu lực không."""
+    print("🔑 Kiểm tra 4 API key (không lộ key):")
+    for name, env in (("OpenRouter", "OPENROUTER_API_KEY"), ("Groq", "GROQ_API_KEY"),
+                      ("Cohere", "COHERE_API_KEY"), ("Gemini", "GEMINI_API_KEY")):
+        key = cfg.get(env.lower(), "")
+        if not key:
+            print(f"  ❌ {name:<11} CHƯA đặt key ({env})")
+            continue
+        try:
+            if env == "OPENROUTER_API_KEY":
+                url = "https://openrouter.ai/api/v1/auth/key"
+            elif env == "GROQ_API_KEY":
+                url = "https://api.groq.com/openai/v1/models"
+            elif env == "COHERE_API_KEY":
+                url = "https://api.cohere.com/v1/models"
+            else:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models?key={key}"
+            req = urllib.request.Request(url, headers={"Authorization": "Bearer " + key,
+                                                   "User-Agent": UA["User-Agent"]})
+            with urllib.request.urlopen(req, timeout=15) as r:
+                d = json.loads(r.read().decode("utf-8"))
+                n = len(d.get("data", [])) if isinstance(d.get("data"), list) else "OK"
+                print(f"  ✅ {name:<11} key HOẠT ĐỘNG ({n} models)")
+        except urllib.error.HTTPError as e:
+            body = e.read().decode("utf-8", errors="ignore")[:150]
+            print(f"  ❌ {name:<11} key LỖI: HTTP {e.code} — {body}")
+        except Exception as e:
+            print(f"  ❌ {name:<11} lỗi: {str(e)[:100]}")
+    print("💡 Nếu Groq báo 403/1010 → key sai hoặc bị chặn: tạo key mới tại console.groq.com/keys")
+
+
+# =====================================================================
 # 📨 TELEGRAM
 # =====================================================================
 def send_telegram(text, cfg):
@@ -1269,8 +1321,13 @@ def main():
     ap.add_argument("--no-trader", action="store_true")
     ap.add_argument("--force-summary", action="store_true")
     ap.add_argument("--test-telegram", action="store_true", help="Gửi tin test qua Telegram rồi thoát")
+    ap.add_argument("--test-keys", action="store_true", help="Kiểm tra nhanh 4 API key rồi thoát")
     args = ap.parse_args()
     cfg = load_config()
+
+    if args.test_keys:
+        check_api_keys(cfg)
+        return
 
     if args.test_telegram:
         ok = send_telegram("✅ *Kết nối Telegram thành công!*\nXAU/USD AI Debate Arena sẽ gửi báo cáo mỗi phiên, "
