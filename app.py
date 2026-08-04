@@ -82,6 +82,7 @@ DEFAULT_TRADER_CONFIG = {
     "summary_every": 300,
     "telegram_token": "",
     "telegram_chat_id": "",
+    "report_every_session": True,
 }
 
 # ---------------------------------------------------------------------
@@ -181,6 +182,12 @@ def load_config():
                 cfg["trader"].update(user["trader"])
         except Exception as e:
             print(f"⚠️ Lỗi đọc config.json: {e}")
+    # Telegram: ưu tiên biến môi trường (GitHub Secrets) — ghi đè config.json
+    if os.getenv("TELEGRAM_BOT_TOKEN"):
+        cfg["trader"]["telegram_token"] = os.getenv("TELEGRAM_BOT_TOKEN")
+    if os.getenv("TELEGRAM_CHAT_ID"):
+        cfg["trader"]["telegram_chat_id"] = os.getenv("TELEGRAM_CHAT_ID")
+    cfg["trader"].setdefault("report_every_session", True)
     return cfg
 
 
@@ -1072,6 +1079,52 @@ def send_telegram(text, cfg):
         return False
 
 
+def trader_status_line(st, price):
+    """1 dòng tóm tắt trạng thái AI Trader cho báo cáo phiên."""
+    if not st:
+        return None
+    if st.get("position"):
+        p = st["position"]
+        return (f"MỞ {p['dir'].upper()} {p['tf']} · entry ${p['entry']:,.2f} · "
+                f"SL ${p['sl']:,.2f} · TP ${p['tp']:,.2f} · RR 1:{p['rr']:.1f} · rủi ro {(p.get('risk_pct',0.01)*100):.1f}%")
+    if st.get("history"):
+        h = st["history"][0]
+        return (f"lệnh gần nhất: {h['dir'].upper()} {h['tf']} {h['exit_reason']} "
+                f"{h['pnl']:+,.2f}$ · vốn ${st['balance']:,.2f}")
+    return f"đứng ngoài · vốn ${st['balance']:,.2f}"
+
+
+def send_session_report(cfg, price, price_src, consensus, verdict, finals, mc, bt, trader_info=None):
+    """📨 Gửi BÁO CÁO PHIÊN qua Telegram sau mỗi lần chạy (24/7)."""
+    token = cfg["trader"].get("telegram_token", "")
+    chat = cfg["trader"].get("telegram_chat_id", "")
+    if not token or not chat:
+        return False
+    lines = [
+        "📊 *XAU/USD AI DEBATE — BÁO CÁO PHIÊN*",
+        "━━━━━━━━━━━━━━━━━",
+        f"⏱️ {time.strftime('%d/%m/%Y %H:%M')} · {price_src}",
+        f"💰 Giá: ${price:,.2f}",
+        f"🧠 Đồng thuận: {consensus:+.3f} → {verdict}",
+    ]
+    for f in finals:
+        icon = f.get("icon", "🤖")
+        lines.append(f"  {icon} {f['title']}: {f['stance']:+.2f} (tự tin {f['conf']*100:.0f}%)")
+    if mc:
+        lines.append(f"🎯 Mục tiêu ${mc['target']:,.2f} · P10-P90 ${mc['p10']:,.2f} – ${mc['p90']:,.2f} · P(tăng) {mc['prob_up']*100:.0f}%")
+    if trader_info:
+        lines.append(f"💼 AI Trader: {trader_info}")
+    if bt:
+        lines.append(f"📈 Backtest {bt.get('tf','')}: win {bt['win_rate']}% ({bt['trades']} lệnh) · {bt['total_return_pct']:+.2f}%")
+    lines.append("━━━━━━━━━━━━━━━━━")
+    lines.append("_Bạn là người ra quyết định cuối cùng._")
+    text = "\n".join(lines)
+    ok = send_telegram(text, cfg)
+    if ok:
+        print("📨 Đã gửi báo cáo phiên qua Telegram.")
+    return ok
+
+
 def trader_summary(st, cfg, out_dir, force=False):
     n = int(cfg["trader"].get("summary_every", 300))
     if not force and st["sessions"] < n:
@@ -1181,6 +1234,15 @@ def run_once(cfg, args):
     # 💼 AI TRADER — chạy mỗi phiên
     if not args.no_trader:
         trader_step(cfg, args, ind, mc, consensus, verdict, finals, price, klines, out_dir)
+
+    # 📨 Gửi báo cáo phiên qua Telegram (nếu cấu hình)
+    if cfg["trader"].get("report_every_session", True):
+        try:
+            st = load_trader_state(out_dir)
+            send_session_report(cfg, price, price_src, consensus, verdict, finals, mc, bt,
+                                trader_status_line(st, price))
+        except Exception as e:
+            print(f"⚠️ Gửi báo cáo Telegram lỗi: {e}")
     return data
 
 
@@ -1233,8 +1295,14 @@ def main():
     ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--no-trader", action="store_true", help="Tắt AI Trader")
     ap.add_argument("--force-summary", action="store_true", help="Buộc tổng kết AI Trader ngay")
+    ap.add_argument("--test-telegram", action="store_true", help="Gửi tin test qua Telegram rồi thoát")
     args = ap.parse_args()
     cfg = load_config()
+
+    if args.test_telegram:
+        ok = send_telegram("✅ *Kết nối Telegram thành công!*\nXAU/USD AI Debate Arena sẽ gửi báo cáo mỗi phiên, báo cáo lệnh và tổng kết định kỳ cho bạn.", cfg)
+        print("✅ Đã gửi tin test thành công." if ok else "❌ Gửi thất bại — kiểm tra TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID.")
+        return
 
     if args.force_summary:
         st = load_trader_state(args.out)
@@ -1264,4 +1332,3 @@ def main():
 
 if __name__ == "__main__":
     main()
- 
