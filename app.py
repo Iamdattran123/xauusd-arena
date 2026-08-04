@@ -69,15 +69,15 @@ AGENTS = [
 # Mỗi tác nhân: {"provider": "gemini|groq|openrouter", "model": "..."}
 # ---------------------------------------------------------------------
 DEFAULT_AGENT_CONFIG = {
-    "Macro_Analyst":        {"provider": "gemini",     "model": "gemini-2.5-flash"},
-    "Technical_Analyst":    {"provider": "gemini",     "model": "gemini-2.5-flash"},
-    "Institutional_Whale":  {"provider": "openrouter", "model": "deepseek/deepseek-v4-flash-0731"},
+    "Macro_Analyst":        {"provider": "openrouter", "model": "qwen/qwen3-32b"},
+    "Technical_Analyst":    {"provider": "openrouter", "model": "deepseek/deepseek-v4-flash-0731"},
+    "Institutional_Whale":  {"provider": "gemini",     "model": "gemini-2.5-flash"},
     "Retail_Crowd":         {"provider": "groq",       "model": "llama-3.3-70b-versatile"},
 }
 
 DEFAULT_TRADER_CONFIG = {
     "provider": "openrouter",
-    "model": "deepseek/deepseek-r1:free",   # nếu model bị gỡ/lỗi -> tự fallback (xem FALLBACK_CHAIN)
+    "model": "deepseek/deepseek-v4-flash-0731",  # (deepseek-r1:free đã bị OpenRouter gỡ -> dùng v4-flash rẻ & còn hiệu lực)
     "risk_pct": 1.0,
     "summary_every": 300,
     "telegram_token": "",
@@ -113,8 +113,8 @@ PROVIDER_META = {
 FALLBACK_CHAIN = {
     "gemini":     [("gemini", "gemini-2.5-flash"), ("gemini", "gemini-2.5-flash-lite")],
     "groq":       [("groq", "llama-3.3-70b-versatile"), ("groq", "llama-3.1-8b-instant")],
-    "openrouter": [("openrouter", "deepseek/deepseek-v4-flash-0731"),
-                   ("openrouter", "qwen/qwen3-32b"),
+    "openrouter": [("openrouter", "qwen/qwen3-32b"),
+                   ("openrouter", "deepseek/deepseek-v4-flash-0731"),
                    ("openrouter", "google/gemma-4-31b-it:free")],
 }
 
