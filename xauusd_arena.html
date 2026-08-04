@@ -1310,7 +1310,7 @@ Trả về DUY NHẤT một JSON hợp lệ (không markdown, không giải thí
 {"sentiment_score": <số từ -1.0 (rất tiêu cực/bán mạnh) đến +1.0 (rất tích cực/mua mạnh)>, "confidence": <số 0.0-1.0>, "reasoning": "<luận điểm chính bằng tiếng Việt, 2-3 câu, nêu rõ con số/căn cứ>"}`;
   }
   if(round===2){
-    const others = roundData.filter(x=>x.key!==agent.key).map(x=>`• ${x.title} (tâm lý ${x.stance>=0?'+':''}${x.stance.toFixed(2)}): ${x.reasoning}`).join('\n');
+    const others = roundData.filter(x=>x.key!==agent.key).map(x=>`• ${x.title} (tâm lý ${x.stance>=0?'+':''}${x.stance.toFixed(2)}): ${x.reason || x.reasoning || ''}`).join('\n');
     return `${personaOf(agent)}
 Lập trường ban đầu của bạn: ${roundData.find(x=>x.key===agent.key)?.reasoning || ''}
 Đây là lập trường của các chuyên gia khác trong HỘI ĐỒNG:
@@ -1324,7 +1324,7 @@ Trả về DUY NHẤT một JSON hợp lệ:
   const myEntry = roundData.find(x=>x.key===agent.key);
   const critiques = roundData.filter(x=>x.key!==agent.key).map(x=>`• Phản biện của ${x.title}: ${x.critique || '(không có)'}`).join('\n');
   return `${personaOf(agent)}
-Lập trường hiện tại của bạn: ${myEntry?.reasoning || ''} (tâm lý ${myEntry?.stance>=0?'+':''}${myEntry?.stance.toFixed(2)})
+Lập trường hiện tại của bạn: ${myEntry?.reason || myEntry?.reasoning || ''} (tâm lý ${myEntry?.stance>=0?'+':''}${myEntry?.stance.toFixed(2)})
 Các phản biện dành cho lập trường của bạn:
 ${critiques}
 Nhiệm vụ ĐIỀU CHỈNH CUỐI CÙNG: cân nhắc các phản biện (giữ vững nếu phản biện không thuyết phục, điều chỉnh nếu có cơ sở), đưa ra LẬP TRƯỜNG CUỐI CÙNG cho ${TF[S.tf].horizon}.
@@ -2730,5 +2730,5 @@ async function loadAllModels(){
 
 document.addEventListener('DOMContentLoaded', initUI);
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a25c9d021a43cf50',t:'MTc4NTgzNjU1OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
