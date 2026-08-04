@@ -31,6 +31,7 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
         run: python app.py --timeframe 1h --rounds 2 --voters 80 --paths 300
 
       - name: Commit kết quả (dashboard + backtest + trader_state)
