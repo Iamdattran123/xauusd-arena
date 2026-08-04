@@ -1,12 +1,14 @@
-name: Arena Auto-Run
+name: Arena Auto-Run 24/7
 
-# Chạy tự động mỗi 6 giờ (0,6,12,18 UTC = 7,13,19,1h giờ VN)
-# 6h/lần = 4 phiên/ngày ≈ 40 lượt gọi AI — vừa khít quota free tier (~50/ngày)
-# Muốn chạy dày hơn: nạp $10 OpenRouter (→1000 lượt/ngày) rồi sửa cron bên dưới.
-on:
+# Chạy tự động MỖI 1 GIỜ = 24 phiên/ngày (24/7, gồm AI Trader mô phỏng $1.000)
+# Định tuyến đa nhà cung cấp: Macro/Tech=Gemini · Whale=OpenRouter · Retail=Groq · Trader=OpenRouter
+# Cần 3 GitHub Secrets: OPENROUTER_API_KEY · GEMINI_API_KEY · GROQ_API_KEY
+# Lưu ý: GitHub Actions miễn phí 2.000 phút/tháng (repo public) — ước tính ~1.400-1.500 phút/tháng ở tần suất 1h/lần.
+# Nếu gần hết phút trong tháng: bấm "Run workflow" vẫn chạy được, hoặc tạm đổi cron xuống '0 */2 * * *'.
+"on":
   schedule:
-    - cron: '0 */6 * * *'
-  workflow_dispatch: {}   # cho phép bấm "Run workflow" chạy tay
+    - cron: '0 * * * *'   # chạy đầu mỗi giờ
+  workflow_dispatch: {}   # bấm "Run workflow" để chạy tay bất cứ lúc nào
 
 jobs:
   run-simulation:
@@ -19,19 +21,22 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip'
 
       - name: Cài thư viện
         run: pip install numpy
 
-      - name: Chạy phiên mô phỏng XAU/USD
+      - name: Chạy phiên mô phỏng + AI Trader 24/7
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: python app.py --timeframe 1h --rounds 2 --voters 80 --paths 300
 
-      - name: Commit kết quả (cập nhật dashboard + backtest history)
+      - name: Commit kết quả (dashboard + backtest + trader_state)
         run: |
           git config user.name "arena-bot"
           git config user.email "arena-bot@users.noreply.github.com"
           git add output/
-          git commit -m "auto: cập nhật phiên $(date -u +%Y-%m-%dT%H:%MZ)" || echo "Không có thay đổi — bỏ qua commit"
+          git commit -m "auto: phiên $(date -u +%Y-%m-%dT%H:%MZ)" || echo "Không có thay đổi — bỏ qua commit"
           git push
