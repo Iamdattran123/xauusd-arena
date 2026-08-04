@@ -86,7 +86,9 @@ DEFAULT_MODELS = {a["key"]: a["default_model"] for a in AGENTS}
 
 
 def load_config():
-    cfg = {"openrouter_api_key": os.environ.get("OPENROUTER_API_KEY", ""), "models": dict(DEFAULT_MODELS)}
+    cfg = {"openrouter_api_key": os.environ.get("OPENROUTER_API_KEY", ""), "models": dict(DEFAULT_MODELS),
+           "trader": {"model": "deepseek/deepseek-v4-flash-0731", "risk_pct": 1.0, "summary_every": 300,
+                      "telegram_token": "", "telegram_chat_id": ""}}
     p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
     if os.path.exists(p):
         try:
@@ -94,6 +96,8 @@ def load_config():
                 user = json.load(f)
             cfg["openrouter_api_key"] = user.get("openrouter_api_key", cfg["openrouter_api_key"])
             cfg["models"].update(user.get("models", {}))
+            if isinstance(user.get("trader"), dict):
+                cfg["trader"].update(user["trader"])
         except Exception as e:
             print(f"⚠️ Lỗi đọc config.json: {e}")
     return cfg
@@ -645,6 +649,239 @@ Plotly.newPlot('vote',[{values:[c.bull,c.neu,c.bear],labels:['Mua ('+c.bull+')',
 
 
 # =====================================================================
+# 💼 AI TRADER TỰ TRỊ (Python backend — chạy 24/7 qua cron/GitHub Actions)
+# Vốn mô phỏng $1.000 · tự quyết định lệnh · báo cáo mỗi lệnh
+# · tổng kết sau N phiên → gửi Telegram cho con người quyết định
+# =====================================================================
+def new_trader_state():
+    return {
+        "balance": 1000.0, "start_balance": 1000.0, "peak": 1000.0, "max_dd": 0.0,
+        "position": None, "history": [], "trades": 0, "wins": 0,
+        "total_pnl": 0.0, "gross_win": 0.0, "gross_loss": 0.0,
+        "sessions": 0, "equity_points": [{"t": int(time.time() * 1000), "e": 1000.0}],
+    }
+
+
+def load_trader_state(out_dir):
+    p = os.path.join(out_dir, "trader_state.json")
+    if os.path.exists(p):
+        try:
+            with open(p, encoding="utf-8") as f:
+                st = json.load(f)
+            if "balance" in st:
+                return st
+        except Exception:
+            pass
+    return new_trader_state()
+
+
+def save_trader_state(st, out_dir):
+    with open(os.path.join(out_dir, "trader_state.json"), "w", encoding="utf-8") as f:
+        json.dump(st, f, ensure_ascii=False, indent=2)
+
+
+def trader_heuristic(consensus, prob_up, price, atr, target):
+    action, sl, tp, tf = "hold", None, None, "1h"
+    strong = abs(consensus) >= 0.25
+    tf = "4h" if strong else "1h"
+    if consensus >= 0.15 and prob_up > 0.52:
+        action = "long"
+        sl = price - max(1.5 * atr, price * 0.003)
+        tp = target if target > price else price + 2 * max(1.5 * atr, price * 0.003)
+        if (tp - price) / (price - sl) < 1.2:
+            tp = price + 2 * (price - sl)
+    elif consensus <= -0.15 and prob_up < 0.48:
+        action = "short"
+        sl = price + max(1.5 * atr, price * 0.003)
+        tp = target if target < price else price - 2 * max(1.5 * atr, price * 0.003)
+        if (price - tp) / (sl - price) < 1.2:
+            tp = price - 2 * (sl - price)
+    rr = (tp - price) / (price - sl) if action == "long" else (price - tp) / (sl - price) if action == "short" else 0
+    reason = ("Đứng ngoài bảo toàn vốn — hội đồng chưa đủ phân cực." if action == "hold"
+              else f"Tự quyết {action.upper()} theo phán quyết hội đồng ({consensus:+.2f}), P(tăng) {prob_up*100:.0f}%.")
+    return {"action": action, "tf": tf, "sl": sl, "tp": tp, "risk": 0.01, "rr": rr, "reason": reason, "llm": False}
+
+
+def trader_llm_prompt(consensus, verdict, finals, price, atr, sup, res, target, p10, p90, prob_up, balance, position):
+    panel = "\n".join(f"• {f['title']}: {f['stance']:+.2f} (tự tin {f['conf']*100:.0f}%) — {f['reasoning']}" for f in finals)
+    pos = f" · ĐANG CÓ LỆNH MỞ: {position['dir']} entry ${position['entry']:,.2f}" if position else ""
+    return f"""Bạn là AI TRADER độc lập, chuyên nghiệp, quản lý quỹ mô phỏng 1.000 USD giao dịch vàng (XAU/USD). Đọc phán quyết hội đồng như tham khảo, tự phản biện, ra quyết định của riêng bạn. Ưu tiên bảo toàn vốn.
+
+PHÁN QUYẾT HỘI ĐỒNG:
+{panel}
+Đồng thuận ròng: {consensus:+.3f} ({verdict})
+
+THỊ TRƯỜNG:
+Giá: ${price:,.2f} · ATR: ${atr:,.2f} · Hỗ trợ: ${sup:,.2f} · Kháng cự: ${res:,.2f}
+Monte Carlo: mục tiêu ${target:,.2f} · P10 ${p10:,.2f} · P90 ${p90:,.2f} · P(tăng) {prob_up*100:.0f}%
+Vốn quỹ: ${balance:,.2f}{pos}
+
+NHIỆM VỤ: Tự suy nghĩ độc lập và quyết định giao dịch phiên này.
+- Không nên giao dịch → action "hold".
+- Nếu giao dịch: chọn hướng, khung thời gian (15m/1h/4h/1D — ngắn hạn nếu tín hiệu nhanh, dài hạn nếu xu hướng rõ), SL/TP là MỨC GIÁ cụ thể, risk_pct 0.5-3.
+Trả về DUY NHẤT JSON: {{"action": "long|short|hold", "timeframe": "15m|1h|4h|1D", "sl": <số>, "tp": <số>, "risk_pct": <số>, "reason": "<lý do 2-3 câu tiếng Việt>"}}"""
+
+
+def trader_llm_decision(cfg, consensus, verdict, finals, price, atr, sup, res, target, p10, p90, prob_up, balance, position):
+    model = cfg["trader"].get("model", "deepseek/deepseek-v4-flash-0731")
+    if not cfg["openrouter_api_key"]:
+        return None
+    prompt = trader_llm_prompt(consensus, verdict, finals, price, atr, sup, res, target, p10, p90, prob_up, balance, position)
+    body = {"model": model, "messages": [{"role": "user", "content": prompt}], "temperature": 0.4, "max_tokens": 500}
+    try:
+        req = urllib.request.Request(API_URL, data=json.dumps(body).encode("utf-8"), headers={
+            "Authorization": f"Bearer {cfg['openrouter_api_key']}", "Content-Type": "application/json",
+            "HTTP-Referer": "https://localhost", "X-Title": "XAUUSD AI Trader"})
+        with urllib.request.urlopen(req, timeout=90) as r:
+            d = json.loads(r.read().decode("utf-8"))
+        content = d["choices"][0]["message"]["content"]
+        j = extract_json(content)
+        if not j:
+            return None
+        action = str(j.get("action", "")).lower()
+        if action not in ("long", "short", "hold"):
+            return None
+        tf = str(j.get("timeframe", "1h")) if str(j.get("timeframe", "")) in ("15m", "1h", "4h", "1D") else "1h"
+        sl, tp = float(j.get("sl", 0)), float(j.get("tp", 0))
+        risk = max(0.5, min(3.0, float(j.get("risk_pct", 1.0)))) / 100
+        reason = str(j.get("reason", ""))[:500]
+        if action == "hold":
+            return {"action": "hold", "tf": tf, "sl": None, "tp": None, "risk": risk, "rr": 0, "reason": reason, "llm": True}
+        if not (sl > 0 and tp > 0):
+            return None
+        if action == "long" and not (sl < price < tp):
+            return None
+        if action == "short" and not (tp < price < sl):
+            return None
+        rr = (tp - price) / (price - sl) if action == "long" else (price - tp) / (sl - price)
+        return {"action": action, "tf": tf, "sl": sl, "tp": tp, "risk": risk, "rr": max(0.1, rr), "reason": reason, "llm": True}
+    except Exception:
+        return None
+
+
+def trader_execute(st, decision, price, out_dir):
+    if st.get("position"):
+        return
+    if decision["action"] == "hold":
+        return
+    sl_dist = abs(decision["sl"] - price)
+    if sl_dist < 1e-9:
+        return
+    risk_amt = st["balance"] * decision["risk"]
+    qty = risk_amt / sl_dist
+    if qty * price > st["balance"] * 20:
+        return
+    st["position"] = {
+        "id": int(time.time() * 1000), "dir": decision["action"], "tf": decision["tf"],
+        "entry": price, "sl": decision["sl"], "tp": decision["tp"], "rr": decision["rr"],
+        "qty": qty, "risk_pct": decision["risk"], "opened_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "reason": decision["reason"], "llm": decision.get("llm", False),
+    }
+    save_trader_state(st, out_dir)
+    print(f"💼 AI TRADER MỞ LỆNH {decision['action'].upper()} {decision['tf']} · entry ${price:,.2f} · "
+          f"SL ${decision['sl']:,.2f} · TP ${decision['tp']:,.2f} · RR 1:{decision['rr']:.1f} · rủi ro ${risk_amt:,.2f}")
+
+
+def trader_check_position(st, klines, out_dir):
+    if not st.get("position"):
+        return None
+    p = st["position"]
+    last = klines[-1]
+    exit_p, reason = None, ""
+    if p["dir"] == "long":
+        if last["l"] <= p["sl"]: exit_p, reason = p["sl"], "chạm CẮT LỖ (SL)"
+        elif last["h"] >= p["tp"]: exit_p, reason = p["tp"], "chạm CHỐT LỜI (TP)"
+    else:
+        if last["h"] >= p["sl"]: exit_p, reason = p["sl"], "chạm CẮT LỖ (SL)"
+        elif last["l"] <= p["tp"]: exit_p, reason = p["tp"], "chạm CHỐT LỜI (TP)"
+    if exit_p is None:
+        return None
+    mult = 1 if p["dir"] == "long" else -1
+    pnl = (exit_p - p["entry"]) * mult * p["qty"]
+    pnl_pct = (exit_p / p["entry"] - 1) * mult * 100
+    st["balance"] += pnl
+    st["peak"] = max(st["peak"], st["balance"])
+    st["max_dd"] = max(st["max_dd"], (st["peak"] - st["balance"]) / st["peak"] * 100)
+    st["trades"] += 1
+    if pnl > 0: st["wins"] += 1; st["gross_win"] += pnl
+    else: st["gross_loss"] += -pnl
+    st["total_pnl"] += pnl
+    st["position"] = None
+    st["equity_points"].append({"t": int(time.time() * 1000), "e": st["balance"]})
+    st["history"].insert(0, {**p, "exit": exit_p, "pnl": pnl, "pnl_pct": pnl_pct, "exit_reason": reason,
+                             "closed_at": time.strftime("%Y-%m-%d %H:%M:%S"), "balance_after": st["balance"]})
+    save_trader_state(st, out_dir)
+    print(f"💼 ĐÓNG LỆNH {p['dir'].upper()} — {reason} · entry ${p['entry']:,.2f} → exit ${exit_p:,.2f} · "
+          f"P&L {pnl:+,.2f}$ ({pnl_pct:+.2f}%) · vốn ${st['balance']:,.2f}")
+    return st["history"][0]
+
+
+def send_telegram(text, cfg):
+    token = cfg["trader"].get("telegram_token", "")
+    chat = cfg["trader"].get("telegram_chat_id", "")
+    if not token or not chat:
+        return False
+    try:
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        body = json.dumps({"chat_id": chat, "text": text, "disable_web_page_preview": True}).encode("utf-8")
+        req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
+        urllib.request.urlopen(req, timeout=10)
+        return True
+    except Exception as e:
+        print(f"⚠️ Telegram lỗi: {e}")
+        return False
+
+
+def trader_summary(st, cfg, out_dir, force=False):
+    n = int(cfg["trader"].get("summary_every", 300))
+    if not force and st["sessions"] < n:
+        return
+    closed = st["history"]
+    win_rate = st["wins"] / st["trades"] * 100 if st["trades"] else 0
+    pf = st["gross_win"] / st["gross_loss"] if st["gross_loss"] > 0 else (float("inf") if st["gross_win"] > 0 else 0)
+    by_tf = {}
+    for h in closed:
+        by_tf.setdefault(h["tf"], {"n": 0, "win": 0})
+        by_tf[h["tf"]]["n"] += 1
+        if h["pnl"] > 0: by_tf[h["tf"]]["win"] += 1
+    ret = st["total_pnl"] / st["start_balance"] * 100
+    lines = [
+        "📊 *XAU/USD AI DEBATE ARENA — BÁO CÁO TỔNG KẾT*",
+        "━━━━━━━━━━━━━━━━━",
+        f"⏱️ Số phiên: {st['sessions']}" + (" (tổng kết thủ công)" if force else ""),
+        f"💰 Vốn: ${st['start_balance']:,.2f} → ${st['balance']:,.2f} ({st['total_pnl']:+,.2f}$ · {ret:+.1f}%)",
+        f"🎯 Số lệnh: {st['trades']} · Win rate: {win_rate:.1f}%",
+        f"⚖️ Profit factor: {'∞' if pf == float('inf') else f'{pf:.2f}'}",
+        f"📉 Drawdown tối đa: {st['max_dd']:.1f}%",
+        "━━━━━━━━━━━━━━━━━",
+        "📆 Theo khung thời gian:",
+    ]
+    for tf, o in by_tf.items():
+        lines.append(f"  • Khung {tf}: {o['n']} lệnh · thắng {o['win']} ({o['win']/o['n']*100:.0f}%)")
+    if not by_tf:
+        lines.append("  (chưa có lệnh)")
+    top5 = closed[:5]
+    lines.append("🕘 5 lệnh gần nhất:")
+    for h in top5:
+        lines.append(f"  • {h['dir'].upper()} {h['tf']} {h['opened_at']}: {h['pnl']:+,.2f}$ — {h['exit_reason']}")
+    if not top5:
+        lines.append("  (chưa có lệnh)")
+    lines.append("━━━━━━━━━━━━━━━━━\n👨‍💼 *BẠN là người ra quyết định cuối cùng.*")
+    text = "\n".join(lines)
+    # lưu + in + gửi
+    with open(os.path.join(out_dir, "summary_latest.txt"), "w", encoding="utf-8") as f:
+        f.write(text)
+    print("📊 TỔNG KẾT " + str(st["sessions"]) + " phiên — vốn $" + f"{st['balance']:,.2f}" + " · " +
+          str(st["trades"]) + " lệnh · win " + f"{win_rate:.1f}%" + " · PF " + ("∞" if pf == float('inf') else f"{pf:.2f}"))
+    sent = send_telegram(text, cfg)
+    if sent:
+        print("📨 Đã gửi tổng kết qua Telegram.")
+    if not force:
+        st["sessions"] = 0
+    save_trader_state(st, out_dir)
+
+
+# =====================================================================
 # CHẠY CHÍNH
 # =====================================================================
 def run_once(cfg, args):
@@ -697,7 +934,51 @@ def run_once(cfg, args):
     bt = run_backtest(klines, tf_key)
     if bt:
         save_backtest_history({**bt, "consensus": consensus, "verdict": verdict, "target": mc["target"]}, out_dir)
+
+    # 💼 AI TRADER — chạy mỗi phiên (mở/đóng lệnh, báo cáo, tổng kết, Telegram)
+    if not args.no_trader:
+        trader_step(cfg, args, ind, mc, consensus, verdict, finals, price, klines, out_dir)
     return data
+
+
+def trader_step(cfg, args, ind, mc, consensus, verdict, finals, price, klines, out_dir):
+    st = load_trader_state(out_dir)
+    st["sessions"] += 1
+    # 1) đóng lệnh nếu chạm SL/TP với nến mới nhất
+    rep = trader_check_position(st, klines, out_dir)
+    # 2) tổng kết nếu đủ N phiên → gửi Telegram
+    trader_summary(st, cfg, out_dir)
+    # 3) quyết định lệnh mới nếu đang không có lệnh
+    if not st.get("position"):
+        decision = trader_llm_decision(cfg, consensus, verdict, finals, price, ind["atr"],
+                                       ind["sup"], ind["res"], mc["target"], mc["p10"], mc["p90"],
+                                       mc["prob_up"], st["balance"], st.get("position"))
+        if not decision:
+            decision = trader_heuristic(consensus, mc["prob_up"], price, ind["atr"], mc["target"])
+        if decision["action"] == "hold":
+            print(f"🤖 AI TRADER đứng ngoài — {decision['reason'][:110]}")
+        else:
+            print(f"🤖 AI TRADER QUYẾT ĐỊNH: {decision['action'].upper()} {decision['tf']} · "
+                  f"SL ${decision['sl']:,.2f} · TP ${decision['tp']:,.2f} · RR 1:{decision['rr']:.1f}"
+                  + (" · (LLM)" if decision.get("llm") else ""))
+            trader_execute(st, decision, price, out_dir)
+    else:
+        print(f"💼 AI Trader đang trong lệnh {st['position']['dir'].upper()} {st['position']['tf']} — chờ SL/TP.")
+    save_trader_state(st, out_dir)
+    # gửi tin nhắn khi mở/đóng lệnh (nếu cấu hình Telegram)
+    if rep:
+        send_telegram(
+            f"💼 *AI TRADER ĐÓNG LỆNH* {rep['dir'].upper()} {rep['tf']}\n"
+            f"Kết quả: {rep['exit_reason']}\n"
+            f"Entry ${rep['entry']:,.2f} → Exit ${rep['exit']:,.2f}\n"
+            f"P&L: {rep['pnl']:+,.2f}$ ({rep['pnl_pct']:+.2f}%)\nVốn: ${st['balance']:,.2f}",
+            cfg)
+    if st.get("position"):
+        send_telegram(
+            f"💼 *AI TRADER MỞ LỆNH* {st['position']['dir'].upper()} {st['position']['tf']}\n"
+            f"Entry ${st['position']['entry']:,.2f} · SL ${st['position']['sl']:,.2f} · TP ${st['position']['tp']:,.2f}\n"
+            f"RR 1:{st['position']['rr']:.1f} · Lý do: {st['position']['reason'][:160]}",
+            cfg)
 
 
 def main():
@@ -711,9 +992,17 @@ def main():
     ap.add_argument("--serve", type=int, default=0, help="Mở web server cổng N để xem dashboard")
     ap.add_argument("--out", default="output")
     ap.add_argument("--seed", type=int, default=None)
+    ap.add_argument("--no-trader", action="store_true", help="Tắt AI Trader (chỉ chạy mô phỏng)")
+    ap.add_argument("--force-summary", action="store_true", help="Buộc tổng kết AI Trader ngay")
     args = ap.parse_args()
-
     cfg = load_config()
+
+    if args.force_summary:
+        out_dir = args.out
+        st = load_trader_state(out_dir)
+        trader_summary(st, cfg, out_dir, force=True)
+        print("✅ Đã buộc tổng kết. Xem output/summary_latest.txt (hoặc Telegram).")
+        return
     run_once(cfg, args)
 
     if args.serve:
