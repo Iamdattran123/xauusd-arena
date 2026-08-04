@@ -1,19 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-XAU/USD AI DEBATE ARENA — Python Backend
-=========================================
-Mô phỏng đa tác nhân AI tranh luận + đám đông bỏ phiếu + Monte Carlo cho Vàng/USD.
+XAU/USD AI DEBATE ARENA — Python Backend (MULTI-PROVIDER)
+==========================================================
+Mô phỏng đa tác nhân AI tranh luận + đám đông bỏ phiếu + Monte Carlo + AI Trader $1000
+với ĐỊNH TUYẾN 3 NHÀ CUNG CẤP: Gemini (AI Studio) · Groq · OpenRouter.
+
+API key lấy từ biến môi trường (GitHub Secrets):
+    OPENROUTER_API_KEY   (sk-or-v1-...)
+    GEMINI_API_KEY       (AIza...)
+    GROQ_API_KEY         (gsk_...)
+
+Cấu hình mặc định (hardcode, có thể ghi đè bằng config.json):
+    Macro_Analyst      -> gemini     / gemini-2.5-flash
+    Technical_Analyst  -> gemini     / gemini-2.5-flash
+    Institutional_Whale-> openrouter / deepseek/deepseek-v4-flash-0731
+    Retail_Crowd       -> groq       / llama-3.3-70b-versatile
+    trader             -> openrouter / deepseek/deepseek-r1:free (tự fallback nếu không khả dụng)
 
 Cách dùng:
-    python app.py                          # chạy 1 phiên (mặc định 1h, dữ liệu mẫu nếu chưa có key)
-    python app.py --timeframe 4h --rounds 3 --voters 120 --paths 500
-    python app.py --watch 15               # tự chạy lại mỗi 15 phút
-    python app.py --serve 8000             # mở web server xem dashboard tại http://localhost:8000
-
-API key: đặt biến môi trường OPENROUTER_API_KEY hoặc tạo file config.json:
-    {"openrouter_api_key": "sk-or-v1-...", "models": {...}}
-Nếu không có key -> chạy chế độ dữ liệu mẫu (mock).
+    python app.py                          # chạy 1 phiên
+    python app.py --watch 360              # tự chạy lại mỗi 6 giờ (24/7)
+    python app.py --serve 8000             # web server xem dashboard
+    python app.py --force-summary          # ép AI Trader tổng kết ngay
 """
 import argparse
 import json
@@ -24,6 +33,7 @@ import statistics
 import sys
 import time
 import urllib.request
+import urllib.error
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 try:
@@ -32,9 +42,8 @@ except ImportError:
     sys.exit("Thiếu thư viện numpy — chạy: pip install numpy")
 
 # =====================================================================
-# CẤU HÌNH
+# CẤU HÌNH CHUNG
 # =====================================================================
-API_URL = "https://openrouter.ai/api/v1/chat/completions"
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 
 TIMEFRAMES = {
@@ -46,18 +55,68 @@ TIMEFRAMES = {
 
 AGENTS = [
     {"key": "Macro_Analyst", "title": "Chuyên gia Vĩ mô", "icon": "🏛️",
-     "default_model": "google/gemma-4-31b-it:free",
      "persona": "Bạn là chuyên gia kinh tế vĩ mô cấp cao tại một quỹ đầu tư toàn cầu. Trọng tâm: chính sách lãi suất Fed, chỉ số DXY, lạm phát CPI/PCE, lợi suất trái phiếu Mỹ, rủi ro địa chính trị và vai trò trú ẩn của vàng."},
     {"key": "Technical_Analyst", "title": "Chuyên gia Kỹ thuật", "icon": "📐",
-     "default_model": "nvidia/nemotron-3-super-120b-a12b:free",
      "persona": "Bạn là chuyên gia phân tích kỹ thuật với 15 năm kinh nghiệm giao dịch vàng. Trọng tâm: RSI, MACD, EMA, ATR, vùng hỗ trợ/kháng cự, mô hình nến và cấu trúc xu hướng."},
     {"key": "Institutional_Whale", "title": "Quỹ & Ngân hàng TW", "icon": "🐋",
-     "default_model": "openai/gpt-oss-20b:free",
      "persona": "Bạn đại diện cho ngân hàng trung ương và quỹ ETF vàng lớn (SPDR Gold, iShares). Trọng tâm: dòng tiền tổ chức, nhu cầu tích trữ, giao dịch OTC, thanh khoản và chi phí cơ hội."},
     {"key": "Retail_Crowd", "title": "Đám đông Nhỏ lẻ", "icon": "👥",
-     "default_model": "openrouter/free",
      "persona": "Bạn đại diện cho tâm lý nhà đầu tư cá nhân trên mạng xã hội. Trọng tâm: FOMO, bắt đáy, chốt lời, đòn bẩy, dòng tiền nhỏ lẻ và tâm lý theo đám đông."},
 ]
+
+# ---------------------------------------------------------------------
+# CẤU HÌNH MẶC ĐỊNH (hardcode theo yêu cầu)
+# Mỗi tác nhân: {"provider": "gemini|groq|openrouter", "model": "..."}
+# ---------------------------------------------------------------------
+DEFAULT_AGENT_CONFIG = {
+    "Macro_Analyst":        {"provider": "gemini",     "model": "gemini-2.5-flash"},
+    "Technical_Analyst":    {"provider": "gemini",     "model": "gemini-2.5-flash"},
+    "Institutional_Whale":  {"provider": "openrouter", "model": "deepseek/deepseek-v4-flash-0731"},
+    "Retail_Crowd":         {"provider": "groq",       "model": "llama-3.3-70b-versatile"},
+}
+
+DEFAULT_TRADER_CONFIG = {
+    "provider": "openrouter",
+    "model": "deepseek/deepseek-r1:free",   # nếu model bị gỡ/lỗi -> tự fallback (xem FALLBACK_CHAIN)
+    "risk_pct": 1.0,
+    "summary_every": 300,
+    "telegram_token": "",
+    "telegram_chat_id": "",
+}
+
+# ---------------------------------------------------------------------
+# NHÀ CUNG CẤP — endpoint + tên biến môi trường lấy key (GitHub Secrets)
+# ---------------------------------------------------------------------
+PROVIDER_META = {
+    "openrouter": {
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "env": "OPENROUTER_API_KEY",
+        "style": "openai",          # chuẩn OpenAI chat/completions
+        "extra_headers": {"HTTP-Referer": "https://localhost", "X-Title": "XAUUSD AI Debate Arena"},
+    },
+    "groq": {
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "env": "GROQ_API_KEY",
+        "style": "openai",
+        "extra_headers": {},
+    },
+    "gemini": {
+        # Chuẩn gốc của Google: POST /v1beta/models/{model}:generateContent?key=...
+        "base": "https://generativelanguage.googleapis.com/v1beta/models",
+        "env": "GEMINI_API_KEY",
+        "style": "google",
+        "extra_headers": {},
+    },
+}
+
+# Chuỗi model dự phòng TỪNG NHÀ CUNG CẤP — khi model chính lỗi/429
+FALLBACK_CHAIN = {
+    "gemini":     [("gemini", "gemini-2.5-flash"), ("gemini", "gemini-2.5-flash-lite")],
+    "groq":       [("groq", "llama-3.3-70b-versatile"), ("groq", "llama-3.1-8b-instant")],
+    "openrouter": [("openrouter", "deepseek/deepseek-v4-flash-0731"),
+                   ("openrouter", "qwen/qwen3-32b"),
+                   ("openrouter", "google/gemma-4-31b-it:free")],
+}
 
 MOCK = {
     "Macro_Analyst": {
@@ -82,25 +141,46 @@ MOCK = {
     },
 }
 
-DEFAULT_MODELS = {a["key"]: a["default_model"] for a in AGENTS}
-
 
 def load_config():
-    cfg = {"openrouter_api_key": os.environ.get("OPENROUTER_API_KEY", ""), "models": dict(DEFAULT_MODELS),
-           "trader": {"model": "deepseek/deepseek-v4-flash-0731", "risk_pct": 1.0, "summary_every": 300,
-                      "telegram_token": "", "telegram_chat_id": ""}}
+    """Đọc cấu hình: key từ biến môi trường (GitHub Secrets) + ghi đè bằng config.json (tùy chọn)."""
+    cfg = {
+        # API keys — ưu tiên biến môi trường, config.json có thể ghi đè
+        "openrouter_api_key": os.getenv("OPENROUTER_API_KEY", ""),
+        "gemini_api_key":     os.getenv("GEMINI_API_KEY", ""),
+        "groq_api_key":       os.getenv("GROQ_API_KEY", ""),
+        # models: {agent_key: {"provider": ..., "model": ...}}
+        "models": {k: dict(v) for k, v in DEFAULT_AGENT_CONFIG.items()},
+        "trader": dict(DEFAULT_TRADER_CONFIG),
+    }
     p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
     if os.path.exists(p):
         try:
             with open(p, encoding="utf-8") as f:
                 user = json.load(f)
-            cfg["openrouter_api_key"] = user.get("openrouter_api_key", cfg["openrouter_api_key"])
-            cfg["models"].update(user.get("models", {}))
+            for k in ("openrouter_api_key", "gemini_api_key", "groq_api_key"):
+                if user.get(k):
+                    cfg[k] = user[k]
+            # models: hỗ trợ cả dạng mới {"provider","model"} lẫn dạng cũ (string -> openrouter)
+            if isinstance(user.get("models"), dict):
+                for key, val in user["models"].items():
+                    if isinstance(val, str):
+                        cfg["models"][key] = {"provider": "openrouter", "model": val}
+                    elif isinstance(val, dict) and val.get("model"):
+                        cfg["models"][key] = {"provider": val.get("provider", "openrouter"), "model": val["model"]}
             if isinstance(user.get("trader"), dict):
                 cfg["trader"].update(user["trader"])
         except Exception as e:
             print(f"⚠️ Lỗi đọc config.json: {e}")
     return cfg
+
+
+def agent_conf(cfg, key):
+    """Trả về {'provider','model'} cho 1 tác nhân (hỗ trợ cả config cũ dạng string)."""
+    c = cfg["models"].get(key, {})
+    if isinstance(c, str):
+        return {"provider": "openrouter", "model": c}
+    return {"provider": c.get("provider", "openrouter"), "model": c.get("model", "")}
 
 
 # =====================================================================
@@ -122,14 +202,12 @@ def fetch_price():
         pass
     try:
         d = http_json("https://api.gold-api.com/price/XAU", timeout=6)
-        p = float(d["price"])
-        return p, "gold-api.com · XAU spot"
+        return float(d["price"]), "gold-api.com · XAU spot"
     except Exception:
         pass
     try:
         d = http_json("https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT", timeout=6)
-        p = float(d["price"])
-        return p, "Binance · PAXG"
+        return float(d["price"]), "Binance · PAXG"
     except Exception:
         return 4050.0, "Giá mặc định (offline)"
 
@@ -148,7 +226,7 @@ def fetch_klines(tf_key):
                if o is not None and c is not None]
         if cfg["resample"] > 1:
             raw = resample(raw, cfg["step_min"] * 60000)
-        raw = raw[:-1]  # bỏ nến đang hình thành
+        raw = raw[:-1]
         if len(raw) > 10:
             return raw, f"Yahoo · GC=F {cfg['label']}"
     except Exception:
@@ -257,7 +335,7 @@ def compute_indicators(klines, tf_key):
 
 
 # =====================================================================
-# TÁC NHÂN AI — OPENROUTER
+# TÁC NHÂN AI — ĐA NHÀ CUNG CẤP (Gemini · Groq · OpenRouter)
 # =====================================================================
 def market_snapshot(cfg, price, price_src, klines, ind, tf_key, context=""):
     tf = TIMEFRAMES[tf_key]
@@ -275,13 +353,14 @@ def market_snapshot(cfg, price, price_src, klines, ind, tf_key, context=""):
 
 def build_prompt(agent, round_no, prev, snap):
     persona = agent["persona"]
-    horizon = "sắp tới"
+    NO_FAB = '\nTUYỆT ĐỐI chỉ dùng các con số, mức giá, vùng hỗ trợ/kháng cự CÓ TRONG dữ liệu được cung cấp ở trên. KHÔNG bịa ra mức giá, chỉ báo hay sự kiện không có trong dữ liệu.\n'
     if round_no == 1:
         return f"""{persona}
-Đọc kỹ dữ liệu thị trường sau và đưa ra LẬP TRƯỜNG BAN ĐẦU của bạn về giá vàng trong {horizon}:
+Đọc kỹ dữ liệu thị trường sau và đưa ra LẬP TRƯỜNG BAN ĐẦU của bạn về giá vàng trong thời gian tới:
 ---
 {snap}
 ---
+{NO_FAB}
 Trả về DUY NHẤT một JSON hợp lệ (không markdown, không giải thích thêm):
 {{"sentiment_score": <số từ -1.0 (rất tiêu cực/bán mạnh) đến +1.0 (rất tích cực/mua mạnh)>, "confidence": <số 0.0-1.0>, "reasoning": "<luận điểm chính bằng tiếng Việt, 2-3 câu, nêu rõ con số/căn cứ>"}}"""
     if round_no == 2:
@@ -293,10 +372,12 @@ Lập trường ban đầu của bạn: {mine}
 Đây là lập trường của các chuyên gia khác trong HỘI ĐỒNG:
 {others}
 Nhiệm vụ PHẢN BIỆN: chỉ ra 1-2 lỗ hổng logic / luận điểm yếu / rủi ro bị bỏ sót quan trọng nhất trong các quan điểm trên (đặc biệt quan điểm đối lập với bạn), rồi CẬP NHẬT tâm lý của bạn sau khi nghe phản biện.
+{NO_FAB}
 Trả về DUY NHẤT một JSON hợp lệ:
 {{"critique": "<phản biện ngắn gọn, sắc bén, tiếng Việt>", "revised_sentiment": <số -1.0 đến +1.0>, "confidence": <số 0.0-1.0>, "reasoning": "<lập trường sau phản biện, 2 câu>"}}"""
-    mine = next((x["reasoning"] for x in prev if x["key"] == agent["key"]), "")
-    my_stance = next((x["stance"] for x in prev if x["key"] == agent["key"]), 0)
+    myEntry = next((x for x in prev if x["key"] == agent["key"]), None)
+    mine = myEntry.get("reasoning", "") if myEntry else ""
+    my_stance = myEntry.get("stance", 0) if myEntry else 0
     critiques = "\n".join(f"• Phản biện của {x['title']}: {x.get('critique') or '(không có)'}"
                           for x in prev if x["key"] != agent["key"])
     return f"""{persona}
@@ -304,40 +385,170 @@ Lập trường hiện tại của bạn: {mine} (tâm lý {my_stance:+.2f})
 Các phản biện dành cho lập trường của bạn:
 {critiques}
 Nhiệm vụ ĐIỀU CHỈNH CUỐI CÙNG: cân nhắc các phản biện (giữ vững nếu phản biện không thuyết phục, điều chỉnh nếu có cơ sở), đưa ra LẬP TRƯỜNG CUỐI CÙNG.
+{NO_FAB}
 Trả về DUY NHẤT một JSON hợp lệ:
 {{"sentiment_score": <số -1.0 đến +1.0>, "confidence": <số 0.0-1.0>, "reasoning": "<lập trường cuối cùng, 2-3 câu, tiếng Việt>"}}"""
 
 
 def extract_json(text):
+    """Trích xuất JSON từ text của LLM (bỏ <think>, markdown, văn bản thừa)."""
     s = str(text or "")
     for tag in ("<think>", "</think>"):
         s = s.replace(tag, "")
     s = s.replace("```json", "").replace("```", "")
-    i, j = s.find("{"), s.rfind("}")
-    if i >= 0 and j > i:
-        try:
-            return json.loads(s[i:j + 1])
-        except Exception:
-            pass
+    try:
+        o = json.loads(s)
+        if isinstance(o, dict):
+            return o
+    except Exception:
+        pass
+    for i in range(len(s)):
+        if s[i] != "{":
+            continue
+        depth = 0
+        for j in range(i, len(s)):
+            if s[j] == "{":
+                depth += 1
+            elif s[j] == "}":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        o = json.loads(s[i:j + 1])
+                        if isinstance(o, dict):
+                            return o
+                    except Exception:
+                        pass
+                    break
     return None
 
 
-def call_llm(agent, round_no, prev, snap, cfg):
-    body = {
-        "model": cfg["models"].get(agent["key"], agent["default_model"]),
-        "messages": [{"role": "user", "content": build_prompt(agent, round_no, prev, snap)}],
-        "temperature": 0.4, "max_tokens": 600,
-    }
-    req = urllib.request.Request(API_URL, data=json.dumps(body).encode("utf-8"), headers={
-        "Authorization": f"Bearer {cfg['openrouter_api_key']}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://localhost",
-        "X-Title": "XAUUSD AI Debate Arena",
-    })
-    with urllib.request.urlopen(req, timeout=90) as r:
-        d = json.loads(r.read().decode("utf-8"))
-    content = d["choices"][0]["message"]["content"]
-    return content, body["model"]
+def gfloat(obj, keys, default=0.0):
+    for k in keys:
+        v = obj.get(k)
+        if isinstance(v, (int, float)) and math.isfinite(v):
+            return float(v)
+    return default
+
+
+# =====================================================================
+# 💬 CALL_LLM — ĐỊNH TUYẾN NHÀ CUNG CẤP (yêu cầu chính)
+#   call_llm(role, prompt, cfg)
+#     role = "Macro_Analyst" | "Technical_Analyst" | "Institutional_Whale"
+#            | "Retail_Crowd" | "trader"
+#   -> tự tra provider+model của role trong cfg -> gửi đúng endpoint
+#   -> TRẢ VỀ CẤU TRÚC THỐNG NHẤT: {"text", "prompt_tokens", "completion_tokens", "model", "provider"}
+# =====================================================================
+def call_llm(role, prompt, cfg, provider=None, model=None):
+    if role == "trader":
+        conf = cfg["trader"]
+        if isinstance(conf, str):
+            conf = {"provider": "openrouter", "model": conf}
+        provider = provider or conf.get("provider", "openrouter")
+        model = model or conf.get("model", "")
+    else:
+        conf = agent_conf(cfg, role)
+        provider = provider or conf["provider"]
+        model = model or conf["model"]
+
+    meta = PROVIDER_META.get(provider)
+    if not meta:
+        raise ValueError(f"Nhà cung cấp không hợp lệ: {provider}")
+    key = cfg.get(meta["env"].lower()) or os.getenv(meta["env"], "")
+    if not key:
+        raise ValueError(f"Thiếu API key {meta['env']} cho nhà cung cấp {provider} (đặt biến môi trường/GitHub Secret)")
+
+    if meta["style"] == "google":
+        # ---------- GEMINI — chuẩn gốc Google generateContent ----------
+        url = f"{meta['base']}/{model}:generateContent?key={key}"
+        payload = {"contents": [{"role": "user", "parts": [{"text": prompt}]}],
+                   "generationConfig": {"temperature": 0.4, "maxOutputTokens": 700}}
+        headers = {"Content-Type": "application/json", **meta["extra_headers"]}
+        data = _http_post(url, payload, headers, timeout=90)
+        try:
+            parts = data["candidates"][0]["content"]["parts"]
+            text = "".join(p.get("text", "") for p in parts)
+        except (KeyError, IndexError, TypeError):
+            raise ValueError(f"Gemini trả lỗi: {json.dumps(data, ensure_ascii=False)[:200]}")
+        usage = data.get("usageMetadata", {})
+        ptok = int(usage.get("promptTokenCount", 0) or 0)
+        ctok = int(usage.get("candidatesTokenCount", 0) or 0)
+    else:
+        # ---------- GROQ / OPENROUTER — chuẩn OpenAI chat/completions ----------
+        url = meta["url"]
+        payload = {"model": model,
+                   "messages": [{"role": "user", "content": prompt}],
+                   "temperature": 0.4, "max_tokens": 700}
+        headers = {"Content-Type": "application/json", "Authorization": "Bearer " + key,
+                   **meta["extra_headers"]}
+        data = _http_post(url, payload, headers, timeout=90)
+        try:
+            msg = data["choices"][0]["message"]
+            text = msg.get("content") or msg.get("reasoning") or msg.get("reasoning_content") or ""
+        except (KeyError, IndexError, TypeError):
+            raise ValueError(f"{provider} trả lỗi: {json.dumps(data, ensure_ascii=False)[:200]}")
+        usage = data.get("usage", {})
+        ptok = int(usage.get("prompt_tokens", 0) or 0)
+        ctok = int(usage.get("completion_tokens", 0) or 0)
+
+    if not text:
+        raise ValueError(f"{provider} trả về nội dung rỗng")
+    return {"text": text, "prompt_tokens": ptok, "completion_tokens": ctok,
+            "model": model, "provider": provider}
+
+
+def _http_post(url, payload, headers, timeout=90):
+    """POST JSON, trả dict; ném lỗi kèm status + retry-after khi HTTP lỗi."""
+    req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return json.loads(r.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        try:
+            body = json.loads(e.read().decode("utf-8", errors="ignore"))
+        except Exception:
+            body = {}
+        retry_after = e.headers.get("Retry-After", "0")
+        err = RuntimeError(f"HTTP {e.code}: {json.dumps(body, ensure_ascii=False)[:200]}")
+        err.status = e.code
+        err.retry_after = int(retry_after) if retry_after and retry_after.isdigit() else 0
+        raise err
+
+
+def call_agent_json(agent, round_no, prev, snap, cfg):
+    """Gọi LLM cho 1 tác nhân theo chuỗi dự phòng đa nhà cung cấp, trả về dict đã parse."""
+    role = agent["key"]
+    chosen = agent_conf(cfg, role)
+    chain = [(chosen["provider"], chosen["model"])]
+    for p, m in FALLBACK_CHAIN.get(chosen["provider"], []):
+        if (p, m) not in chain:
+            chain.append((p, m))
+    prompt = build_prompt(agent, round_no, prev, snap)
+    last_err = ""
+    for ci, (provider, model) in enumerate(chain):
+        try:
+            res = call_llm(role, prompt, cfg, provider=provider, model=model)
+            j = extract_json(res["text"])
+            if not j:
+                last_err = "JSON không hợp lệ"
+                if ci == 0:
+                    print(f"  🔁 {agent['title']} ({provider}/{model}) trả lời sai định dạng — thử lại...")
+                continue
+            # chuẩn hóa sentiment/confidence/reasoning
+            if round_no in (1, 3):
+                j.setdefault("confidence", 0.7)
+            else:
+                j.setdefault("confidence", 0.7)
+                if not j.get("revised_sentiment") and j.get("sentiment_score") is not None:
+                    j["revised_sentiment"] = j["sentiment_score"]
+            return {"json": j, "model": f"{provider}/{model}", "provider": provider,
+                    "prompt_tokens": res["prompt_tokens"], "completion_tokens": res["completion_tokens"]}
+        except Exception as e:
+            last_err = str(e)
+            if ci < len(chain) - 1:
+                print(f"  🔄 {agent['title']} ({provider}/{model}) lỗi: {last_err[:100]} → thử {chain[ci+1][0]}/{chain[ci+1][1]}...")
+            else:
+                print(f"  ⚠️ {agent['title']} hết chuỗi dự phòng — dùng dữ liệu mẫu. ({last_err[:100]})")
+    raise RuntimeError(last_err or "không gọi được LLM")
 
 
 def mock_agent(agent, round_no):
@@ -351,38 +562,38 @@ def mock_agent(agent, round_no):
 
 def run_debate(cfg, snap, rounds):
     timeline, prev = [], None
+    any_key = cfg["openrouter_api_key"] or cfg["gemini_api_key"] or cfg["groq_api_key"]
     for r in range(1, rounds + 1):
         entries = []
         for agent in AGENTS:
-            name = f"[Vòng {r}] {agent['title']}..."
-            if not cfg["openrouter_api_key"]:
-                print(f"  🤖 {name} (dữ liệu mẫu)")
+            conf = agent_conf(cfg, agent["key"])
+            disp = f"{conf['provider']}/{conf['model']}"
+            print(f"  🤖 [Vòng {r}] {agent['title']}... ({disp})")
+            if not any_key:
+                print("     (chưa có API key — dữ liệu mẫu)")
                 time.sleep(0.1)
                 entries.append({**{"key": agent["key"], "title": agent["title"], "icon": agent["icon"]}, **mock_agent(agent, r)})
                 continue
             try:
-                print(f"  🤖 {name} {cfg['models'].get(agent['key'])}")
-                content, model = call_llm(agent, r, prev, snap, cfg)
-                j = extract_json(content)
-                if not j:
-                    raise ValueError("JSON không hợp lệ")
+                out = call_agent_json(agent, r, prev, snap, cfg)
+                j = out["json"]
                 if r in (1, 3):
-                    stance = max(-1, min(1, float(j.get("sentiment_score", j.get("sentiment", 0)))))
-                    conf = max(0, min(1, float(j.get("confidence", 0.7))))
+                    stance = max(-1.0, min(1.0, gfloat(j, ["sentiment_score", "sentiment"])))
+                    conf = max(0.0, min(1.0, gfloat(j, ["confidence"], 0.7)))
                     reason = str(j.get("reasoning", j.get("reason", "")))[:600]
                     entries.append({"key": agent["key"], "title": agent["title"], "icon": agent["icon"],
                                     "stance": stance, "conf": conf, "reason": reason, "critique": None,
-                                    "model": model, "fallback": False})
+                                    "model": out["model"], "fallback": False})
                 else:
                     critique = str(j.get("critique", ""))[:500]
-                    stance = max(-1, min(1, float(j.get("revised_sentiment", j.get("sentiment_score", 0)))))
-                    conf = max(0, min(1, float(j.get("confidence", 0.7))))
+                    stance = max(-1.0, min(1.0, gfloat(j, ["revised_sentiment", "sentiment_score", "sentiment"])))
+                    conf = max(0.0, min(1.0, gfloat(j, ["confidence"], 0.7)))
                     reason = str(j.get("reasoning", ""))[:400] or "(đã cập nhật sau phản biện)"
                     entries.append({"key": agent["key"], "title": agent["title"], "icon": agent["icon"],
                                     "stance": stance, "conf": conf, "reason": reason, "critique": critique,
-                                    "model": model, "fallback": False})
+                                    "model": out["model"], "fallback": False})
             except Exception as e:
-                print(f"  ⚠️ {agent['title']} lỗi ({e}) — dùng dữ liệu dự phòng.")
+                print(f"  ⚠️ {agent['title']} dùng dữ liệu dự phòng: {str(e)[:100]}")
                 entries.append({**{"key": agent["key"], "title": agent["title"], "icon": agent["icon"]}, **mock_agent(agent, r)})
         ordered = [next(x for x in entries if x["key"] == a["key"]) for a in AGENTS]
         timeline.append({"round": r, "entries": ordered})
@@ -430,7 +641,6 @@ def run_monte_carlo(start, steps, vol, consensus, momentum, paths, seed=None):
     rng = np.random.default_rng(seed)
     drift = consensus * vol * 0.45 + momentum * vol * 0.10
     W = rng.normal(0, 1, (paths, steps))
-    # GBM: p[t] = p[t-1] * exp(mu + vol*Z)
     increments = (drift - 0.5 * vol * vol) + vol * W
     log_paths = np.zeros((paths, steps + 1))
     log_paths[:, 1:] = math.log(start) + np.cumsum(increments, axis=1)
@@ -447,7 +657,7 @@ def run_monte_carlo(start, steps, vol, consensus, momentum, paths, seed=None):
 
 
 # =====================================================================
-# 📈 BACKTEST — đo lường sự trưởng thành (chạy trên nến thực, không tốn API)
+# 📈 BACKTEST
 # =====================================================================
 def run_backtest(klines, tf_key):
     closes = [k["c"] for k in klines]
@@ -491,10 +701,8 @@ def run_backtest(klines, tf_key):
     if trades == 0:
         return None
     return {
-        "time": time.strftime("%Y-%m-%d %H:%M:%S"),
-        "tf": tf_key,
-        "trades": trades,
-        "win_rate": round(wins / trades * 100, 1),
+        "time": time.strftime("%Y-%m-%d %H:%M:%S"), "tf": tf_key,
+        "trades": trades, "win_rate": round(wins / trades * 100, 1),
         "total_return_pct": round((equity - 1) * 100, 2),
         "profit_factor": round(gross_win / gross_loss, 2) if gross_loss > 0 else None,
         "max_drawdown_pct": round(max_dd * 100, 2),
@@ -629,7 +837,7 @@ body{background:#0b1220;color:#e2e8f0;font-family:'Segoe UI',sans-serif;margin:0
   <div class="panel"><h2>🤖 Lập trường các chuyên gia</h2>@@AGENTS@@</div>
 </div>
 <div class="panel"><h2>🗳️ Đám đông bỏ phiếu</h2><div id="vote" style="height:260px;"></div></div>
-<div class="foot">⚠️ Công cụ mô phỏng AI phục vụ nghiên cứu & giáo dục — KHÔNG phải lời khuyên tài chính. Chạy bằng app.py · nguồn giá: Yahoo/Binance/gold-api · model: OpenRouter</div>
+<div class="foot">⚠️ Công cụ mô phỏng AI phục vụ nghiên cứu & giáo dục — KHÔNG phải lời khuyên tài chính. Chạy bằng app.py · nguồn giá: Yahoo/Binance/gold-api · model: OpenRouter/Gemini/Groq</div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.27.0/plotly.min.js"></script>
 <script>
@@ -649,9 +857,7 @@ Plotly.newPlot('vote',[{values:[c.bull,c.neu,c.bear],labels:['Mua ('+c.bull+')',
 
 
 # =====================================================================
-# 💼 AI TRADER TỰ TRỊ (Python backend — chạy 24/7 qua cron/GitHub Actions)
-# Vốn mô phỏng $1.000 · tự quyết định lệnh · báo cáo mỗi lệnh
-# · tổng kết sau N phiên → gửi Telegram cho con người quyết định
+# 💼 AI TRADER TỰ TRỊ (Python — chạy 24/7)
 # =====================================================================
 def new_trader_state():
     return {
@@ -723,40 +929,43 @@ Trả về DUY NHẤT JSON: {{"action": "long|short|hold", "timeframe": "15m|1h|
 
 
 def trader_llm_decision(cfg, consensus, verdict, finals, price, atr, sup, res, target, p10, p90, prob_up, balance, position):
-    model = cfg["trader"].get("model", "deepseek/deepseek-v4-flash-0731")
-    if not cfg["openrouter_api_key"]:
+    """AI Trader quyết định bằng LLM (đa nhà cung cấp + chuỗi dự phòng)."""
+    chosen = cfg["trader"]
+    if isinstance(chosen, str):
+        chosen = {"provider": "openrouter", "model": chosen}
+    chain = [(chosen.get("provider", "openrouter"), chosen.get("model", ""))]
+    for p, m in FALLBACK_CHAIN.get(chosen.get("provider", "openrouter"), []):
+        if (p, m) not in chain:
+            chain.append((p, m))
+    if not (cfg["openrouter_api_key"] or cfg["gemini_api_key"] or cfg["groq_api_key"]):
         return None
     prompt = trader_llm_prompt(consensus, verdict, finals, price, atr, sup, res, target, p10, p90, prob_up, balance, position)
-    body = {"model": model, "messages": [{"role": "user", "content": prompt}], "temperature": 0.4, "max_tokens": 500}
-    try:
-        req = urllib.request.Request(API_URL, data=json.dumps(body).encode("utf-8"), headers={
-            "Authorization": f"Bearer {cfg['openrouter_api_key']}", "Content-Type": "application/json",
-            "HTTP-Referer": "https://localhost", "X-Title": "XAUUSD AI Trader"})
-        with urllib.request.urlopen(req, timeout=90) as r:
-            d = json.loads(r.read().decode("utf-8"))
-        content = d["choices"][0]["message"]["content"]
-        j = extract_json(content)
-        if not j:
-            return None
-        action = str(j.get("action", "")).lower()
-        if action not in ("long", "short", "hold"):
-            return None
-        tf = str(j.get("timeframe", "1h")) if str(j.get("timeframe", "")) in ("15m", "1h", "4h", "1D") else "1h"
-        sl, tp = float(j.get("sl", 0)), float(j.get("tp", 0))
-        risk = max(0.5, min(3.0, float(j.get("risk_pct", 1.0)))) / 100
-        reason = str(j.get("reason", ""))[:500]
-        if action == "hold":
-            return {"action": "hold", "tf": tf, "sl": None, "tp": None, "risk": risk, "rr": 0, "reason": reason, "llm": True}
-        if not (sl > 0 and tp > 0):
-            return None
-        if action == "long" and not (sl < price < tp):
-            return None
-        if action == "short" and not (tp < price < sl):
-            return None
-        rr = (tp - price) / (price - sl) if action == "long" else (price - tp) / (sl - price)
-        return {"action": action, "tf": tf, "sl": sl, "tp": tp, "risk": risk, "rr": max(0.1, rr), "reason": reason, "llm": True}
-    except Exception:
-        return None
+    for provider, model in chain:
+        try:
+            res = call_llm("trader", prompt, cfg, provider=provider, model=model)
+            j = extract_json(res["text"])
+            if not j:
+                continue
+            action = str(j.get("action", "")).lower()
+            if action not in ("long", "short", "hold"):
+                continue
+            tf = str(j.get("timeframe", "1h")) if str(j.get("timeframe", "")) in ("15m", "1h", "4h", "1D") else "1h"
+            sl, tp = float(j.get("sl", 0)), float(j.get("tp", 0))
+            risk = max(0.5, min(3.0, float(j.get("risk_pct", 1.0)))) / 100
+            reason = str(j.get("reason", ""))[:500]
+            if action == "hold":
+                return {"action": "hold", "tf": tf, "sl": None, "tp": None, "risk": risk, "rr": 0, "reason": reason, "llm": True}
+            if not (sl > 0 and tp > 0):
+                continue
+            if action == "long" and not (sl < price < tp):
+                continue
+            if action == "short" and not (tp < price < sl):
+                continue
+            rr = (tp - price) / (price - sl) if action == "long" else (price - tp) / (sl - price)
+            return {"action": action, "tf": tf, "sl": sl, "tp": tp, "risk": risk, "rr": max(0.1, rr), "reason": reason, "llm": True}
+        except Exception as e:
+            print(f"  🔄 Trader ({provider}/{model}) lỗi: {str(e)[:100]}")
+    return None
 
 
 def trader_execute(st, decision, price, out_dir):
@@ -803,8 +1012,11 @@ def trader_check_position(st, klines, out_dir):
     st["peak"] = max(st["peak"], st["balance"])
     st["max_dd"] = max(st["max_dd"], (st["peak"] - st["balance"]) / st["peak"] * 100)
     st["trades"] += 1
-    if pnl > 0: st["wins"] += 1; st["gross_win"] += pnl
-    else: st["gross_loss"] += -pnl
+    if pnl > 0:
+        st["wins"] += 1
+        st["gross_win"] += pnl
+    else:
+        st["gross_loss"] += -pnl
     st["total_pnl"] += pnl
     st["position"] = None
     st["equity_points"].append({"t": int(time.time() * 1000), "e": st["balance"]})
@@ -843,7 +1055,8 @@ def trader_summary(st, cfg, out_dir, force=False):
     for h in closed:
         by_tf.setdefault(h["tf"], {"n": 0, "win": 0})
         by_tf[h["tf"]]["n"] += 1
-        if h["pnl"] > 0: by_tf[h["tf"]]["win"] += 1
+        if h["pnl"] > 0:
+            by_tf[h["tf"]]["win"] += 1
     ret = st["total_pnl"] / st["start_balance"] * 100
     lines = [
         "📊 *XAU/USD AI DEBATE ARENA — BÁO CÁO TỔNG KẾT*",
@@ -860,15 +1073,13 @@ def trader_summary(st, cfg, out_dir, force=False):
         lines.append(f"  • Khung {tf}: {o['n']} lệnh · thắng {o['win']} ({o['win']/o['n']*100:.0f}%)")
     if not by_tf:
         lines.append("  (chưa có lệnh)")
-    top5 = closed[:5]
     lines.append("🕘 5 lệnh gần nhất:")
-    for h in top5:
+    for h in closed[:5]:
         lines.append(f"  • {h['dir'].upper()} {h['tf']} {h['opened_at']}: {h['pnl']:+,.2f}$ — {h['exit_reason']}")
-    if not top5:
+    if not closed:
         lines.append("  (chưa có lệnh)")
     lines.append("━━━━━━━━━━━━━━━━━\n👨‍💼 *BẠN là người ra quyết định cuối cùng.*")
     text = "\n".join(lines)
-    # lưu + in + gửi
     with open(os.path.join(out_dir, "summary_latest.txt"), "w", encoding="utf-8") as f:
         f.write(text)
     print("📊 TỔNG KẾT " + str(st["sessions"]) + " phiên — vốn $" + f"{st['balance']:,.2f}" + " · " +
@@ -889,7 +1100,12 @@ def run_once(cfg, args):
     print("=" * 64)
     print(f"🥇 XAU/USD AI DEBATE ARENA — phiên {time.strftime('%H:%M:%S')}")
     print(f"Khung: {TIMEFRAMES[tf_key]['label']} · {args.rounds} vòng tranh luận · {args.voters} cử tri · {args.paths} kịch bản")
-    print(f"API: {'LIVE (OpenRouter)' if cfg['openrouter_api_key'] else 'CHẾ ĐỘ MẪU (chưa có API key)'}")
+    keys = []
+    if cfg["openrouter_api_key"]: keys.append("OpenRouter")
+    if cfg["gemini_api_key"]: keys.append("Gemini")
+    if cfg["groq_api_key"]: keys.append("Groq")
+    print(f"API: {' + '.join(keys) if keys else 'CHẾ ĐỘ MẪU (chưa có key)'}")
+    print("Định tuyến: " + " · ".join(f"{a['title']}→{agent_conf(cfg, a['key'])['provider']}/{agent_conf(cfg, a['key'])['model']}" for a in AGENTS))
     print("-" * 64)
 
     price, price_src = fetch_price()
@@ -913,7 +1129,6 @@ def run_once(cfg, args):
     print(f"📈 Mục tiêu ${mc['target']:,.2f} · P10-P90: ${mc['p10']:,.2f} – ${mc['p90']:,.2f} · P(tăng) {mc['prob_up']*100:.1f}%")
     print("-" * 64)
 
-    # 📈 Backtest tự chạy sau mỗi phiên — theo dõi sự trưởng thành
     bt = run_backtest(klines, tf_key)
     if bt:
         print(f"📈 Backtest {tf_key}: win rate {bt['win_rate']}% ({bt['trades']} lệnh) · "
@@ -930,12 +1145,11 @@ def run_once(cfg, args):
     with open(os.path.join(out_dir, "simulation_latest.json"), "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
     generate_dashboard_html(data, os.path.join(out_dir, "dashboard.html"))
-    # lưu backtest history (tích lũy để vẽ đường cong trưởng thành)
     bt = run_backtest(klines, tf_key)
     if bt:
         save_backtest_history({**bt, "consensus": consensus, "verdict": verdict, "target": mc["target"]}, out_dir)
 
-    # 💼 AI TRADER — chạy mỗi phiên (mở/đóng lệnh, báo cáo, tổng kết, Telegram)
+    # 💼 AI TRADER — chạy mỗi phiên
     if not args.no_trader:
         trader_step(cfg, args, ind, mc, consensus, verdict, finals, price, klines, out_dir)
     return data
@@ -944,11 +1158,8 @@ def run_once(cfg, args):
 def trader_step(cfg, args, ind, mc, consensus, verdict, finals, price, klines, out_dir):
     st = load_trader_state(out_dir)
     st["sessions"] += 1
-    # 1) đóng lệnh nếu chạm SL/TP với nến mới nhất
     rep = trader_check_position(st, klines, out_dir)
-    # 2) tổng kết nếu đủ N phiên → gửi Telegram
     trader_summary(st, cfg, out_dir)
-    # 3) quyết định lệnh mới nếu đang không có lệnh
     if not st.get("position"):
         decision = trader_llm_decision(cfg, consensus, verdict, finals, price, ind["atr"],
                                        ind["sup"], ind["res"], mc["target"], mc["p10"], mc["p90"],
@@ -965,7 +1176,6 @@ def trader_step(cfg, args, ind, mc, consensus, verdict, finals, price, klines, o
     else:
         print(f"💼 AI Trader đang trong lệnh {st['position']['dir'].upper()} {st['position']['tf']} — chờ SL/TP.")
     save_trader_state(st, out_dir)
-    # gửi tin nhắn khi mở/đóng lệnh (nếu cấu hình Telegram)
     if rep:
         send_telegram(
             f"💼 *AI TRADER ĐÓNG LỆNH* {rep['dir'].upper()} {rep['tf']}\n"
@@ -982,27 +1192,27 @@ def trader_step(cfg, args, ind, mc, consensus, verdict, finals, price, klines, o
 
 
 def main():
-    ap = argparse.ArgumentParser(description="XAU/USD AI Debate Arena — backend Python")
+    ap = argparse.ArgumentParser(description="XAU/USD AI Debate Arena — backend đa nhà cung cấp")
     ap.add_argument("--timeframe", choices=list(TIMEFRAMES), default="1h")
     ap.add_argument("--rounds", type=int, default=2, choices=[1, 2, 3])
     ap.add_argument("--voters", type=int, default=80)
     ap.add_argument("--paths", type=int, default=300)
     ap.add_argument("--context", default="", help="Bối cảnh bổ sung (tin tức vĩ mô...)")
-    ap.add_argument("--watch", type=int, default=0, help="Tự chạy lại mỗi N phút (0 = tắt)")
+    ap.add_argument("--watch", type=int, default=0, help="Tự chạy lại mỗi N phút (0 = tắt; VD: 360 = mỗi 6 giờ)")
     ap.add_argument("--serve", type=int, default=0, help="Mở web server cổng N để xem dashboard")
     ap.add_argument("--out", default="output")
     ap.add_argument("--seed", type=int, default=None)
-    ap.add_argument("--no-trader", action="store_true", help="Tắt AI Trader (chỉ chạy mô phỏng)")
+    ap.add_argument("--no-trader", action="store_true", help="Tắt AI Trader")
     ap.add_argument("--force-summary", action="store_true", help="Buộc tổng kết AI Trader ngay")
     args = ap.parse_args()
     cfg = load_config()
 
     if args.force_summary:
-        out_dir = args.out
-        st = load_trader_state(out_dir)
-        trader_summary(st, cfg, out_dir, force=True)
+        st = load_trader_state(args.out)
+        trader_summary(st, cfg, args.out, force=True)
         print("✅ Đã buộc tổng kết. Xem output/summary_latest.txt (hoặc Telegram).")
         return
+
     run_once(cfg, args)
 
     if args.serve:
