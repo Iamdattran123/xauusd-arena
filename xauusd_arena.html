@@ -374,6 +374,7 @@ window.addEventListener('unhandledrejection', function(e){
   <!-- ================= TABS ================= -->
   <div class="tabs">
     <button class="active" data-tab="tabChart">📈 Biểu đồ dự báo</button>
+    <button data-tab="tabTrader">💼 AI Trader &amp; Vốn</button>
     <button data-tab="tabCrowd">🗳️ Đám đông bỏ phiếu</button>
     <button data-tab="tabDebate">💬 Diễn biến tranh luận</button>
     <button data-tab="tabLearn">🧠 Học hỏi &amp; Lịch sử</button>
@@ -397,6 +398,82 @@ window.addEventListener('unhandledrejection', function(e){
     <div class="panel" id="tradingPanel" style="display:none;">
       <h2><span class="ico">🎯</span> Kế hoạch thực chiến (tham khảo — KHÔNG phải lời khuyên tài chính)</h2>
       <div id="tradingPlan"></div>
+    </div>
+  </div>
+
+  <!-- Tab: AI Trader -->
+  <div class="tabview" id="tabTrader">
+    <div class="metrics" style="margin-top:0;">
+      <div class="mcard"><div class="lbl">💰 Vốn (mô phỏng)</div><div class="val" id="trBalance">—</div><div class="sub2">Cấp ban đầu $1.000</div></div>
+      <div class="mcard"><div class="lbl">📊 Equity</div><div class="val" id="trEquity" style="font-size:17px;">—</div><div class="sub2" id="trEquitySub">—</div></div>
+      <div class="mcard"><div class="lbl">🎯 Win rate</div><div class="val" id="trWinRate">—</div><div class="sub2" id="trTrades">—</div></div>
+      <div class="mcard"><div class="lbl">📉 Drawdown tối đa</div><div class="val" id="trDD" style="font-size:17px;">—</div><div class="sub2" id="trPF">—</div></div>
+    </div>
+    <div class="panel">
+      <h2><span class="ico">🤖</span> AI Trader — tự suy nghĩ &amp; ra quyết định <span style="margin-left:auto; text-transform:none; font-size:11px;" id="trStatus">Đang chờ phiên đầu tiên</span></h2>
+      <div id="trPosition"></div>
+      <div id="trReport"></div>
+      <div style="margin-top:12px;">
+        <div class="lbl" style="text-transform:none; font-size:12px; color:var(--muted);">⚙️ Cấu hình AI Trader</div>
+        <div class="grid g4" style="margin-top:8px;">
+          <div>
+            <label class="f">Nhà cung cấp model</label>
+            <select id="trProv" class="provider-sel">
+              <option value="openrouter">OpenRouter</option>
+              <option value="gemini">Gemini (FREE)</option>
+              <option value="groq">Groq (FREE)</option>
+            </select>
+          </div>
+          <div>
+            <label class="f">Model trader</label>
+            <select id="trModel" class="model-sel"></select>
+            <input type="text" id="trModelCustom" class="model-custom" placeholder="Model khác..." style="display:none;">
+          </div>
+          <div>
+            <label class="f">Rủi ro mỗi lệnh</label>
+            <select id="trRisk">
+              <option value="0.5">0.5% (thận trọng)</option>
+              <option value="1" selected>1% (chuẩn)</option>
+              <option value="2">2% (tích cực)</option>
+              <option value="3">3% (mạo hiểm)</option>
+            </select>
+          </div>
+          <div>
+            <label class="f">Tổng kết sau</label>
+            <select id="trSummaryN">
+              <option value="300" selected>300 phiên</option>
+              <option value="500">500 phiên</option>
+              <option value="1000">1000 phiên</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid g4" style="margin-top:8px;">
+          <div>
+            <label class="f">📨 Telegram Bot Token (tùy chọn)</label>
+            <input type="password" id="tgToken" placeholder="123456:ABC-..." autocomplete="off" spellcheck="false">
+          </div>
+          <div>
+            <label class="f">Telegram Chat ID</label>
+            <input type="text" id="tgChat" placeholder="VD: 123456789" autocomplete="off" spellcheck="false">
+          </div>
+          <div style="display:flex; align-items:end; gap:8px;">
+            <button class="mini-btn" id="btnTgTest" type="button">📨 Gửi thử</button>
+            <button class="mini-btn" id="btnTrReset" type="button">↺ Reset vốn &amp; lệnh</button>
+          </div>
+          <div style="display:flex; align-items:end;">
+            <button class="mini-btn" id="btnTrSummary" type="button" style="width:100%;">📊 Buộc tổng kết ngay</button>
+          </div>
+        </div>
+        <div class="hint" style="margin-top:8px;">Bot token lấy từ <b>@BotFather</b> trên Telegram, Chat ID lấy từ <b>@userinfobot</b>. Nếu để trống: báo cáo/tổng kết hiện ngay trong app, bạn tự đọc. Khi đủ N phiên, AI tự tổng kết toàn bộ hành trình → gửi tin nhắn cho bạn → <b>bạn là người ra quyết định cuối cùng</b>.</div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2><span class="ico">📖</span> Sổ lệnh (Trade Journal)</h2>
+      <div id="trJournal" style="overflow-x:auto;"></div>
+    </div>
+    <div class="panel">
+      <h2><span class="ico">📈</span> Đường cong vốn (Equity Curve)</h2>
+      <div class="chart-holder" id="trChart" style="height:280px;"></div>
     </div>
   </div>
 
@@ -1768,6 +1845,292 @@ function renderRanking(){
 }
 
 /* =====================================================================
+   🤖 AI TRADER TỰ TRỊ — vốn mô phỏng $1.000
+   - Sau mỗi phiên hội đồng: trader TỰ suy nghĩ (gọi LLM riêng) dựa trên
+     phán quyết hội đồng + Monte Carlo + chỉ báo → quyết định hướng,
+     khung giờ, entry/SL/TP, RR, rủi ro
+   - Quản lý vốn mô phỏng $1.000; mỗi lệnh đóng → báo cáo đầy đủ lý do
+   - Đủ N phiên (300/500/1000) → tổng kết hành trình → gửi tin nhắn
+     (Telegram nếu cấu hình, hoặc hiện trong app) → CON NGƯỜI quyết định
+   ===================================================================== */
+const TRADER_PERSONA = 'Bạn là AI TRADER độc lập, chuyên nghiệp, quản lý quỹ mô phỏng 1.000 USD giao dịch vàng (XAU/USD). Bạn KHÔNG bị lệ thuộc hội đồng: hãy đọc phán quyết của họ như tham khảo, tự phản biện, rồi ra quyết định của riêng bạn. Ưu tiên bảo toàn vốn, chỉ vào lệnh khi có xác suất thắng rõ ràng.';
+
+function loadTrader(){ return store.get('arena_trader_v2', null); }
+function saveTrader(t){ store.set('arena_trader_v2', t); }
+function newTrader(){
+  return {
+    balance: 1000, startBalance: 1000, peak: 1000, maxDD: 0,
+    position: null, history: [], trades: 0, wins: 0,
+    totalPnl: 0, grossWin: 0, grossLoss: 0,
+    sessions: 0, summaryEvery: 300, equityPoints: [{t:Date.now(), e:1000}],
+  };
+}
+
+/* Quyết định của trader — heuristic khi không có LLM */
+function traderHeuristic(finals, mc, ind){
+  const cons = computeConsensus(finals).consensus;
+  const probUp = mc.probUp;
+  const atr = ind.atr;
+  const price = S.price;
+  let action = 'hold', tf = S.tf, sl, tp, risk = parseFloat($('trRisk')?.value || 1)/100;
+  const strong = Math.abs(cons) >= 0.25;
+  if(cons >= 0.15 && probUp > 0.52){
+    action = 'long';
+    tf = strong ? '4h' : (S.tf==='1D' ? '1h' : S.tf);
+    sl = price - Math.max(1.5*atr, price*0.003);
+    tp = (mc.target > price) ? mc.target : price + 2*Math.max(1.5*atr, price*0.003);
+    if((tp-price)/(price-sl) < 1.2) tp = price + 2*(price-sl);
+  }else if(cons <= -0.15 && probUp < 0.48){
+    action = 'short';
+    tf = strong ? '4h' : (S.tf==='1D' ? '1h' : S.tf);
+    sl = price + Math.max(1.5*atr, price*0.003);
+    tp = (mc.target < price) ? mc.target : price - 2*Math.max(1.5*atr, price*0.003);
+    if((price-tp)/(sl-price) < 1.2) tp = price - 2*(sl-price);
+  }
+  const rr = action==='long' ? (tp-price)/(price-sl) : action==='short' ? (price-tp)/(sl-price) : 0;
+  return {action, tf, sl, tp, risk, rr, reason: action==='hold'
+    ? 'Hội đồng chưa đủ phân cực (đồng thuận ' + (cons>=0?'+':'') + cons.toFixed(2) + ') — đứng ngoài bảo toàn vốn.'
+    : 'Tự quyết: ' + (action==='long'?'MUA':'BÁN') + ' theo phán quyết hội đồng (' + (cons>=0?'+':'') + cons.toFixed(2) + '), xác suất tăng ' + (probUp*100).toFixed(0) + '%, SL theo ATR 1.5x, TP theo mục tiêu Monte Carlo.'};
+}
+
+/* Gọi LLM cho trader ra quyết định độc lập */
+async function traderDecideWithLLM(){
+  const provKey = $('trProv').value;
+  const model = modelOf('trModel', 'trModelCustom') || (PROVIDERS[provKey]?.models[0] || '');
+  const key = PROVIDERS[provKey].key();
+  if(!key) return null;
+  const cons = computeConsensus(S.finals).consensus;
+  const panel = S.finals.map(f=>`• ${f.title}: tâm lý ${f.stance>=0?'+':''}${f.stance.toFixed(2)} (tự tin ${(f.conf*100).toFixed(0)}%) — ${f.reason}`).join('\n');
+  const mc = S.mc, ind = S.ind;
+  const prompt = TRADER_PERSONA + `
+
+PHÁN QUYẾT HỘI ĐỒNG (tham khảo):
+${panel}
+Đồng thuận ròng: ${cons>=0?'+':''}${cons.toFixed(3)} (${S.verdict})
+
+THỊ TRƯỜNG:
+Giá hiện tại: ${fmtPrice(S.price)} · ATR: ${fmtPrice(ind.atr)} · Hỗ trợ: ${fmtPrice(ind.sup)} · Kháng cự: ${fmtPrice(ind.res)}
+Monte Carlo: mục tiêu ${fmtPrice(mc.target)} · P10 ${fmtPrice(mc.p10)} · P90 ${fmtPrice(mc.p90)} · P(tăng) ${(mc.probUp*100).toFixed(0)}%
+Vốn quỹ hiện tại: $${S.trader.balance.toFixed(2)}${S.trader.position ? ' · ĐANG CÓ LỆNH MỞ: ' + S.trader.position.dir + ' entry ' + fmtPrice(S.trader.position.entry) : ''}
+
+NHIỆM VỤ: Tự suy nghĩ độc lập và ra quyết định giao dịch cho PHIÊN NÀY.
+- Nếu KHÔNG nên giao dịch → action "hold" (bảo toàn vốn là ưu tiên).
+- Nếu giao dịch: chọn hướng, khung thời gian PHÙ HỢP (15m/1h/4h/1D — ngắn hạn nếu tín hiệu nhanh, dài hạn nếu xu hướng rõ), SL và TP là MỨC GIÁ cụ thể, risk% vốn (1-2%).
+Trả về DUY NHẤT JSON:
+{"action": "long|short|hold", "timeframe": "15m|1h|4h|1D", "sl": <số>, "tp": <số>, "risk_pct": <số 0.5-3>, "reason": "<lý do quyết định tiếng Việt 2-3 câu>"}`;
+  const res = await callLLM({key:'Trader', title:'AI Trader'}, 1, null, {provider:provKey, model});
+  const j = extractJson(res.content);
+  if(!j) return null;
+  const atr = ind.atr;
+  let sl = gfloat(j, ['sl'], S.price - 1.5*atr);
+  let tp = gfloat(j, ['tp'], S.price + 2*1.5*atr);
+  const action = ['long','short','hold'].includes(String(j.action||'').toLowerCase()) ? String(j.action).toLowerCase() : 'hold';
+  if(action==='hold') return {action, tf:S.tf, sl:null, tp:null, risk:1, rr:0, reason:String(j.reason||'Đứng ngoài').slice(0,500), llm:true};
+  const tf = ['15m','1h','4h','1D'].includes(String(j.timeframe||'')) ? j.timeframe : S.tf;
+  // validate: SL/TP phải đúng hướng và hợp lý so với ATR
+  if(action==='long'){ if(!(sl < S.price && tp > S.price)){ sl = S.price - 1.5*atr; tp = S.price + 2*1.5*atr; } }
+  else { if(!(sl > S.price && tp < S.price)){ sl = S.price + 1.5*atr; tp = S.price - 2*1.5*atr; } }
+  if(Math.abs(sl - S.price) < 0.2*atr || Math.abs(sl - S.price) > 6*atr) sl = S.price + (action==='long'?-1:1)*1.5*atr;
+  const rr = action==='long' ? (tp-S.price)/(S.price-sl) : (S.price-tp)/(sl-S.price);
+  const risk = Math.max(0.5, Math.min(3, gfloat(j,['risk_pct'], 1)));
+  return {action, tf, sl, tp, risk:risk/100, rr:Math.max(0.1, rr), reason:String(j.reason||'').slice(0,500) || 'Quyết định theo phân tích độc lập.', llm:true};
+}
+
+/* Thực thi quyết định: mở lệnh nếu hợp lệ */
+function traderExecute(decision){
+  const t = S.trader;
+  if(!t) return;
+  if(t.position) return; // đang có lệnh mở — không mở thêm
+  if(decision.action === 'hold') return;
+  const atr = S.ind.atr;
+  const slDist = Math.abs(decision.sl - S.price);
+  if(slDist < atr*0.1) return;
+  const riskAmt = t.balance * decision.risk;
+  const qty = riskAmt / slDist; // số "ounce" mô phỏng theo rủi ro
+  const notional = qty * S.price;
+  if(notional > t.balance * 20) return; // chặn đòn bẩy quá 20x
+  t.position = {
+    id: Date.now(),
+    dir: decision.action, tf: decision.tf,
+    entry: S.price, sl: decision.sl, tp: decision.tp,
+    rr: decision.rr, qty, riskPct: decision.risk,
+    openedAt: new Date().toISOString(),
+    reason: decision.reason, llm: !!decision.llm,
+  };
+  saveTrader(t);
+  log(`💼 AI TRADER MỞ LỆNH ${decision.action.toUpperCase()} — ${decision.tf} · entry ${fmtPrice(S.price)} · SL ${fmtPrice(decision.sl)} · TP ${fmtPrice(decision.tp)} · RR 1:${decision.rr.toFixed(1)} · rủi ro ${(decision.risk*100).toFixed(1)}% (${fmtPrice(riskAmt)})`, 'info');
+}
+
+/* Kiểm tra lệnh đang mở so với giá mới nhất → đóng nếu chạm SL/TP */
+function traderCheckPosition(){
+  const t = S.trader;
+  if(!t || !t.position) return null;
+  const p = t.position;
+  const last = S.klines[S.klines.length-1];
+  let exit = null, reason = '';
+  if(p.dir === 'long'){
+    if(last.l <= p.sl){ exit = p.sl; reason = 'chạm CẮT LỖ (SL)'; }
+    else if(last.h >= p.tp){ exit = p.tp; reason = 'chạm CHỐT LỜI (TP)'; }
+  }else{
+    if(last.h >= p.sl){ exit = p.sl; reason = 'chạm CẮT LỖ (SL)'; }
+    else if(last.l <= p.tp){ exit = p.tp; reason = 'chạm CHỐT LỜI (TP)'; }
+  }
+  if(exit == null) return null;
+  const dirMult = p.dir === 'long' ? 1 : -1;
+  const pnl = (exit - p.entry) * dirMult * p.qty;
+  const pnlPct = (exit/p.entry - 1) * dirMult * 100;
+  t.balance += pnl;
+  t.peak = Math.max(t.peak, t.balance);
+  t.maxDD = Math.max(t.maxDD, (t.peak - t.balance)/t.peak*100);
+  t.trades++; if(pnl > 0) t.wins++;
+  t.totalPnl += pnl;
+  if(pnl > 0) t.grossWin += pnl; else t.grossLoss += -pnl;
+  t.position = null;
+  t.equityPoints.push({t: Date.now(), e: t.balance});
+  const report = {
+    ...p, exit, pnl, pnlPct, exitReason: reason,
+    closedAt: new Date().toISOString(),
+    balanceAfter: t.balance,
+  };
+  t.history.unshift(report);
+  saveTrader(t);
+  log(`💼 ĐÓNG LỆNH ${p.dir.toUpperCase()} — ${reason} · entry ${fmtPrice(p.entry)} → exit ${fmtPrice(exit)} · P&L ${pnl>=0?'+':''}${pnl.toFixed(2)}$ (${pnlPct>=0?'+':''}${pnlPct.toFixed(2)}%) · Vốn còn ${fmtPrice(t.balance)}`, pnl>=0?'ok':'err');
+  return report;
+}
+
+/* Gửi tin nhắn Telegram từ trình duyệt (CORS của Telegram Bot API cho phép) */
+async function sendTelegram(text){
+  const token = $('tgToken').value.trim();
+  const chat = $('tgChat').value.trim();
+  if(!token || !chat) return false;
+  try{
+    await fetchTimeout('https://api.telegram.org/bot'+token+'/sendMessage', 10000, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({chat_id: chat, text, disable_web_page_preview:true}),
+    });
+    return true;
+  }catch(e){ log('⚠️ Gửi Telegram lỗi: ' + (e?.message||e), 'warn'); return false; }
+}
+
+/* Tổng kết định kỳ sau N phiên → báo cáo toàn trình + gửi tin nhắn */
+async function traderSummary(force){
+  const t = S.trader;
+  if(!t) return;
+  const n = parseInt($('trSummaryN')?.value || 300, 10);
+  if(!force && t.sessions < n){ return; }
+  const closed = t.history;
+  const winRate = t.trades ? t.wins/t.trades*100 : 0;
+  const pf = t.grossLoss>0 ? t.grossWin/t.grossLoss : (t.grossWin>0 ? Infinity : 0);
+  const byTf = {};
+  closed.forEach(h=>{ byTf[h.tf] = byTf[h.tf] || {n:0, win:0}; byTf[h.tf].n++; if(h.pnl>0) byTf[h.tf].win++; });
+  const lines = [
+    '📊 *XAU/USD AI DEBATE ARENA — BÁO CÁO TỔNG KẾT*',
+    '━━━━━━━━━━━━━━━━━',
+    '⏱️ Số phiên: ' + t.sessions + (force ? ' (tổng kết thủ công)' : ''),
+    '💰 Vốn: $' + t.startBalance.toFixed(2) + ' → $' + t.balance.toFixed(2) + ' (' + (t.totalPnl>=0?'+':'') + t.totalPnl.toFixed(2) + '$ · ' + (t.totalPnl/t.startBalance*100>=0?'+':'') + (t.totalPnl/t.startBalance*100).toFixed(1) + '%)',
+    '🎯 Số lệnh: ' + t.trades + ' · Win rate: ' + winRate.toFixed(1) + '%',
+    '⚖️ Profit factor: ' + (pf===Infinity?'∞':pf.toFixed(2)),
+    '📉 Drawdown tối đa: ' + t.maxDD.toFixed(1) + '%',
+    '━━━━━━━━━━━━━━━━━',
+  ];
+  const tfRows = Object.entries(byTf).map(([tf,o])=> '• Khung ' + tf + ': ' + o.n + ' lệnh · thắng ' + o.win + ' (' + (o.win/o.n*100).toFixed(0) + '%)');
+  lines.push('📆 Theo khung thời gian:\n' + (tfRows.join('\n') || '  (chưa có lệnh)'));
+  const top = closed.slice(0,5).map(h=> '• ' + h.dir.toUpperCase() + ' ' + h.tf + ' ' + new Date(h.openedAt).toLocaleString('vi-VN') + ': ' + (h.pnl>=0?'+':'') + h.pnl.toFixed(2) + '$ — ' + h.exitReason);
+  lines.push('🕘 5 lệnh gần nhất:\n' + (top.join('\n') || '  (chưa có lệnh)'));
+  lines.push('━━━━━━━━━━━━━━━━━\n👨‍💼 *BẠN là người ra quyết định cuối cùng.* Xem chi tiết trong app hoặc yêu cầu tôi phân tích thêm.');
+  const text = lines.join('\n');
+  // hiện trong app
+  $('trReport').innerHTML = '<div style="background:#0d2333; border:1px solid #38bdf8; border-radius:10px; padding:14px; font-size:12.5px; white-space:pre-wrap; line-height:1.7; margin-top:10px;">' + esc(text) + '</div>';
+  log('📊 TỔNG KẾT ' + t.sessions + ' phiên — vốn $' + t.balance.toFixed(2) + ' · ' + t.trades + ' lệnh · win ' + winRate.toFixed(1) + '% · PF ' + (pf===Infinity?'∞':pf.toFixed(2)), 'ok');
+  const sent = await sendTelegram(text);
+  if(sent) log('📨 Đã gửi tổng kết qua Telegram.', 'ok');
+  else if($('tgToken').value.trim()) log('⚠️ Chưa gửi được Telegram — kiểm tra Bot Token / Chat ID.', 'warn');
+  if(!force){
+    t.sessions = 0;
+    t.summaryEvery = n;
+    saveTrader(t);
+  }
+}
+
+function renderTraderTab(){
+  const t = S.trader;
+  if(!t) return;
+  $('trBalance').textContent = '$' + t.balance.toFixed(2);
+  $('trEquity').textContent = '$' + t.balance.toFixed(2);
+  $('trEquitySub').textContent = (t.totalPnl>=0?'+':'') + t.totalPnl.toFixed(2) + '$ (' + (t.totalPnl/t.startBalance*100>=0?'+':'') + (t.totalPnl/t.startBalance*100).toFixed(1) + '%) so với vốn ban đầu';
+  $('trWinRate').textContent = t.trades ? (t.wins/t.trades*100).toFixed(1) + '%' : '—';
+  $('trTrades').textContent = t.trades + ' lệnh đã đóng · ' + (t.trades - t.wins) + ' thua';
+  $('trDD').textContent = t.maxDD.toFixed(2) + '%';
+  const pf = t.grossLoss>0 ? t.grossWin/t.grossLoss : (t.grossWin>0 ? Infinity : 0);
+  $('trPF').textContent = 'PF: ' + (pf===Infinity?'∞':pf.toFixed(2));
+  // trạng thái + lệnh đang mở
+  if(t.position){
+    const p = t.position;
+    $('trStatus').innerHTML = '<span style="color:#38bdf8;">🟢 ĐANG TRONG LỆNH ' + p.dir.toUpperCase() + ' ' + p.tf + '</span>';
+    $('trPosition').innerHTML = `<div style="background:var(--panel2); border:1px solid var(--border); border-left:4px solid ${p.dir==='long'?'var(--up)':'var(--down)'}; border-radius:10px; padding:12px;">
+      <div style="display:flex; gap:16px; flex-wrap:wrap; font-size:13px;">
+        <span><b>${p.dir==='long'?'MUA 📈':'BÁN 📉'}</b> · ${p.tf}</span>
+        <span>Entry: <b>${fmtPrice(p.entry)}</b></span>
+        <span>SL: <b style="color:var(--down);">${fmtPrice(p.sl)}</b></span>
+        <span>TP: <b style="color:var(--up);">${fmtPrice(p.tp)}</b></span>
+        <span>RR: <b>1:${p.rr.toFixed(1)}</b></span>
+        <span>Rủi ro: <b>${(p.riskPct*100).toFixed(1)}%</b></span>
+      </div>
+      <div style="margin-top:8px; font-size:12px; color:var(--muted);">🧠 Lý do: ${esc(p.reason)}</div>
+    </div>`;
+  }else{
+    $('trStatus').textContent = '😴 Đứng ngoài — chờ tín hiệu';
+    $('trStatus').style.color = 'var(--muted)';
+    $('trPosition').innerHTML = '<div style="color:var(--muted); padding:10px 4px;">Không có lệnh đang mở. AI Trader sẽ tự quyết định sau mỗi phiên hội đồng.</div>';
+  }
+  // báo cáo lệnh gần nhất
+  if(t.history.length && !$('trReport').innerHTML.includes('BÁO CÁO TỔNG KẾT')){
+    const h = t.history[0];
+    $('trReport').innerHTML = `<div style="background:var(--panel2); border:1px solid var(--border); border-radius:10px; padding:12px; margin-top:10px;">
+      <div style="font-weight:700; margin-bottom:6px;">📄 BÁO CÁO LỆNH #${h.id} — ${h.dir.toUpperCase()} ${h.tf} · ${h.exitReason}</div>
+      <div style="display:flex; gap:14px; flex-wrap:wrap; font-size:12.5px;">
+        <span>Entry <b>${fmtPrice(h.entry)}</b></span>
+        <span>Exit <b>${fmtPrice(h.exit)}</b></span>
+        <span>SL ${fmtPrice(h.sl)} · TP ${fmtPrice(h.tp)}</span>
+        <span style="color:${h.pnl>=0?'var(--up)':'var(--down)'}; font-weight:800;">P&L: ${h.pnl>=0?'+':''}${h.pnl.toFixed(2)}$ (${h.pnlPct>=0?'+':''}${h.pnlPct.toFixed(2)}%)</span>
+        <span>Vốn sau: ${fmtPrice(h.balanceAfter)}</span>
+      </div>
+      <div style="margin-top:8px; font-size:12px; color:var(--muted);">🧠 Lý do vào lệnh: ${esc(h.reason)}</div>
+    </div>`;
+  }
+  // sổ lệnh
+  if(t.history.length){
+    $('trJournal').innerHTML = `<table>
+      <tr><th>#</th><th>Hướng</th><th>TF</th><th>Mở lúc</th><th>Entry</th><th>Exit</th><th>SL/TP</th><th>P&amp;L ($)</th><th>Kết quả</th></tr>
+      ${t.history.map((h,i)=>`<tr>
+        <td>${t.history.length-i}</td>
+        <td style="color:${h.dir==='long'?'var(--up)':'var(--down)'}; font-weight:700;">${h.dir.toUpperCase()}</td>
+        <td>${h.tf}</td>
+        <td style="white-space:nowrap; font-size:11.5px;">${new Date(h.openedAt).toLocaleString('vi-VN')}</td>
+        <td>${fmtPrice(h.entry)}</td>
+        <td>${fmtPrice(h.exit)}</td>
+        <td style="font-size:11.5px;">${fmtPrice(h.sl)} / ${fmtPrice(h.tp)}</td>
+        <td style="color:${h.pnl>=0?'var(--up)':'var(--down)'}; font-weight:700;">${h.pnl>=0?'+':''}${h.pnl.toFixed(2)}</td>
+        <td>${h.pnl>0?'✅ TP':'❌ SL'}</td>
+      </tr>`).join('')}
+    </table>`;
+  }else{
+    $('trJournal').innerHTML = '<div style="color:var(--muted); padding:12px 6px;">Chưa có lệnh nào — AI Trader bắt đầu hành động sau phiên đầu tiên có tín hiệu rõ.</div>';
+  }
+  // equity curve
+  ensurePlotly(()=>{
+    const pts = t.equityPoints;
+    Plotly.react('trChart', [{x:pts.map(p=>new Date(p.t)), y:pts.map(p=>p.e), type:'scatter', mode:'lines', name:'Equity', line:{color:'#38bdf8', width:2},
+      fill:'tozeroy', fillcolor:'rgba(56,189,248,.08)'}], {
+      paper_bgcolor:'#111c30', plot_bgcolor:'#0b1220', font:{color:'#8ea3c0'},
+      xaxis:{gridcolor:'#1e2c47', type:'date'}, yaxis:{gridcolor:'#1e2c47', title:'USD'},
+      margin:{t:20, l:60, r:20, b:40}, showlegend:false,
+    }, {responsive:true, displaylogo:false});
+  });
+}
+
+/* =====================================================================
    🎯 KẾ HOẠCH THỰC CHIẾN — vùng vào lệnh, chốt lời, cắt lỗ, mức rủi ro
    ===================================================================== */
 function renderTradingPlan(){
@@ -1887,6 +2250,7 @@ function renderAll(){
   renderTicker(); renderMetrics(); renderConsensusBox();
   renderChart(); renderAgentCards(); renderDebateLog(); renderCrowd(); renderRanking();
   renderTradingPlan(); renderLearnTab(); renderBacktestPanel();
+  renderTraderTab();
 }
 
 /* =====================================================================
@@ -2015,6 +2379,34 @@ async function run(manual=true){
     }else{
       log('📈 Backtest: chưa đủ dữ liệu lịch sử (cần ≥60 nến + ' + TF[S.tf].steps + ' nến dự báo).', 'info');
     }
+
+    // 💼 AI TRADER — tự suy nghĩ & hành động dựa trên phán quyết hội đồng
+    try{
+      S.trader = S.trader || loadTrader() || newTrader();
+      const rep = traderCheckPosition(); // đóng lệnh nếu chạm SL/TP
+      let decision = null;
+      const t = S.trader;
+      t.sessions++;
+      if(t.sessions >= (parseInt($('trSummaryN')?.value||300,10))) {
+        await traderSummary(false);
+      }
+      if(!t.position){
+        // AI trader tự quyết định
+        setStep('AI Trader đang suy nghĩ độc lập...', 'Phân tích phán quyết hội đồng + Monte Carlo + chỉ báo → quyết định hướng/khung/SL/TP');
+        decision = await traderDecideWithLLM() || traderHeuristic(S.finals, S.mc, S.ind);
+        if(decision.action !== 'hold'){
+          log(`🤖 AI TRADER QUYẾT ĐỊNH: ${decision.action.toUpperCase()} ${decision.tf} · RR 1:${decision.rr.toFixed(1)} · ${decision.reason.slice(0,140)}...`, 'info');
+        }else{
+          log(`🤖 AI TRADER: đứng ngoài phiên này — ${decision.reason.slice(0,120)}`, 'info');
+        }
+        traderExecute(decision);
+      }else{
+        log('💼 AI Trader đang trong lệnh — chờ tín hiệu đóng (SL/TP).', 'info');
+      }
+      saveTrader(t);
+    }catch(e){
+      log('⚠️ AI Trader lỗi: ' + (e?.message||e), 'warn');
+    }
     renderAll();
     $('badge-src').textContent = '🟢 Phiên ' + new Date().toLocaleTimeString('vi-VN');
     if(manual) log('🏁 Hoàn tất phiên mô phỏng.', 'ok');
@@ -2085,6 +2477,10 @@ function initUI(){
   if(saved.groqKey) $('groqKey').value = saved.groqKey;
   if(saved.ctx) $('ctxInput').value = saved.ctx;
   if(saved.autoNews) $('autoNews').checked = true;
+  if(saved.tg?.token) $('tgToken').value = saved.tg.token;
+  if(saved.tg?.chat) $('tgChat').value = saved.tg.chat;
+  if(saved.trader?.risk) $('trRisk').value = saved.trader.risk;
+  if(saved.trader?.summaryN) $('trSummaryN').value = saved.trader.summaryN;
   if(saved.tf && TF[saved.tf]) selectTF(saved.tf);
   if(saved.rounds) selectRounds(saved.rounds);
   if(saved.voters) $('voters').value = saved.voters;
@@ -2194,6 +2590,35 @@ function initUI(){
   renderRanking();
   renderLearnTab();
   renderBacktestPanel();
+
+  // 💼 AI Trader khởi tạo
+  S.trader = loadTrader() || newTrader();
+  if(!loadTrader()) saveTrader(S.trader);
+  const trProv = saved.trader?.prov || 'openrouter';
+  $('trProv').value = trProv;
+  const trDef = trProv==='gemini' ? 'gemini-2.5-flash' : trProv==='groq' ? 'llama-3.3-70b-versatile' : 'deepseek/deepseek-v4-flash-0731';
+  buildModelPicker('trModel','trModelCustom', trDef, saved.trader?.model || null, trProv);
+  $('trProv').addEventListener('change', ()=>{
+    const def = $('trProv').value==='gemini' ? 'gemini-2.5-flash' : $('trProv').value==='groq' ? 'llama-3.3-70b-versatile' : 'deepseek/deepseek-v4-flash-0731';
+    buildModelPicker('trModel','trModelCustom', def, null, $('trProv').value);
+    saveCfg();
+  });
+  $('trRisk').addEventListener('change', saveCfg);
+  $('trSummaryN').addEventListener('change', saveCfg);
+  $('tgToken').addEventListener('input', saveCfg);
+  $('tgChat').addEventListener('input', saveCfg);
+  $('btnTgTest').addEventListener('click', async ()=>{
+    log('📨 Đang gửi thử Telegram...');
+    const ok = await sendTelegram('✅ Kết nối Telegram thành công! XAU/USD AI Debate Arena sẽ gửi báo cáo lệnh & tổng kết cho bạn.');
+    if(ok) log('📨 Đã gửi thử thành công!', 'ok'); else log('❌ Gửi thử thất bại — kiểm tra token/chat id.', 'err');
+  });
+  $('btnTrReset').addEventListener('click', ()=>{
+    if(!confirm('Reset toàn bộ vốn $1.000 và sổ lệnh của AI Trader?')) return;
+    S.trader = newTrader(); saveTrader(S.trader);
+    renderTraderTab(); log('↺ Đã reset vốn AI Trader về $1.000.', 'info');
+  });
+  $('btnTrSummary').addEventListener('click', ()=>{ traderSummary(true); });
+  renderTraderTab();
 }
 function selectTF(tf){
   S.tf = tf;
@@ -2216,6 +2641,8 @@ function saveCfg(){
     providers: Object.fromEntries(AGENTS.map(a=>[a.key, getAgentProvider(a.key)])),
     ctx: $('ctxInput').value,
     autoNews: !!document.getElementById('autoNews')?.checked,
+    trader: {prov: $('trProv').value, model: modelOf('trModel','trModelCustom'), risk: $('trRisk').value, summaryN: $('trSummaryN').value},
+    tg: {token: $('tgToken').value.trim(), chat: $('tgChat').value.trim()},
   });
 }
 
@@ -2276,5 +2703,5 @@ async function loadAllModels(){
 
 document.addEventListener('DOMContentLoaded', initUI);
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a255f1e35926fde8',t:'MTc4NTc2NjYzNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a25b658e7a3257de',t:'MTc4NTgyMzgwMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
