@@ -1,33 +1,45 @@
 {
-  "balance": 1000.0,
+  "balance": 1028.7199124726467,
   "start_balance": 1000.0,
-  "peak": 1000.0,
+  "peak": 1028.7199124726467,
   "max_dd": 0.0,
-  "position": {
-    "id": 1785849705354,
-    "dir": "long",
-    "tf": "4h",
-    "entry": 4124.3,
-    "sl": 4115.16,
-    "tp": 4141.8,
-    "rr": 1.9146608315097782,
-    "qty": 1.64113785557981,
-    "risk_pct": 0.015,
-    "opened_at": "2026-08-04 13:21:45",
-    "reason": "Xu hướng tăng vẫn duy trì với sự hỗ trợ từ EMA20 ($4,115.16) và mục tiêu kháng cự gần $4,141.80. SL đặt tại EMA20 để kiểm soát rủi ro, TP tại kháng cự chính giúp tối ưu lợi nhuận với tỷ lệ rủi ro/lợi nhuận hợp lý (1:1.2).",
-    "llm": true
-  },
-  "history": [],
-  "trades": 0,
-  "wins": 0,
-  "total_pnl": 0.0,
-  "gross_win": 0.0,
+  "position": null,
+  "history": [
+    {
+      "id": 1785849705354,
+      "dir": "long",
+      "tf": "4h",
+      "entry": 4124.3,
+      "sl": 4115.16,
+      "tp": 4141.8,
+      "rr": 1.9146608315097782,
+      "qty": 1.64113785557981,
+      "risk_pct": 0.015,
+      "opened_at": "2026-08-04 13:21:45",
+      "reason": "Xu hướng tăng vẫn duy trì với sự hỗ trợ từ EMA20 ($4,115.16) và mục tiêu kháng cự gần $4,141.80. SL đặt tại EMA20 để kiểm soát rủi ro, TP tại kháng cự chính giúp tối ưu lợi nhuận với tỷ lệ rủi ro/lợi nhuận hợp lý (1:1.2).",
+      "llm": true,
+      "exit": 4141.8,
+      "pnl": 28.719912472646673,
+      "pnl_pct": 0.42431442911523565,
+      "exit_reason": "chạm CHỐT LỜI (TP)",
+      "closed_at": "2026-08-04 13:50:31",
+      "balance_after": 1028.7199124726467
+    }
+  ],
+  "trades": 1,
+  "wins": 1,
+  "total_pnl": 28.719912472646673,
+  "gross_win": 28.719912472646673,
   "gross_loss": 0.0,
-  "sessions": 4,
+  "sessions": 5,
   "equity_points": [
     {
       "t": 1785837755119,
       "e": 1000.0
+    },
+    {
+      "t": 1785851431520,
+      "e": 1028.7199124726467
     }
   ]
 }
