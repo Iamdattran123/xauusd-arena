@@ -186,12 +186,12 @@ window.addEventListener('unhandledrejection', function(e){
           <div class="hint">Lấy tại <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> — được lưu tự động trong trình duyệt. <b>Để trống = chạy dữ liệu mẫu.</b></div>
         </div>
         <div>
-          <label class="f">🔑 Gemini API Key (Google AI Studio — FREE)</label>
+          <label class="f">🔑 Cohere API Key (trial miễn phí)</label>
           <div style="display:flex; gap:6px;">
-            <input type="password" id="geminiKey" placeholder="AIza..." autocomplete="off" spellcheck="false">
-            <button class="mini-btn" id="btnToggleGem" type="button" title="Hiện/ẩn key">👁️</button>
+            <input type="password" id="cohereKey" placeholder="Trial key..." autocomplete="off" spellcheck="false">
+            <button class="mini-btn" id="btnToggleCohere" type="button" title="Hiện/ẩn key">👁️</button>
           </div>
-          <div class="hint">Lấy tại <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> — miễn phí, ~1.000–1.500 lượt/ngày, không cần thẻ.</div>
+          <div class="hint">Lấy tại <a href="https://dashboard.cohere.com/api-keys" target="_blank" rel="noopener">dashboard.cohere.com/api-keys</a> — key trial miễn phí (model command-r-plus-08-2024).</div>
         </div>
         <div>
           <label class="f">🔑 Groq API Key (FREE)</label>
@@ -243,7 +243,7 @@ window.addEventListener('unhandledrejection', function(e){
           <label class="f">🤖 Macro (Vĩ mô)</label>
           <select id="provMacro" class="provider-sel">
             <option value="openrouter">OpenRouter (trả phí/free)</option>
-            <option value="gemini">Gemini — AI Studio (FREE)</option>
+            <option value="cohere">Cohere (command-r)</option>
             <option value="groq">Groq (FREE)</option>
           </select>
           <select id="modelMacro" class="model-sel">
@@ -262,7 +262,7 @@ window.addEventListener('unhandledrejection', function(e){
           <label class="f">📐 Technical (Kỹ thuật)</label>
           <select id="provTech" class="provider-sel">
             <option value="openrouter">OpenRouter (trả phí/free)</option>
-            <option value="gemini">Gemini — AI Studio (FREE)</option>
+            <option value="cohere">Cohere (command-r)</option>
             <option value="groq">Groq (FREE)</option>
           </select>
           <select id="modelTech" class="model-sel">
@@ -281,7 +281,7 @@ window.addEventListener('unhandledrejection', function(e){
           <label class="f">🐋 Whale (Quỹ &amp; NHTW)</label>
           <select id="provWhale" class="provider-sel">
             <option value="openrouter">OpenRouter (trả phí/free)</option>
-            <option value="gemini">Gemini — AI Studio (FREE)</option>
+            <option value="cohere">Cohere (command-r)</option>
             <option value="groq">Groq (FREE)</option>
           </select>
           <select id="modelWhale" class="model-sel">
@@ -300,7 +300,7 @@ window.addEventListener('unhandledrejection', function(e){
           <label class="f">👥 Retail (Đám đông nhỏ lẻ)</label>
           <select id="provRetail" class="provider-sel">
             <option value="openrouter">OpenRouter (trả phí/free)</option>
-            <option value="gemini">Gemini — AI Studio (FREE)</option>
+            <option value="cohere">Cohere (command-r)</option>
             <option value="groq">Groq (FREE)</option>
           </select>
           <select id="modelRetail" class="model-sel">
@@ -315,7 +315,7 @@ window.addEventListener('unhandledrejection', function(e){
           </select>
           <input type="text" id="modelRetailCustom" class="model-custom" placeholder="VD: qwen/qwen3-32b" spellcheck="false" style="display:none;">
         </div>
-        <div class="hint" style="grid-column:1/-1;">💡 <b>Bộ khuyên dùng (theo yêu cầu của bạn):</b> Macro = Gemini free · Technical = Gemini free · Whale = DeepSeek V4 Flash (OpenRouter trả phí) · Retail = Qwen3-32b (OpenRouter trả phí). 2 model trả phí này chỉ ~$0.0017/phiên → $5 dùng ~3.000 phiên. Đổi nhà cung cấp = đổi dropdown đầu tiên của từng chuyên gia.</div>
+        <div class="hint" style="grid-column:1/-1;">💡 <b>Bộ mặc định hiện tại:</b> Macro = OpenRouter/qwen3-32b · Technical = OpenRouter/deepseek-v4-flash-0731 · Whale = Cohere/command-r-plus-08-2024 (trial free) · Retail = Groq/llama-3.3-70b (FREE). Chỉ ~$0.0017/phiên → $5 dùng ~3.000 phiên. Đổi nhà cung cấp = đổi dropdown đầu tiên của từng chuyên gia.</div>
       </div>
 
       <div class="grid" style="grid-template-columns:1fr 260px; gap:14px; align-items:end;">
@@ -420,7 +420,7 @@ window.addEventListener('unhandledrejection', function(e){
             <label class="f">Nhà cung cấp model</label>
             <select id="trProv" class="provider-sel">
               <option value="openrouter">OpenRouter</option>
-              <option value="gemini">Gemini (FREE)</option>
+              <option value="cohere">Cohere (command-r)</option>
               <option value="groq">Groq (FREE)</option>
             </select>
           </div>
@@ -456,9 +456,12 @@ window.addEventListener('unhandledrejection', function(e){
             <label class="f">Telegram Chat ID</label>
             <input type="text" id="tgChat" placeholder="VD: 123456789" autocomplete="off" spellcheck="false">
           </div>
-          <div style="display:flex; align-items:end; gap:8px;">
+          <div style="display:flex; align-items:end; gap:8px; flex-wrap:wrap;">
             <button class="mini-btn" id="btnTgTest" type="button">📨 Gửi thử</button>
             <button class="mini-btn" id="btnTrReset" type="button">↺ Reset vốn &amp; lệnh</button>
+            <label style="display:flex; gap:6px; align-items:center; font-size:12px; color:var(--muted); cursor:pointer; user-select:none;">
+              <input type="checkbox" id="tgPerSession" style="width:auto;" checked> Báo cáo Telegram mỗi phiên
+            </label>
           </div>
           <div style="display:flex; align-items:end;">
             <button class="mini-btn" id="btnTrSummary" type="button" style="width:100%;">📊 Buộc tổng kết ngay</button>
@@ -597,10 +600,10 @@ const TF = {
 };
 
 const AGENTS = [
-  {key:'Macro_Analyst',    title:'Chuyên gia Vĩ mô',        icon:'🏛️', persona:'Bạn là chuyên gia kinh tế vĩ mô cấp cao tại một quỹ đầu tư toàn cầu. Trọng tâm: chính sách lãi suất Fed, chỉ số DXY, lạm phát CPI/PCE, lợi suất trái phiếu Mỹ, rủi ro địa chính trị và vai trò trú ẩn của vàng.', defaultModel:'google/gemma-4-31b-it:free'},
-  {key:'Technical_Analyst',title:'Chuyên gia Kỹ thuật',     icon:'📐', persona:'Bạn là chuyên gia phân tích kỹ thuật với 15 năm kinh nghiệm giao dịch vàng. Trọng tâm: RSI, MACD, EMA, ATR, vùng hỗ trợ/kháng cự, mô hình nến và cấu trúc xu hướng.', defaultModel:'nvidia/nemotron-3-super-120b-a12b:free'},
-  {key:'Institutional_Whale',title:'Quỹ & Ngân hàng TW',    icon:'🐋', persona:'Bạn đại diện cho ngân hàng trung ương và quỹ ETF vàng lớn (SPDR Gold, iShares). Trọng tâm: dòng tiền tổ chức, nhu cầu tích trữ, giao dịch OTC, thanh khoản và chi phí cơ hội.', defaultModel:'openai/gpt-oss-20b:free'},
-  {key:'Retail_Crowd',     title:'Đám đông Nhỏ lẻ',          icon:'👥', persona:'Bạn đại diện cho tâm lý nhà đầu tư cá nhân trên mạng xã hội. Trọng tâm: FOMO, bắt đáy, chốt lời, đòn bẩy, dòng tiền nhỏ lẻ và tâm lý theo đám đông.', defaultModel:'openrouter/free'},
+  {key:'Macro_Analyst',    title:'Chuyên gia Vĩ mô',        icon:'🏛️', persona:'Bạn là chuyên gia kinh tế vĩ mô cấp cao tại một quỹ đầu tư toàn cầu. Trọng tâm: chính sách lãi suất Fed, chỉ số DXY, lạm phát CPI/PCE, lợi suất trái phiếu Mỹ, rủi ro địa chính trị và vai trò trú ẩn của vàng.', defaultModel:'qwen/qwen3-32b'},
+  {key:'Technical_Analyst',title:'Chuyên gia Kỹ thuật',     icon:'📐', persona:'Bạn là chuyên gia phân tích kỹ thuật với 15 năm kinh nghiệm giao dịch vàng. Trọng tâm: RSI, MACD, EMA, ATR, vùng hỗ trợ/kháng cự, mô hình nến và cấu trúc xu hướng.', defaultModel:'deepseek/deepseek-v4-flash-0731'},
+  {key:'Institutional_Whale',title:'Quỹ & Ngân hàng TW',    icon:'🐋', persona:'Bạn đại diện cho ngân hàng trung ương và quỹ ETF vàng lớn (SPDR Gold, iShares). Trọng tâm: dòng tiền tổ chức, nhu cầu tích trữ, giao dịch OTC, thanh khoản và chi phí cơ hội.', defaultModel:'command-r-plus-08-2024'},
+  {key:'Retail_Crowd',     title:'Đám đông Nhỏ lẻ',          icon:'👥', persona:'Bạn đại diện cho tâm lý nhà đầu tư cá nhân trên mạng xã hội. Trọng tâm: FOMO, bắt đáy, chốt lời, đòn bẩy, dòng tiền nhỏ lẻ và tâm lý theo đám đông.', defaultModel:'llama-3.3-70b-versatile'},
 ];
 
 const FREE_MODELS = [
@@ -634,12 +637,12 @@ const PROVIDERS = {
     models:[...FREE_MODELS, ...PAID_MODELS],
     free:[...FREE_FALLBACK_CHAIN],
   },
-  gemini:{
-    label:'Gemini (AI Studio)',
-    url:'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
-    key:()=>$('geminiKey').value.trim(),
-    models:['gemini-2.5-flash','gemini-2.5-flash-lite','gemini-2.5-pro'],
-    free:['gemini-2.5-flash','gemini-2.5-flash-lite'],
+  cohere:{
+    label:'Cohere',
+    url:'https://api.cohere.com/v2/chat',
+    key:()=>$('cohereKey').value.trim(),
+    models:['command-r-plus-08-2024','command-r-08-2024','command-a-03-2025'],
+    free:['command-r-plus-08-2024'],
   },
   groq:{
     label:'Groq',
@@ -1412,7 +1415,7 @@ async function runDebate(apiKey, onStatus){
   for(let r=1; r<=rounds; r++){
     onStatus(`Vòng ${r}/${rounds} — ${r===1?'Khởi tạo lập trường':r===2?'Phản biện chéo':'Điều chỉnh cuối'}`, 'Đang hỏi ' + AGENTS.length + ' chuyên gia AI...');
     /* Chạy tuần tự nếu có nguồn free (giảm bùng nổ 429) — song song nếu toàn trả phí */
-    const anyKey = getApiKey() || $('geminiKey').value.trim() || $('groqKey').value.trim();
+    const anyKey = getApiKey() || $('cohereKey').value.trim() || $('groqKey').value.trim();
     const chosen = getModels();
     const anyFree = AGENTS.some(a=>getAgentProvider(a.key)!=='openrouter')
       || Object.values(chosen).some(m=>m.includes(':free') || m==='openrouter/free');
@@ -2310,10 +2313,10 @@ async function run(manual=true){
     }
 
     const apiKey = getApiKey();
-    const gemKey = $('geminiKey').value.trim();
+    const cohKey = $('cohereKey').value.trim();
     const groqKey = $('groqKey').value.trim();
-    const anyKey = apiKey || gemKey || groqKey;
-    $('badge-mode').textContent = anyKey ? '🔌 LIVE — ' + [apiKey&&'OpenRouter', gemKey&&'Gemini', groqKey&&'Groq'].filter(Boolean).join(' + ') : '🧪 CHẾ ĐỘ MẪU (chưa có API Key)';
+    const anyKey = apiKey || cohKey || groqKey;
+    $('badge-mode').textContent = anyKey ? '🔌 LIVE — ' + [apiKey&&'OpenRouter', cohKey&&'Cohere', groqKey&&'Groq'].filter(Boolean).join(' + ') : '🧪 CHẾ ĐỘ MẪU (chưa có API Key)';
     $('badge-mode').className = 'badge ' + (anyKey?'live':'mock');
 
     // kiểm tra model gõ tay có tồn tại trên OpenRouter không (chỉ khi agent dùng OpenRouter)
@@ -2379,6 +2382,27 @@ async function run(manual=true){
     }else{
       log('📈 Backtest: chưa đủ dữ liệu lịch sử (cần ≥60 nến + ' + TF[S.tf].steps + ' nến dự báo).', 'info');
     }
+
+    // 📨 Gửi báo cáo phiên qua Telegram nếu được bật
+    try{
+      if(document.getElementById('tgPerSession')?.checked && $('tgToken').value.trim() && $('tgChat').value.trim()){
+        const lines = [
+          '📊 *XAU/USD AI DEBATE — BÁO CÁO PHIÊN*',
+          '━━━━━━━━━━━━━━━━━',
+          '⏱️ ' + new Date().toLocaleString('vi-VN') + ' · ' + S.priceSrc,
+          '💰 Giá: ' + fmtPrice(S.price),
+          '🧠 Đồng thuận: ' + (S.consensus>=0?'+':'') + S.consensus.toFixed(3) + ' → ' + S.verdict,
+        ];
+        S.finals.forEach(f=>{ lines.push('  ' + f.icon + ' ' + f.title + ': ' + (f.stance>=0?'+':'') + f.stance.toFixed(2) + ' (tự tin ' + (f.conf*100).toFixed(0) + '%)'); });
+        lines.push('🎯 Mục tiêu ' + fmtPrice(S.mc.target) + ' · P10-P90 ' + fmtPrice(S.mc.p10) + ' – ' + fmtPrice(S.mc.p90) + ' · P(tăng) ' + (S.mc.probUp*100).toFixed(0) + '%');
+        if(S.trader && S.trader.position) lines.push('💼 AI Trader: MỞ ' + S.trader.position.dir.toUpperCase() + ' ' + S.trader.position.tf + ' · entry ' + fmtPrice(S.trader.position.entry));
+        else if(S.trader && S.trader.history.length) lines.push('💼 AI Trader: lệnh gần nhất ' + (S.trader.history[0].pnl>=0?'+':'') + S.trader.history[0].pnl.toFixed(2) + '$ · vốn ' + fmtPrice(S.trader.balance));
+        if(btRes) lines.push('📈 Backtest: win ' + btRes.winRate.toFixed(0) + '% (' + btRes.trades + ' lệnh) · ' + (btRes.totalReturn>=0?'+':'') + btRes.totalReturn.toFixed(2) + '%');
+        lines.push('━━━━━━━━━━━━━━━━━\n_Bạn là người ra quyết định cuối cùng._');
+        const sent = await sendTelegram(lines.join('\n'));
+        if(sent) log('📨 Đã gửi báo cáo phiên qua Telegram.', 'ok');
+      }
+    }catch(e){ log('⚠️ Gửi báo cáo Telegram lỗi: ' + (e?.message||e), 'warn'); }
 
     // 💼 AI TRADER — tự suy nghĩ & hành động dựa trên phán quyết hội đồng
     try{
@@ -2473,12 +2497,13 @@ function initUI(){
   // nạp cấu hình đã lưu
   const saved = store.get('arena_cfg_v2', {});
   if(saved.apiKey) $('apiKey').value = saved.apiKey;
-  if(saved.geminiKey) $('geminiKey').value = saved.geminiKey;
+  if(saved.cohereKey) $('cohereKey').value = saved.cohereKey;
   if(saved.groqKey) $('groqKey').value = saved.groqKey;
   if(saved.ctx) $('ctxInput').value = saved.ctx;
   if(saved.autoNews) $('autoNews').checked = true;
   if(saved.tg?.token) $('tgToken').value = saved.tg.token;
   if(saved.tg?.chat) $('tgChat').value = saved.tg.chat;
+  if(saved.tg?.perSession === false) $('tgPerSession').checked = false;
   if(saved.trader?.risk) $('trRisk').value = saved.trader.risk;
   if(saved.trader?.summaryN) $('trSummaryN').value = saved.trader.summaryN;
   if(saved.tf && TF[saved.tf]) selectTF(saved.tf);
@@ -2489,7 +2514,8 @@ function initUI(){
   const provs = saved.providers || {};
   AGENTS.forEach((a, i)=>{
     const pid = 'prov'+AID[a.key], sid = 'model'+AID[a.key], cid = 'model'+AID[a.key]+'Custom';
-    $(pid).value = provs[a.key] || 'openrouter';
+    const defaultProv = {Macro_Analyst:'openrouter', Technical_Analyst:'openrouter', Institutional_Whale:'cohere', Retail_Crowd:'groq'}[a.key] || 'openrouter';
+    $(pid).value = provs[a.key] || defaultProv;
     buildModelPicker(sid, cid, [AGENTS[0].defaultModel, AGENTS[1].defaultModel, AGENTS[2].defaultModel, AGENTS[3].defaultModel][i], saved.models?.[a.key], $(pid).value);
     $(pid).addEventListener('change', ()=>{
       buildModelPicker(sid, cid, [AGENTS[0].defaultModel, AGENTS[1].defaultModel, AGENTS[2].defaultModel, AGENTS[3].defaultModel][i], null, $(pid).value);
@@ -2504,8 +2530,8 @@ function initUI(){
     const i = $('apiKey');
     i.type = i.type==='password' ? 'text':'password';
   });
-  $('btnToggleGem').addEventListener('click', ()=>{
-    const i = $('geminiKey');
+  $('btnToggleCohere').addEventListener('click', ()=>{
+    const i = $('cohereKey');
     i.type = i.type==='password' ? 'text':'password';
   });
   $('btnToggleGroq').addEventListener('click', ()=>{
@@ -2563,9 +2589,9 @@ function initUI(){
   $('autoSel').addEventListener('change', scheduleAuto);
   ['modelMacro','modelTech','modelWhale','modelRetail',
    'modelMacroCustom','modelTechCustom','modelWhaleCustom','modelRetailCustom',
-   'geminiKey','groqKey'].forEach(id=>{
+   'cohereKey','groqKey'].forEach(id=>{
     document.getElementById(id).addEventListener('change', saveCfg);
-    if(id==='geminiKey' || id==='groqKey') document.getElementById(id).addEventListener('input', saveCfg);
+    if(id==='cohereKey' || id==='groqKey') document.getElementById(id).addEventListener('input', saveCfg);
   });
 
   // tabs
@@ -2596,10 +2622,10 @@ function initUI(){
   if(!loadTrader()) saveTrader(S.trader);
   const trProv = saved.trader?.prov || 'openrouter';
   $('trProv').value = trProv;
-  const trDef = trProv==='gemini' ? 'gemini-2.5-flash' : trProv==='groq' ? 'llama-3.3-70b-versatile' : 'deepseek/deepseek-v4-flash-0731';
+  const trDef = trProv==='cohere' ? 'command-r-plus-08-2024' : trProv==='groq' ? 'llama-3.3-70b-versatile' : 'deepseek/deepseek-v4-flash-0731';
   buildModelPicker('trModel','trModelCustom', trDef, saved.trader?.model || null, trProv);
   $('trProv').addEventListener('change', ()=>{
-    const def = $('trProv').value==='gemini' ? 'gemini-2.5-flash' : $('trProv').value==='groq' ? 'llama-3.3-70b-versatile' : 'deepseek/deepseek-v4-flash-0731';
+    const def = $('trProv').value==='cohere' ? 'command-r-plus-08-2024' : $('trProv').value==='groq' ? 'llama-3.3-70b-versatile' : 'deepseek/deepseek-v4-flash-0731';
     buildModelPicker('trModel','trModelCustom', def, null, $('trProv').value);
     saveCfg();
   });
@@ -2607,6 +2633,7 @@ function initUI(){
   $('trSummaryN').addEventListener('change', saveCfg);
   $('tgToken').addEventListener('input', saveCfg);
   $('tgChat').addEventListener('input', saveCfg);
+  $('tgPerSession').addEventListener('change', saveCfg);
   $('btnTgTest').addEventListener('click', async ()=>{
     log('📨 Đang gửi thử Telegram...');
     const ok = await sendTelegram('✅ Kết nối Telegram thành công! XAU/USD AI Debate Arena sẽ gửi báo cáo lệnh & tổng kết cho bạn.');
@@ -2632,7 +2659,7 @@ function selectRounds(r){
 function saveCfg(){
   store.set('arena_cfg_v2', {
     apiKey: getApiKey(),
-    geminiKey: $('geminiKey').value.trim(),
+    cohereKey: $('cohereKey').value.trim(),
     groqKey: $('groqKey').value.trim(),
     tf: S.tf, rounds: S.rounds,
     voters: parseInt($('voters').value)||80,
@@ -2642,7 +2669,7 @@ function saveCfg(){
     ctx: $('ctxInput').value,
     autoNews: !!document.getElementById('autoNews')?.checked,
     trader: {prov: $('trProv').value, model: modelOf('trModel','trModelCustom'), risk: $('trRisk').value, summaryN: $('trSummaryN').value},
-    tg: {token: $('tgToken').value.trim(), chat: $('tgChat').value.trim()},
+    tg: {token: $('tgToken').value.trim(), chat: $('tgChat').value.trim(), perSession: !!document.getElementById('tgPerSession')?.checked},
   });
 }
 
@@ -2703,5 +2730,5 @@ async function loadAllModels(){
 
 document.addEventListener('DOMContentLoaded', initUI);
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a25b658e7a3257de',t:'MTc4NTgyMzgwMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
