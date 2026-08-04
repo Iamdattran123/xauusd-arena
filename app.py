@@ -1119,7 +1119,12 @@ def send_telegram(text, cfg):
         print(f"⚠️ Telegram trả lỗi: {json.dumps(resp, ensure_ascii=False)[:200]}")
         return False
     except urllib.error.HTTPError as e:
-        print(f"⚠️ Telegram HTTP {e.code}: {e.read().decode('utf-8', errors='ignore')[:200]}")
+        detail = e.read().decode('utf-8', errors='ignore')[:200]
+        if e.code == 401:
+            print(f"⚠️ Telegram 401 — TOKEN BOT SAI trên GitHub Secret! (token hiện dài {len(token)} ký tự, "
+                  f"bot token chuẩn ~46). Sửa: Settings → Secrets → TELEGRAM_BOT_TOKEN → dán lại token đúng từ BotFather.")
+        else:
+            print(f"⚠️ Telegram HTTP {e.code}: {detail}")
         return False
     except Exception as e:
         print(f"⚠️ Telegram lỗi: {e}")
@@ -1171,14 +1176,9 @@ def trader_summary(st, cfg, out_dir, force=False):
     save_trader_state(st, out_dir)
 
 
-def send_session_report(cfg, price, price_src, consensus, verdict, finals, mc, bt, trader_info=None):
-    """📨 Báo cáo MỖI PHIÊN qua Telegram."""
+def send_session_report(cfg, price, price_src, consensus, verdict, finals, mc, bt, trader_info=None, out_dir=None):
+    """📊 Báo cáo MỖI PHIÊN — LUÔN ghi file (xem trên GitHub Pages), gửi Telegram nếu có token."""
     if not cfg["trader"].get("report_every_session", True):
-        return False
-    token = cfg["trader"].get("telegram_token", "")
-    chat = cfg["trader"].get("telegram_chat_id", "")
-    if not token or not chat:
-        print("⚠️ Telegram CHƯA cấu hình — thiếu TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID (thêm vào GitHub Secrets).")
         return False
     lines = ["📊 *XAU/USD AI DEBATE — BÁO CÁO PHIÊN*", "━━━━━━━━━━━━━━━━━",
              f"⏱️ {time.strftime('%d/%m/%Y %H:%M')} · {price_src}",
@@ -1193,7 +1193,23 @@ def send_session_report(cfg, price, price_src, consensus, verdict, finals, mc, b
         lines.append(f"📈 Backtest {bt.get('tf', '')}: win {bt['win_rate']}% ({bt['trades']} lệnh) · {bt['total_return_pct']:+.2f}%")
     lines.append("━━━━━━━━━━━━━━━━━")
     lines.append("_Bạn là người ra quyết định cuối cùng._")
-    ok = send_telegram("\n".join(lines), cfg)
+    text = "\n".join(lines)
+    # 1) LUÔN ghi file báo cáo phiên (dự phòng — xem được trên GitHub Pages)
+    if out_dir:
+        try:
+            os.makedirs(out_dir, exist_ok=True)
+            with open(os.path.join(out_dir, "latest_report.txt"), "w", encoding="utf-8") as f:
+                f.write(text)
+            print(f"📄 Đã lưu báo cáo phiên: {out_dir}/latest_report.txt (xem trên GitHub Pages)")
+        except Exception as e:
+            print(f"⚠️ Không lưu được file báo cáo: {e}")
+    # 2) Gửi Telegram nếu có token
+    token = cfg["trader"].get("telegram_token", "")
+    chat = cfg["trader"].get("telegram_chat_id", "")
+    if not token or not chat:
+        print("⚠️ Telegram CHƯA cấu hình — thiếu TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID (thêm vào GitHub Secrets).")
+        return False
+    ok = send_telegram(text, cfg)
     if ok:
         print("📨 Đã gửi báo cáo phiên qua Telegram.")
     return ok
@@ -1301,7 +1317,7 @@ def run_once(cfg, args):
     try:
         st = load_trader_state(out_dir)
         send_session_report(cfg, price, price_src, consensus, verdict, finals, mc, bt,
-                            trader_status_line(st, price))
+                            trader_status_line(st, price), out_dir)
     except Exception as e:
         print(f"⚠️ Gửi báo cáo Telegram lỗi: {e}")
     return data
