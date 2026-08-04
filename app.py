@@ -71,7 +71,7 @@ AGENTS = [
 DEFAULT_AGENT_CONFIG = {
     "Macro_Analyst":        {"provider": "openrouter", "model": "qwen/qwen3-32b"},
     "Technical_Analyst":    {"provider": "openrouter", "model": "deepseek/deepseek-v4-flash-0731"},
-    "Institutional_Whale":  {"provider": "gemini",     "model": "gemini-2.5-flash"},
+    "Institutional_Whale":  {"provider": "cohere",     "model": "command-r-plus-08-2024"},
     "Retail_Crowd":         {"provider": "groq",       "model": "llama-3.3-70b-versatile"},
 }
 
@@ -107,12 +107,20 @@ PROVIDER_META = {
         "style": "google",
         "extra_headers": {},
     },
+    "cohere": {
+        # Cohere API v2: POST /v2/chat (native)
+        "url": "https://api.cohere.com/v2/chat",
+        "env": "COHERE_API_KEY",
+        "style": "cohere",
+        "extra_headers": {"X-Client-Name": "xauusd-arena"},
+    },
 }
 
 # Chuỗi model dự phòng TỪNG NHÀ CUNG CẤP — khi model chính lỗi/429
 FALLBACK_CHAIN = {
     "gemini":     [("gemini", "gemini-2.5-flash"), ("gemini", "gemini-2.5-flash-lite")],
     "groq":       [("groq", "llama-3.3-70b-versatile"), ("groq", "llama-3.1-8b-instant")],
+    "cohere":     [("cohere", "command-r-plus-08-2024"), ("cohere", "command-r-08-2024")],
     "openrouter": [("openrouter", "qwen/qwen3-32b"),
                    ("openrouter", "deepseek/deepseek-v4-flash-0731"),
                    ("openrouter", "google/gemma-4-31b-it:free")],
@@ -149,6 +157,7 @@ def load_config():
         "openrouter_api_key": os.getenv("OPENROUTER_API_KEY", ""),
         "gemini_api_key":     os.getenv("GEMINI_API_KEY", ""),
         "groq_api_key":       os.getenv("GROQ_API_KEY", ""),
+        "cohere_api_key":     os.getenv("COHERE_API_KEY", ""),
         # models: {agent_key: {"provider": ..., "model": ...}}
         "models": {k: dict(v) for k, v in DEFAULT_AGENT_CONFIG.items()},
         "trader": dict(DEFAULT_TRADER_CONFIG),
@@ -158,7 +167,7 @@ def load_config():
         try:
             with open(p, encoding="utf-8") as f:
                 user = json.load(f)
-            for k in ("openrouter_api_key", "gemini_api_key", "groq_api_key"):
+            for k in ("openrouter_api_key", "gemini_api_key", "groq_api_key", "cohere_api_key"):
                 if user.get(k):
                     cfg[k] = user[k]
             # models: hỗ trợ cả dạng mới {"provider","model"} lẫn dạng cũ (string -> openrouter)
@@ -472,6 +481,25 @@ def call_llm(role, prompt, cfg, provider=None, model=None):
         usage = data.get("usageMetadata", {})
         ptok = int(usage.get("promptTokenCount", 0) or 0)
         ctok = int(usage.get("candidatesTokenCount", 0) or 0)
+    elif meta["style"] == "cohere":
+        # ---------- COHERE — API v2 chat (native) ----------
+        url = meta["url"]
+        payload = {"model": model,
+                   "messages": [{"role": "user", "content": [{"type": "text", "text": prompt}]}],
+                   "temperature": 0.4, "max_tokens": 700}
+        headers = {"Content-Type": "application/json", "Authorization": "Bearer " + key,
+                   **meta["extra_headers"]}
+        data = _http_post(url, payload, headers, timeout=90)
+        try:
+            parts = data["message"]["content"]
+            text = "".join(c.get("text", "") for c in parts if isinstance(c, dict))
+        except (KeyError, IndexError, TypeError):
+            raise ValueError(f"Cohere trả lỗi: {json.dumps(data, ensure_ascii=False)[:200]}")
+        usage = data.get("usage", {})
+        tk = usage.get("tokens", {}) or {}
+        billed = usage.get("billed_units", {}) or {}
+        ptok = int(tk.get("input_tokens", 0) or billed.get("input_tokens", 0) or 0)
+        ctok = int(tk.get("output_tokens", 0) or billed.get("output_tokens", 0) or 0)
     else:
         # ---------- GROQ / OPENROUTER — chuẩn OpenAI chat/completions ----------
         url = meta["url"]
@@ -1104,6 +1132,7 @@ def run_once(cfg, args):
     if cfg["openrouter_api_key"]: keys.append("OpenRouter")
     if cfg["gemini_api_key"]: keys.append("Gemini")
     if cfg["groq_api_key"]: keys.append("Groq")
+    if cfg["cohere_api_key"]: keys.append("Cohere")
     print(f"API: {' + '.join(keys) if keys else 'CHẾ ĐỘ MẪU (chưa có key)'}")
     print("Định tuyến: " + " · ".join(f"{a['title']}→{agent_conf(cfg, a['key'])['provider']}/{agent_conf(cfg, a['key'])['model']}" for a in AGENTS))
     print("-" * 64)
@@ -1235,3 +1264,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+ 
