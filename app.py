@@ -707,7 +707,9 @@ def simulate_crowd(finals, n_voters, momentum, seed=None):
     pers = confs[None, :] * (1 - 0.85 * np.abs(stances[None, :] - biases[:, None])) + rng.normal(0, 0.12, (n_voters, len(finals)))
     pers = np.clip(pers, 0, 1.5)
     total = pers.sum(axis=1)
-    pos = np.where(total > 0, (pers * stances[None, :]).sum(axis=1) / total, 0)
+    # an toàn chia: tránh RuntimeWarning "invalid value in divide" khi total=0
+    pos = np.divide((pers * stances[None, :]).sum(axis=1), total,
+                    out=np.zeros(n_voters, dtype=float), where=total > 0)
     bull = int((pos > 0.12).sum())
     bear = int((pos < -0.12).sum())
     winners = pers.argmax(axis=1)
@@ -1331,7 +1333,10 @@ def trader_status_line(st, price):
     pend = st.get("pending_orders") or []
     parts = []
     if positions:
-        parts.append(f"{len(positions)}/{MAX_POSITIONS} lệnh mở: " + " · ".join(f"{p['dir'].upper()} {p['tf']}@{p['entry']:,.0f}" for p in positions))
+        pos_parts = []
+        for p in positions:
+            pos_parts.append(f"{p['dir'].upper()} {p['tf']}@{p['entry']:,.0f} (SL {p['sl']:,.0f}/TP {p['tp']:,.0f})")
+        parts.append(f"{len(positions)}/{MAX_POSITIONS} lệnh mở: " + " · ".join(pos_parts))
     if pend:
         parts.append(f"{len(pend)} lệnh chờ: " + " · ".join(f"{p['type'].upper()}@{p['trigger']:,.0f}" for p in pend))
     score = st.get("trader_score", 1000.0)
@@ -1967,6 +1972,26 @@ def trader_step(cfg, args, ind, mc, consensus, verdict, finals, price, klines, o
         # 1) Đóng lệnh chạm SL/TP (tất cả lệnh mở) — cập nhật điểm + bài học
         closed_all = trader_check_position(st, klines, out_dir)
         trader_summary(st, cfg, out_dir)
+
+        # 🔔 Cảnh báo lệnh GẦN chạm SL/TP (khoảng cách ≤ 1 ATR) — gửi 1 lần mỗi lệnh
+        try:
+            atr_now = ind.get("atr", 0) or 0
+            last_c = klines[-1]["c"] if klines else price
+            for p in st.get("positions") or []:
+                if p.get("warned"):
+                    continue
+                dist_sl = abs(last_c - p["sl"])
+                dist_tp = abs(last_c - p["tp"])
+                if atr_now and (dist_sl <= atr_now or dist_tp <= atr_now):
+                    near = "SL" if dist_sl <= dist_tp else "TP"
+                    p["warned"] = True
+                    save_trader_state(st, out_dir)
+                    send_telegram(
+                        f"🔔 *CẢNH BÁO GẦN {near}* — lệnh {p['dir'].upper()} {p['tf']}\n"
+                        f"Giá hiện tại ${last_c:,.2f} · {near} ${p[near.lower() if near=='SL' else near.lower()]:,.2f}\n"
+                        f"Cách {min(dist_sl, dist_tp):,.2f}$ (~1 ATR) — chuẩn bị sẵn sàng!", cfg)
+        except Exception as e:
+            print(f"⚠️ Cảnh báo gần SL/TP lỗi: {e}")
 
         # 2) Xử lý lệnh chờ: kích hoạt / hết hạn
         pend_events = trader_process_pending(st, klines, out_dir)
