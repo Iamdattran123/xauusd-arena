@@ -924,8 +924,9 @@ def new_trader_state():
     """State mới — các container (list/dict) phải là bản mới, KHÔNG dùng chung với hằng số."""
     return {
         "balance": 1000.0, "start_balance": 1000.0, "peak": 1000.0, "max_dd": 0.0,
-        "positions": [], "position": None, "history": [], "trades": 0, "wins": 0,
+        "positions": [], "position": None, "pending_orders": [], "history": [], "trades": 0, "wins": 0,
         "total_pnl": 0.0, "gross_win": 0.0, "gross_loss": 0.0,
+        "trader_score": 1000.0, "lessons": [],
         "sessions": 0, "trade_tf": "", "equity_points": [{"t": int(time.time() * 1000), "e": 1000.0}],
     }
 
@@ -948,6 +949,11 @@ def load_trader_state(out_dir):
                 merged["position"] = None
                 if not isinstance(merged.get("positions"), list):
                     merged["positions"] = []
+                if not isinstance(merged.get("pending_orders"), list):
+                    merged["pending_orders"] = []
+                merged.setdefault("trader_score", 1000.0)
+                if not isinstance(merged.get("lessons"), list):
+                    merged["lessons"] = []
                 merged.setdefault("trade_tf", "")
                 return merged
         except Exception:
@@ -961,53 +967,99 @@ def save_trader_state(st, out_dir):
         json.dump(st, f, ensure_ascii=False, indent=2)
 
 
-def trader_heuristic(consensus, prob_up, price, atr, target):
+def trader_heuristic(consensus, prob_up, price, atr, target, sup=None, res=None):
+    """Fallback khi không có LLM — có thể đặt lệnh chờ (limit tại hỗ trợ/kháng cự) như trader chuyên nghiệp."""
     action, sl, tp = "hold", None, None
     strong = abs(consensus) >= 0.25
     tf = "4h" if strong else "1h"
+    otype, trigger = "market", 0
     if consensus >= 0.15 and prob_up > 0.52:
         action = "long"
         sl = price - max(1.5 * atr, price * 0.003)
         tp = target if target > price else price + 2 * max(1.5 * atr, price * 0.003)
         if (tp - price) / (price - sl) < 1.2:
             tp = price + 2 * (price - sl)
+        # nếu có hỗ trợ gần & đủ xa → đặt BUY_LIMIT chờ giá về hỗ trợ (chuyên nghiệp, giá tốt hơn)
+        if sup and 0.3 * atr < (price - sup) < 3 * atr:
+            otype, trigger = "buy_limit", sup
+            sl = trigger - max(1.5 * atr, price * 0.003)
+            tp = trigger + 2 * (trigger - sl)
     elif consensus <= -0.15 and prob_up < 0.48:
         action = "short"
         sl = price + max(1.5 * atr, price * 0.003)
         tp = target if target < price else price - 2 * max(1.5 * atr, price * 0.003)
         if (price - tp) / (sl - price) < 1.2:
             tp = price - 2 * (sl - price)
-    rr = ((tp - price) / (price - sl) if action == "long"
-          else (price - tp) / (sl - price) if action == "short" else 0)
+        if res and 0.3 * atr < (res - price) < 3 * atr:
+            otype, trigger = "sell_limit", res
+            sl = trigger + max(1.5 * atr, price * 0.003)
+            tp = trigger - 2 * (sl - trigger)
+    if action == "hold":
+        rr = 0
+    elif otype == "market":
+        rr = (tp - price) / (price - sl) if action == "long" else (price - tp) / (sl - price)
+    else:
+        rr = (tp - trigger) / (trigger - sl) if action == "long" else (trigger - tp) / (sl - trigger)
     reason = ("Đứng ngoài bảo toàn vốn — hội đồng chưa đủ phân cực." if action == "hold"
-              else f"Tự quyết {action.upper()} theo phán quyết hội đồng ({consensus:+.2f}), P(tăng) {prob_up*100:.0f}%.")
-    return {"action": action, "tf": tf, "sl": sl, "tp": tp, "risk": 0.01, "rr": rr, "reason": reason, "llm": False}
+              else f"Tự quyết {action.upper()} ({'lệnh chờ ' + otype + ' @ ' + f'${trigger:,.0f}' if otype != 'market' else 'vào ngay'}) "
+                   f"theo phán quyết hội đồng ({consensus:+.2f}), P(tăng) {prob_up*100:.0f}%.")
+    return {"action": action, "tf": tf, "sl": sl, "tp": tp, "risk": 0.01, "rr": rr,
+            "reason": reason, "llm": False, "order_type": otype, "trigger": trigger}
 
 
-def trader_llm_prompt(consensus, verdict, finals, price, atr, sup, res, target, p10, p90, prob_up, balance, position):
+def trader_llm_prompt(consensus, verdict, finals, price, atr, sup, res, target, p10, p90, prob_up, balance, st):
+    """Hội đồng CHỈ GÓP Ý — AI Trader là trader độc lập, tự quyết, nhớ lịch sử + bài học + điểm."""
     panel = "\n".join(f"• {f['title']}: {f['stance']:+.2f} (tự tin {f['conf']*100:.0f}%) — {f.get('reasoning') or f.get('reason') or ''}"
                       for f in finals)
-    pos = f" · ĐANG CÓ LỆNH MỞ: {position['dir']} entry ${position['entry']:,.2f}" if position else ""
-    return (f"Bạn là AI TRADER độc lập, chuyên nghiệp, quản lý quỹ mô phỏng 1.000 USD giao dịch vàng (XAU/USD). "
-            f"Đọc phán quyết hội đồng như tham khảo, tự phản biện, ra quyết định của riêng bạn. Ưu tiên bảo toàn vốn.\n\n"
-            f"PHÁN QUYẾT HỘI ĐỒNG:\n{panel}\nĐồng thuận ròng: {consensus:+.3f} ({verdict})\n\n"
+    pos = st.get("positions") or []
+    pos_line = ""
+    if pos:
+        pos_line = "ĐANG MỞ: " + " · ".join(f"{p['dir'].upper()} {p['tf']}@{p['entry']:,.0f}" for p in pos)
+    pend = st.get("pending_orders") or []
+    pend_line = ""
+    if pend:
+        pend_line = "LỆNH CHỜ: " + " · ".join(f"{p['type'].upper()} {p['trigger']:,.0f}" for p in pend)
+    # Lịch sử + bài học để AI Trader nhớ & rút kinh nghiệm (nối tiếp, không phải phiên mới)
+    hist = st.get("history") or []
+    hist_line = ""
+    if hist:
+        recent = hist[:8]
+        hist_line = "\n".join(f"  • {h['dir'].upper()} {h['tf']} entry ${h['entry']:,.0f} → exit ${h['exit']:,.0f} "
+                               f"({h['exit_reason']}) P&L {h['pnl']:+,.2f}$" for h in recent)
+    lessons = (st.get("lessons") or [])[-6:]
+    lessons_line = "\n".join(f"  - {l}" for l in lessons) if lessons else "  (chưa có)"
+    score = st.get("trader_score", 1000.0)
+    trades = st.get("trades", 0)
+    wins = st.get("wins", 0)
+    wr = f"{wins/max(1,trades)*100:.0f}%" if trades else "—"
+    return (f"Bạn là AI TRADER chuyên nghiệp độc lập, quản lý quỹ mô phỏng ${balance:,.2f} giao dịch vàng (XAU/USD). "
+            f"HỘI ĐỒNG CHỈ GÓP Ý — bạn có quyền nghe hoặc giữ lập trường riêng. Ưu tiên bảo toàn vốn.\n\n"
+            f"HỘI ĐỒNG GÓP Ý (tham khảo):\n{panel}\nĐồng thuận ròng: {consensus:+.3f} ({verdict})\n\n"
             f"THỊ TRƯỜNG:\nGiá: ${price:,.2f} · ATR: ${atr:,.2f} · Hỗ trợ: ${sup:,.2f} · Kháng cự: ${res:,.2f}\n"
             f"Monte Carlo: mục tiêu ${target:,.2f} · P10 ${p10:,.2f} · P90 ${p90:,.2f} · P(tăng) {prob_up*100:.0f}%\n"
-            f"Vốn quỹ: ${balance:,.2f}{pos}\n\n"
-            f"NHIỆM VỤ: Tự suy nghĩ độc lập và quyết định giao dịch phiên này.\n"
+            f"{pos_line}\n{pend_line}\n\n"
+            f"📜 LỊCH SỬ GIAO DỊCH CỦA BẠN (8 lệnh gần nhất — nhớ để phân tích tiếp, KHÔNG phải phiên mới):\n{hist_line}\n\n"
+            f"🧠 BÀI HỌC ĐÃ RÚT RA:\n{lessons_line}\n"
+            f"🏆 ĐIỂM KINH NGHIỆM: {score:.0f} · Số lệnh: {trades} · Win rate: {wr}\n\n"
+            f"NHIỆM VỤ: Tự suy nghĩ độc lập, dựa vào lịch sử + bài học + dự đoán tiếp tục, quyết định giao dịch phiên này.\n"
             f"- Không nên giao dịch → action \"hold\".\n"
-            f"- Nếu giao dịch: chọn hướng, khung thời gian (15m/1h/4h/1D), SL/TP là MỨC GIÁ cụ thể, risk_pct 0.5-3.\n"
-            f'Trả về DUY NHẤT JSON: {{"action": "long|short|hold", "timeframe": "15m|1h|4h|1D", "sl": <số>, "tp": <số>, "risk_pct": <số>, "reason": "<lý do 2-3 câu tiếng Việt>"}}')
+            f"- Giao dịch NGAY → order_type \"market\".\n"
+            f"- Đặt LỆNH CHỜ (chuyên nghiệp) → order_type \"buy_limit\" (chờ giá hạ về mốc) | \"buy_stop\" (chờ phá mốc) "
+            f"| \"sell_limit\" (chờ giá tăng lên mốc) | \"sell_stop\" (chờ thủng mốc), kèm \"trigger\" = MỨC GIÁ chờ.\n"
+            f"- SL/TP là MỨC GIÁ cụ thể, risk_pct 0.5-3, khung thời gian 15m/1h/4h/1D.\n"
+            f'Trả về DUY NHẤT JSON: {{"action": "long|short|hold", "order_type": "market|buy_limit|buy_stop|sell_limit|sell_stop", '
+            f'"trigger": <giá chờ, bỏ 0 nếu market>, "timeframe": "15m|1h|4h|1D", "sl": <số>, "tp": <số>, '
+            f'"risk_pct": <số>, "reason": "<lý do 2-3 câu tiếng Việt, nêu bạn có nghe hội đồng hay giữ lập trường riêng>"}}')
 
 
-def trader_llm_decision(cfg, consensus, verdict, finals, price, atr, sup, res, target, p10, p90, prob_up, balance, position):
+def trader_llm_decision(cfg, consensus, verdict, finals, price, atr, sup, res, target, p10, p90, prob_up, balance, st):
     if not any_api_key(cfg):
         return None
     chosen = cfg.get("trader", {})
     if isinstance(chosen, str):
         chosen = {"provider": "openrouter", "model": chosen}
     chain = _build_chain(cfg, chosen.get("provider", "openrouter"), chosen.get("model", ""))
-    prompt = trader_llm_prompt(consensus, verdict, finals, price, atr, sup, res, target, p10, p90, prob_up, balance, position)
+    prompt = trader_llm_prompt(consensus, verdict, finals, price, atr, sup, res, target, p10, p90, prob_up, balance, st)
     for provider, model in chain:
         try:
             res = call_llm("trader", prompt, cfg, provider=provider, model=model)
@@ -1018,23 +1070,143 @@ def trader_llm_decision(cfg, consensus, verdict, finals, price, atr, sup, res, t
             if action not in ("long", "short", "hold"):
                 continue
             tf = str(j.get("timeframe", "1h")) if str(j.get("timeframe", "")) in ("15m", "1h", "4h", "1D") else "1h"
-            sl, tp = float(j.get("sl", 0)), float(j.get("tp", 0))
-            risk = clamp(float(j.get("risk_pct", 1.0)), 0.5, 3.0) / 100
+            sl, tp = float(j.get("sl", 0) or 0), float(j.get("tp", 0) or 0)
+            risk = clamp(float(j.get("risk_pct", 1.0) or 1.0), 0.5, 3.0) / 100
             reason = str(j.get("reason", ""))[:500]
+            otype = str(j.get("order_type", "market")).lower()
+            trigger = float(j.get("trigger", 0) or 0)
+            if otype not in ("market", "buy_limit", "buy_stop", "sell_limit", "sell_stop"):
+                otype = "market"
             if action == "hold":
-                return {"action": "hold", "tf": tf, "sl": None, "tp": None, "risk": risk, "rr": 0, "reason": reason, "llm": True}
+                return {"action": "hold", "tf": tf, "sl": None, "tp": None, "risk": risk, "rr": 0,
+                        "reason": reason, "llm": True, "order_type": "hold", "trigger": 0}
             if not (sl > 0 and tp > 0):
                 continue
-            if action == "long" and not (sl < price < tp):
+            if otype == "market":
+                # lệnh ngay: SL/TP phải đúng hướng quanh giá hiện tại
+                if action == "long" and not (sl < price < tp):
+                    continue
+                if action == "short" and not (tp < price < sl):
+                    continue
+                rr = (tp - price) / (price - sl) if action == "long" else (price - tp) / (sl - price)
+                return {"action": action, "tf": tf, "sl": sl, "tp": tp, "risk": risk,
+                        "rr": max(0.1, rr), "reason": reason, "llm": True,
+                        "order_type": "market", "trigger": 0}
+            # lệnh chờ: trigger phải đúng hướng so với giá
+            if not trigger or trigger <= 0:
                 continue
-            if action == "short" and not (tp < price < sl):
+            if otype == "buy_limit" and not (trigger < price):
                 continue
-            rr = (tp - price) / (price - sl) if action == "long" else (price - tp) / (sl - price)
+            if otype == "sell_limit" and not (trigger > price):
+                continue
+            if otype == "buy_stop" and not (trigger > price):
+                continue
+            if otype == "sell_stop" and not (trigger < price):
+                continue
+            rr = (tp - trigger) / (trigger - sl) if action == "long" else (trigger - tp) / (sl - trigger)
             return {"action": action, "tf": tf, "sl": sl, "tp": tp, "risk": risk,
-                    "rr": max(0.1, rr), "reason": reason, "llm": True}
+                    "rr": max(0.1, rr), "reason": reason, "llm": True,
+                    "order_type": otype, "trigger": trigger}
         except Exception as e:
             print(f"  🔄 Trader ({provider}/{model}) lỗi: {str(e)[:100]}")
     return None
+
+
+MAX_PENDING = 3  # tối đa 3 lệnh chờ cùng lúc
+PENDING_EXPIRY_SESSIONS = 8  # lệnh chờ tự hủy sau 8 phiên chưa chạm giá
+
+
+def trader_create_pending(st, decision, price, out_dir):
+    """Đặt LỆNH CHỜ (pending): BUY/SELL LIMIT/STOP — chỉ kích hoạt khi giá chạm mốc."""
+    if decision["action"] == "hold":
+        return False
+    if not isinstance(st.get("pending_orders"), list):
+        st["pending_orders"] = []
+    if len(st["pending_orders"]) >= MAX_PENDING:
+        print(f"🚫 Đã đủ {MAX_PENDING} lệnh chờ — hủy lệnh chờ cũ trước khi đặt mới.")
+        return False
+    otype = decision.get("order_type", "market")
+    if otype == "market":
+        return False
+    trigger = decision.get("trigger", 0)
+    if not trigger or trigger <= 0:
+        return False
+    # validate: LIMIT = chờ giá quay về (ngược hướng hiện tại), STOP = chờ giá vượt (cùng hướng)
+    if otype in ("buy_limit", "sell_stop") and decision["action"] != "long":
+        return False
+    if otype in ("sell_limit", "buy_stop") and decision["action"] != "short":
+        return False
+    if otype in ("buy_limit", "sell_limit"):
+        if otype == "buy_limit" and not (trigger < price):
+            return False
+        if otype == "sell_limit" and not (trigger > price):
+            return False
+    st["pending_orders"].append({
+        "id": int(time.time() * 1000) + len(st["pending_orders"]),
+        "dir": decision["action"], "type": otype, "trigger": trigger,
+        "sl": decision["sl"], "tp": decision["tp"], "rr": decision["rr"],
+        "risk_pct": decision["risk"], "reason": decision["reason"],
+        "llm": decision.get("llm", False), "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "sessions_alive": 0,
+    })
+    save_trader_state(st, out_dir)
+    print(f"📌 AI TRADER ĐẶT LỆNH CHỜ: {otype.upper()} {decision['tf']} · chờ ${trigger:,.2f} · "
+          f"SL ${decision['sl']:,.2f} · TP ${decision['tp']:,.2f} · RR 1:{decision['rr']:.1f}")
+    return True
+
+
+def trader_process_pending(st, klines, out_dir):
+    """Mỗi phiên: kiểm tra lệnh chờ — giá chạm mốc → kích hoạt thành lệnh mở; quá hạn → hủy.
+    Trả về list sự kiện: [{"event": "activated"|"cancelled", "order": {...}}]"""
+    if not isinstance(st.get("pending_orders"), list) or not st["pending_orders"] or not klines:
+        return []
+    last = klines[-1]
+    events = []
+    remaining = []
+    for po in st["pending_orders"]:
+        po["sessions_alive"] = po.get("sessions_alive", 0) + 1
+        triggered = False
+        # kích hoạt theo loại lệnh chờ
+        if po["type"] == "buy_limit" and last["l"] <= po["trigger"]:
+            triggered = True
+        elif po["type"] == "buy_stop" and last["h"] >= po["trigger"]:
+            triggered = True
+        elif po["type"] == "sell_limit" and last["h"] >= po["trigger"]:
+            triggered = True
+        elif po["type"] == "sell_stop" and last["l"] <= po["trigger"]:
+            triggered = True
+        if triggered:
+            # đủ slot lệnh mở thì kích hoạt, không thì hủy
+            if len(st.get("positions") or []) < MAX_POSITIONS:
+                st["positions"].append({
+                    "id": int(time.time() * 1000), "dir": po["dir"], "tf": po.get("tf", "1h"),
+                    "entry": po["trigger"], "sl": po["sl"], "tp": po["tp"], "rr": po["rr"],
+                    "qty": 0, "risk_pct": po["risk_pct"], "pending": True,
+                    "opened_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "reason": po["reason"], "llm": po.get("llm", False),
+                })
+                # tính qty theo risk
+                sl_dist = abs(po["sl"] - po["trigger"])
+                if sl_dist > 1e-9:
+                    risk_amt = st["balance"] * po["risk_pct"]
+                    st["positions"][-1]["qty"] = risk_amt / sl_dist
+                events.append({"event": "activated", "order": po})
+                print(f"⚡ LỆNH CHỜ KÍCH HOẠT: {po['dir'].upper()} {po['type'].upper()} @ ${po['trigger']:,.2f} "
+                      f"→ thành lệnh mở (SL ${po['sl']:,.2f} · TP ${po['tp']:,.2f})")
+            else:
+                events.append({"event": "cancelled_full", "order": po})
+                print(f"🚫 LỆNH CHỜ {po['type'].upper()} bị hủy — đã đủ {MAX_POSITIONS} lệnh mở.")
+            continue
+        # hết hạn
+        if po["sessions_alive"] >= PENDING_EXPIRY_SESSIONS:
+            events.append({"event": "expired", "order": po})
+            print(f"🗑️ LỆNH CHỜ HẾT HẠN: {po['type'].upper()} @ ${po['trigger']:,.2f} (sau {po['sessions_alive']} phiên chưa chạm)")
+            continue
+        remaining.append(po)
+    st["pending_orders"] = remaining
+    if events:
+        save_trader_state(st, out_dir)
+    return events
 
 
 def trader_execute(st, decision, price, out_dir):
@@ -1105,8 +1277,15 @@ def trader_check_position(st, klines, out_dir):
                       "balance_after": st["balance"]}
         st["history"].insert(0, closed_rec)
         closed_all.append(closed_rec)
+        # 🏆 CHẤM ĐIỂM thưởng/phạt cho AI Trader + bài học rút kinh nghiệm
+        delta = max(-100.0, min(100.0, pnl_pct * 20.0))  # thắng 1% → +20, thua 1% → -20
+        st["trader_score"] = st.get("trader_score", 1000.0) + delta
+        lesson = (f"{'✅' if pnl > 0 else '❌'} {p['dir'].upper()} {p['tf']} {pnl_pct:+.1f}% ({reason}) "
+                  f"-> {'giữ chiến lược' if pnl > 0 else 'cần chờ mốc tốt hơn/tránh vào sớm'}")
+        st.setdefault("lessons", []).append(lesson)
+        st["lessons"] = st["lessons"][-50:]
         print(f"💼 ĐÓNG LỆNH {p['dir'].upper()} — {reason} · entry ${p['entry']:,.2f} → exit ${exit_p:,.2f} · "
-              f"P&L {pnl:+,.2f}$ ({pnl_pct:+.2f}%) · vốn ${st['balance']:,.2f}")
+              f"P&L {pnl:+,.2f}$ ({pnl_pct:+.2f}%) · vốn ${st['balance']:,.2f} · 🏆 điểm {st['trader_score']:.0f}")
     st["positions"] = remaining
     if closed_all:
         save_trader_state(st, out_dir)
@@ -1117,13 +1296,20 @@ def trader_status_line(st, price):
     if not st:
         return None
     positions = st.get("positions") or []
+    pend = st.get("pending_orders") or []
+    parts = []
     if positions:
-        parts = [f"{p['dir'].upper()} {p['tf']}@{p['entry']:,.0f}" for p in positions]
-        return f"{len(positions)}/{MAX_POSITIONS} lệnh mở: " + " · ".join(parts) + f" · vốn ${st['balance']:,.2f}"
-    if st.get("history"):
-        h = st["history"][0]
-        return f"lệnh gần nhất: {h['dir'].upper()} {h['tf']} {h['exit_reason']} {h['pnl']:+,.2f}$ · vốn ${st['balance']:,.2f}"
-    return f"đứng ngoài · vốn ${st['balance']:,.2f}"
+        parts.append(f"{len(positions)}/{MAX_POSITIONS} lệnh mở: " + " · ".join(f"{p['dir'].upper()} {p['tf']}@{p['entry']:,.0f}" for p in positions))
+    if pend:
+        parts.append(f"{len(pend)} lệnh chờ: " + " · ".join(f"{p['type'].upper()}@{p['trigger']:,.0f}" for p in pend))
+    score = st.get("trader_score", 1000.0)
+    if not parts:
+        if st.get("history"):
+            h = st["history"][0]
+            parts.append(f"lệnh gần nhất: {h['dir'].upper()} {h['tf']} {h['exit_reason']} {h['pnl']:+,.2f}$")
+        else:
+            parts.append("đứng ngoài")
+    return " · ".join(parts) + f" · vốn ${st['balance']:,.2f} · 🏆 {score:.0f}"
 
 
 # =====================================================================
@@ -1536,8 +1722,11 @@ def trader_summary(st, cfg, out_dir, force=False):
              f"⏱️ Số phiên: {st['sessions']}" + (" (tổng kết thủ công)" if force else ""),
              f"💰 Vốn: ${st['start_balance']:,.2f} → ${st['balance']:,.2f} ({st['total_pnl']:+,.2f}$ · {ret:+.1f}%)",
              f"🎯 Số lệnh: {st['trades']} · Win rate: {win_rate:.1f}%",
+             f"🏆 Điểm kinh nghiệm: {st.get('trader_score', 1000):.0f}",
              f"⚖️ Profit factor: {'∞' if pf == float('inf') else f'{pf:.2f}'}",
-             f"📉 Drawdown tối đa: {st['max_dd']:.1f}%", "━━━━━━━━━━━━━━━━━", "📆 Theo khung thời gian:"]
+             f"📉 Drawdown tối đa: {st['max_dd']:.1f}%",
+             f"📌 Lệnh chờ đang có: {len(st.get('pending_orders') or [])}",
+             "━━━━━━━━━━━━━━━━━", "📆 Theo khung thời gian:"]
     for tf, o in by_tf.items():
         lines.append(f"  • Khung {tf}: {o['n']} lệnh · thắng {o['win']} ({o['win']/o['n']*100:.0f}%)")
     if not by_tf:
@@ -1547,6 +1736,11 @@ def trader_summary(st, cfg, out_dir, force=False):
         lines.append(f"  • {h['dir'].upper()} {h['tf']} {h['opened_at']}: {h['pnl']:+,.2f}$ — {h['exit_reason']}")
     if not closed:
         lines.append("  (chưa có lệnh)")
+    lessons = (st.get("lessons") or [])[-5:]
+    if lessons:
+        lines.append("🧠 Bài học gần nhất:")
+        for l in lessons:
+            lines.append(f"  {l}")
     lines.append("━━━━━━━━━━━━━━━━━\n👨‍💼 *BẠN là người ra quyết định cuối cùng.*")
     text = "\n".join(lines)
     os.makedirs(out_dir, exist_ok=True)
@@ -1719,114 +1913,78 @@ def telegram_poll_commands(cfg, out_dir):
 # ĐIỀU PHỐI
 # =====================================================================
 def trader_step(cfg, args, ind, mc, consensus, verdict, finals, price, klines, out_dir):
-    """Chạy AI Trader 1 phiên (mô phỏng $1.000) — đa lệnh tối đa 3, khung theo lệnh Telegram."""
+    """AI TRADER CHUYÊN NGHIỆP — vòng lặp nối tiếp mỗi phiên:
+    1) Đóng lệnh chạm SL/TP (chấm điểm + bài học)
+    2) Kích hoạt lệnh chờ nếu giá chạm mốc / hủy nếu hết hạn
+    3) Quyết định mới: vào ngay (market) hoặc đặt lệnh chờ (limit/stop) — độc lập với hội đồng
+    4) Gửi Telegram mọi sự kiện
+    """
     try:
         st = load_trader_state(out_dir)
         st["sessions"] = st.get("sessions", 0) + 1
 
-        # ---------- Kiểm tra & đóng lệnh chạm SL/TP (tất cả lệnh mở) ----------
+        # 1) Đóng lệnh chạm SL/TP (tất cả lệnh mở) — cập nhật điểm + bài học
         closed_all = trader_check_position(st, klines, out_dir)
         trader_summary(st, cfg, out_dir)
 
-        # ---------- Khung giao dịch theo lệnh Telegram (nếu có) ----------
+        # 2) Xử lý lệnh chờ: kích hoạt / hết hạn
+        pend_events = trader_process_pending(st, klines, out_dir)
+
+        # 3) Khung theo lệnh Telegram
         cmd_tf = st.get("trade_tf", "")
         if cmd_tf and cmd_tf in TIMEFRAMES:
             print(f"🎛️ Khung giao dịch theo lệnh Telegram: {TIMEFRAMES[cmd_tf]['label']}")
 
-        # ---------- Quyết định lệnh mới (nếu chưa đủ 3 lệnh) ----------
+        # 4) Quyết định mới nếu còn slot lệnh mở (tối đa 3)
+        decided = None
         if len(st.get("positions") or []) < MAX_POSITIONS:
-            decision = trader_llm_decision(cfg, consensus, verdict, finals, price, ind["atr"],
-                                           ind["sup"], ind["res"], mc["target"], mc["p10"], mc["p90"],
-                                           mc["prob_up"], st["balance"], (st.get("positions") or [None])[0])
-            if not decision:
-                decision = trader_heuristic(consensus, mc["prob_up"], price, ind["atr"], mc["target"])
-            if decision["action"] == "hold":
-                print(f"🤖 AI TRADER đứng ngoài — {decision['reason'][:110]}")
+            decided = trader_llm_decision(cfg, consensus, verdict, finals, price, ind["atr"],
+                                          ind["sup"], ind["res"], mc["target"], mc["p10"], mc["p90"],
+                                          mc["prob_up"], st["balance"], st)
+            if not decided:
+                decided = trader_heuristic(consensus, mc["prob_up"], price, ind["atr"], mc["target"],
+                                           ind.get("sup"), ind.get("res"))
+            if cmd_tf and cmd_tf in TIMEFRAMES:
+                decided["tf"] = cmd_tf
+            otype = decided.get("order_type", "market")
+            if decided["action"] == "hold":
+                print(f"🤖 AI TRADER đứng ngoài — {decided['reason'][:120]}")
+            elif otype != "market":
+                print(f"🤖 AI TRADER: {decided['action'].upper()} {otype.upper()} chờ ${decided.get('trigger', 0):,.2f} · "
+                      f"SL ${decided['sl']:,.2f} · TP ${decided['tp']:,.2f} · RR 1:{decided['rr']:.1f}"
+                      + (" · (LLM)" if decided.get("llm") else ""))
+                trader_create_pending(st, decided, price, out_dir)
             else:
-                # Nếu có lệnh Telegram: ép khung giao dịch đúng theo lệnh
-                if cmd_tf and cmd_tf in TIMEFRAMES:
-                    decision["tf"] = cmd_tf
-                print(f"🤖 AI TRADER QUYẾT ĐỊNH: {decision['action'].upper()} {decision['tf']} · "
-                      f"SL ${decision['sl']:,.2f} · TP ${decision['tp']:,.2f} · RR 1:{decision['rr']:.1f}"
-                      + (" · (LLM)" if decision.get("llm") else ""))
-                trader_execute(st, decision, price, out_dir)
+                print(f"🤖 AI TRADER VÀO NGAY: {decided['action'].upper()} {decided['tf']} · "
+                      f"SL ${decided['sl']:,.2f} · TP ${decided['tp']:,.2f} · RR 1:{decided['rr']:.1f}"
+                      + (" · (LLM)" if decided.get("llm") else ""))
+                trader_execute(st, decided, price, out_dir)
         else:
-            print(f"🚫 Đã đủ {MAX_POSITIONS} lệnh mở — chờ 1 lệnh chạm SL/TP. (lệnh đang mở: "
+            print(f"🚫 Đã đủ {MAX_POSITIONS} lệnh mở — chờ 1 lệnh chạm SL/TP. (lệnh mở: "
                   + ", ".join(f"{p['dir'].upper()} {p['tf']}" for p in st.get("positions") or []) + ")")
+
         save_trader_state(st, out_dir)
-        # Gửi Telegram khi đóng lệnh
+
+        # 5) Telegram — mọi sự kiện
         for rep in closed_all:
             send_telegram(
                 f"💼 *AI TRADER ĐÓNG LỆNH* {rep['dir'].upper()} {rep['tf']}\nKết quả: {rep['exit_reason']}\n"
                 f"Entry ${rep['entry']:,.2f} → Exit ${rep['exit']:,.2f}\nP&L: {rep['pnl']:+,.2f}$ ({rep['pnl_pct']:+.2f}%)\n"
-                f"Vốn: ${st['balance']:,.2f}", cfg)
-    except Exception as e:
-        print(f"⚠️ AI Trader lỗi (không làm hỏng phiên): {e}")
-
-
-        if not st.get("position"):
-            decision = trader_llm_decision(cfg, consensus, verdict, finals, price, ind["atr"],
-                                           ind["sup"], ind["res"], mc["target"], mc["p10"], mc["p90"],
-                                           mc["prob_up"], st["balance"], st.get("position"))
-            if not decision:
-                decision = trader_heuristic(consensus, mc["prob_up"], price, ind["atr"], mc["target"])
-            if decision["action"] == "hold":
-                print(f"🤖 AI TRADER đứng ngoài — {decision['reason'][:110]}")
-            else:
-                print(f"🤖 AI TRADER QUYẾT ĐỊNH: {decision['action'].upper()} {decision['tf']} · "
-                      f"SL ${decision['sl']:,.2f} · TP ${decision['tp']:,.2f} · RR 1:{decision['rr']:.1f}"
-                      + (" · (LLM)" if decision.get("llm") else ""))
-                if broker == "metaapi":
-                    # ☁️ Đặt lệnh THẬT qua MetaAPI cloud (Exness demo)
-                    res, err = metaapi_place_order(cfg, decision, price)
-                    if err:
-                        print(f"⚠️ MetaAPI đặt lệnh lỗi: {err} — giữ mô phỏng.")
-                        trader_execute(st, decision, price, out_dir)
-                    else:
-                        st["position"] = {"id": res["ticket"], "dir": decision["action"], "tf": "metaapi",
-                                          "entry": price, "sl": decision["sl"], "tp": decision["tp"],
-                                          "rr": decision["rr"], "qty": res["lot"], "risk_pct": decision["risk"],
-                                          "opened_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-                                          "reason": decision["reason"], "llm": decision.get("llm", False),
-                                          "exness": True}
-                        print(f"💼 [METAAPI · EXNESS DEMO] ĐÃ ĐẶT LỆNH {decision['action'].upper()} #{res['ticket']} · "
-                              f"{res['lot']} lot · SL/TP {decision['sl']:,.2f}/{decision['tp']:,.2f}")
-                elif mt5:
-                    # 🏦 Đặt lệnh THẬT trên Exness demo (MT5 local)
-                    res, err = mt5_place_order(mt5, cfg, decision, price)
-                    if err:
-                        print(f"⚠️ Exness đặt lệnh lỗi: {err} — giữ mô phỏng.")
-                        trader_execute(st, decision, price, out_dir)
-                    else:
-                        st["position"] = {"id": res["ticket"], "dir": decision["action"], "tf": "exness",
-                                          "entry": res["price"], "sl": decision["sl"], "tp": decision["tp"],
-                                          "rr": decision["rr"], "qty": res["lot"], "risk_pct": decision["risk"],
-                                          "opened_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-                                          "reason": decision["reason"], "llm": decision.get("llm", False),
-                                          "exness": True}
-                        print(f"💼 [EXNESS DEMO] ĐÃ ĐẶT LỆNH {decision['action'].upper()} #{res['ticket']} · "
-                              f"{res['lot']} lot · giá {res['price']:,.2f} · SL/TP {decision['sl']:,.2f}/{decision['tp']:,.2f}")
-                else:
-                    trader_execute(st, decision, price, out_dir)
-        else:
-            print(f"💼 AI Trader đang trong lệnh {st['position']['dir'].upper()} {st['position']['tf']} — chờ SL/TP.")
-        if mt5:
-            try:
-                mt5.shutdown()
-            except Exception:
-                pass
-        save_trader_state(st, out_dir)
-        # Gửi Telegram khi mở/đóng lệnh
-        if rep:
+                f"Vốn: ${st['balance']:,.2f} · 🏆 Điểm: {st.get('trader_score', 1000):.0f}", cfg)
+        for ev in pend_events:
+            po = ev["order"]
+            if ev["event"] == "activated":
+                send_telegram(
+                    f"⚡ *LỆNH CHỜ KÍCH HOẠT*: {po['dir'].upper()} {po['type'].upper()} @ ${po['trigger']:,.2f}\n"
+                    f"SL ${po['sl']:,.2f} · TP ${po['tp']:,.2f} · RR 1:{po['rr']:.1f}", cfg)
+            elif ev["event"] == "expired":
+                send_telegram(f"🗑️ *LỆNH CHỜ HẾT HẠN*: {po['type'].upper()} @ ${po['trigger']:,.2f} (không chạm mốc)", cfg)
+            elif ev["event"] == "cancelled_full":
+                send_telegram(f"🚫 *LỆNH CHỜ BỊ HỦY* (đủ 3 lệnh mở): {po['type'].upper()} @ ${po['trigger']:,.2f}", cfg)
+        if decided and decided.get("order_type", "market") != "market" and decided["action"] != "hold":
             send_telegram(
-                f"💼 *AI TRADER ĐÓNG LỆNH* {rep['dir'].upper()} {rep['tf']}\nKết quả: {rep['exit_reason']}\n"
-                f"Entry ${rep['entry']:,.2f} → Exit ${rep['exit']:,.2f}\nP&L: {rep['pnl']:+,.2f}$ ({rep['pnl_pct']:+.2f}%)\n"
-                f"Vốn: ${st['balance']:,.2f}", cfg)
-        if st.get("position"):
-            send_telegram(
-                f"💼 *AI TRADER MỞ LỆNH* {st['position']['dir'].upper()} {st['position']['tf']}\n"
-                f"Entry ${st['position']['entry']:,.2f} · SL ${st['position']['sl']:,.2f} · TP ${st['position']['tp']:,.2f}\n"
-                f"RR 1:{st['position']['rr']:.1f} · Lý do: {st['position']['reason'][:160]}", cfg)
+                f"📌 *AI TRADER ĐẶT LỆNH CHỜ*: {decided['action'].upper()} {decided['order_type'].upper()}\n"
+                f"Chờ giá ${decided.get('trigger', 0):,.2f} · SL ${decided['sl']:,.2f} · TP ${decided['tp']:,.2f} · RR 1:{decided['rr']:.1f}", cfg)
     except Exception as e:
         print(f"⚠️ AI Trader lỗi (không làm hỏng phiên): {e}")
 
