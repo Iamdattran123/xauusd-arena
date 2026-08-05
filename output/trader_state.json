@@ -1,25 +1,9 @@
 {
-  "balance": 1028.7199124726467,
+  "balance": 1071.7754069908553,
   "start_balance": 1000.0,
-  "peak": 1028.7199124726467,
+  "peak": 1071.7754069908553,
   "max_dd": 0.0,
-  "positions": [
-    {
-      "id": 1785853004935,
-      "dir": "long",
-      "tf": "1h",
-      "entry": 4141.9,
-      "sl": 4118.221533203125,
-      "tp": 4241.002591970051,
-      "rr": 4.185346662019969,
-      "qty": 0.4344537681841856,
-      "risk_pct": 0.01,
-      "opened_at": "2026-08-04 14:16:44",
-      "reason": "Tự quyết LONG theo phán quyết hội đồng (+0.19), P(tăng) 65%.",
-      "llm": false,
-      "warned": true
-    }
-  ],
+  "positions": [],
   "position": null,
   "pending_orders": [
     {
@@ -34,10 +18,31 @@
       "reason": "Nghe hội đồng thận trọng trước kháng cự, đặt lệnh chờ tại hỗ trợ $4,101.40 để bắt sóng phục hồi sau điều chỉnh. SL dưới hỗ trợ 2% và TP tại kháng cự chính.",
       "llm": true,
       "created_at": "2026-08-05 08:13:12",
-      "sessions_alive": 2
+      "sessions_alive": 3
     }
   ],
   "history": [
+    {
+      "id": 1785853004935,
+      "dir": "long",
+      "tf": "1h",
+      "entry": 4141.9,
+      "sl": 4118.221533203125,
+      "tp": 4241.002591970051,
+      "rr": 4.185346662019969,
+      "qty": 0.4344537681841856,
+      "risk_pct": 0.01,
+      "opened_at": "2026-08-04 14:16:44",
+      "reason": "Tự quyết LONG theo phán quyết hội đồng (+0.19), P(tăng) 65%.",
+      "llm": false,
+      "warned": true,
+      "exit": 4241.002591970051,
+      "pnl": 43.055494518208654,
+      "pnl_pct": 2.392684322896521,
+      "exit_reason": "chạm CHỐT LỜI (TP)",
+      "closed_at": "2026-08-05 11:59:31",
+      "balance_after": 1071.7754069908553
+    },
     {
       "id": 1785849705354,
       "dir": "long",
@@ -59,14 +64,16 @@
       "balance_after": 1028.7199124726467
     }
   ],
-  "trades": 1,
-  "wins": 1,
-  "total_pnl": 28.719912472646673,
-  "gross_win": 28.719912472646673,
+  "trades": 2,
+  "wins": 2,
+  "total_pnl": 71.77540699085533,
+  "gross_win": 71.77540699085533,
   "gross_loss": 0.0,
-  "trader_score": 1000.0,
-  "lessons": [],
-  "sessions": 21,
+  "trader_score": 1047.8536864579305,
+  "lessons": [
+    "✅ LONG 1h +2.4% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
+  ],
+  "sessions": 22,
   "trade_tf": "",
   "equity_points": [
     {
@@ -76,6 +83,10 @@
     {
       "t": 1785851431520,
       "e": 1028.7199124726467
+    },
+    {
+      "t": 1785931171867,
+      "e": 1071.7754069908553
     }
   ]
 }
