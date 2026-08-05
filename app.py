@@ -162,14 +162,26 @@ def load_config():
                     elif isinstance(val, dict) and val.get("model"):
                         cfg["models"][key] = {"provider": val.get("provider", "openrouter"), "model": val["model"]}
             if isinstance(user.get("trader"), dict):
-                cfg["trader"].update(user["trader"])
+                cfg.get("trader", {}).update(user["trader"])
+            if isinstance(user.get("exness"), dict):
+                cfg["exness"] = user["exness"]
+            if isinstance(user.get("metaapi"), dict):
+                cfg["metaapi"] = user["metaapi"]
         except Exception as e:
             print(f"⚠️ Lỗi đọc config.json: {e}")
+    cfg.setdefault("exness", {})
+    if os.getenv("EXNESS_PASSWORD"):
+        cfg["exness"]["password"] = os.getenv("EXNESS_PASSWORD")
+    cfg.setdefault("metaapi", {})
+    if os.getenv("METAAPI_TOKEN"):
+        cfg["metaapi"]["token"] = os.getenv("METAAPI_TOKEN")
+    if os.getenv("METAAPI_ACCOUNT_ID"):
+        cfg["metaapi"]["account_id"] = os.getenv("METAAPI_ACCOUNT_ID")
     # Telegram: env (Secrets) ưu tiên hơn config.json
     if os.getenv("TELEGRAM_BOT_TOKEN"):
-        cfg["trader"]["telegram_token"] = os.getenv("TELEGRAM_BOT_TOKEN")
+        cfg.get("trader", {})["telegram_token"] = os.getenv("TELEGRAM_BOT_TOKEN")
     if os.getenv("TELEGRAM_CHAT_ID"):
-        cfg["trader"]["telegram_chat_id"] = os.getenv("TELEGRAM_CHAT_ID")
+        cfg.get("trader", {})["telegram_chat_id"] = os.getenv("TELEGRAM_CHAT_ID")
     return cfg
 
 
@@ -181,7 +193,8 @@ def agent_conf(cfg, key):
 
 
 def any_api_key(cfg):
-    return bool(cfg["openrouter_api_key"] or cfg["gemini_api_key"] or cfg["groq_api_key"] or cfg["cohere_api_key"])
+    return bool(cfg.get("openrouter_api_key") or cfg.get("gemini_api_key")
+                or cfg.get("groq_api_key") or cfg.get("cohere_api_key"))
 
 
 # =====================================================================
@@ -260,22 +273,43 @@ def clamp(v, lo, hi):
 # =====================================================================
 # DỮ LIỆU REALTIME
 # =====================================================================
-def fetch_price():
-    try:
-        d = http_json("https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1d&range=1d", timeout=6)
-        return float(d["chart"]["result"][0]["meta"]["regularMarketPrice"]), "Yahoo Finance · GC=F (COMEX)"
-    except Exception:
-        pass
+# Lưu cả giá spot + futures để báo cáo chênh lệch (giải thích vì sao giá lệch sàn)
+PRICE_INFO = {"spot": None, "spot_src": None, "futures": None, "futures_src": None}
+
+
+def fetch_price(cfg=None):
+    """Giá vàng realtime — ưu tiên XAUUSD SPOT (khớp giá các sàn Exness/TradingView):
+    gold-api spot → Binance PAXG (≈spot) → Yahoo GC=F (futures COMEX).
+    Lưu cả spot & futures vào PRICE_INFO để báo cáo chênh lệch."""
+    spot = futures = None
+    spot_src = futures_src = None
+    # 1) Spot: gold-api.com (XAUUSD spot)
     try:
         d = http_json("https://api.gold-api.com/price/XAU", timeout=6)
-        return float(d["price"]), "gold-api.com · XAU spot"
+        spot = float(d["price"]); spot_src = "gold-api.com · XAU spot"
     except Exception:
         pass
+    # 2) Spot: Binance PAXG (≈ 1 oz vàng)
+    if spot is None:
+        try:
+            d = http_json("https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT", timeout=6)
+            spot = float(d["price"]); spot_src = "Binance · PAXG (≈spot)"
+        except Exception:
+            pass
+    # 3) Futures: Yahoo GC=F (COMEX) — để so sánh
     try:
-        d = http_json("https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT", timeout=6)
-        return float(d["price"]), "Binance · PAXG"
+        d = http_json("https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1d&range=1d", timeout=6)
+        futures = float(d["chart"]["result"][0]["meta"]["regularMarketPrice"])
+        futures_src = "Yahoo Finance · GC=F (COMEX futures)"
     except Exception:
-        return 4050.0, "Giá mặc định (offline)"
+        pass
+    PRICE_INFO["spot"] = spot; PRICE_INFO["spot_src"] = spot_src
+    PRICE_INFO["futures"] = futures; PRICE_INFO["futures_src"] = futures_src
+    if spot:
+        return spot, spot_src
+    if futures:
+        return futures, futures_src
+    return 4050.0, "Giá mặc định (offline)"
 
 
 def fetch_klines(tf_key):
@@ -400,10 +434,16 @@ def compute_indicators(klines, tf_key):
 # =====================================================================
 # PROMPT
 # =====================================================================
-def market_snapshot(cfg, price, price_src, klines, ind, tf_key, context=""):
+def market_snapshot(cfg, price, price_src, klines, ind, tf_key, context="", history=""):
     tf = TIMEFRAMES[tf_key]
     L = [f"Giá hiện tại: ${price:,.2f}/oz (nguồn: {price_src}).",
          f"Khung {tf['label']}: dự báo {tf['steps']} nến ≈ {tf['label']} tới."]
+    if PRICE_INFO.get("futures") and PRICE_INFO.get("spot") and abs(PRICE_INFO["spot"] - PRICE_INFO["futures"]) > 1:
+        L.append(f"Lưu ý giá: spot XAUUSD ${PRICE_INFO['spot']:,.2f} vs futures GC=F ${PRICE_INFO['futures']:,.2f} "
+                 f"(chênh ${PRICE_INFO['spot']-PRICE_INFO['futures']:+,.2f} — futures thường lệch spot).")
+    if history:
+        L.append("LỊCH SỬ CÁC PHIÊN GẦN ĐÂY (hệ thống nhớ — tham khảo để phân tích):")
+        L.append(history)
     if ind:
         L.append(f"Dữ liệu {ind['n']} nến gần nhất — RSI(14): {ind['rsi']:.1f} | EMA20: ${ind['ema20']:,.2f} | "
                  f"EMA50: ${ind['ema50']:,.2f} | MACD hist: {ind['macd_hist']:+.2f} | ATR: ${ind['atr']:,.2f} | Xu hướng EMA20/50: {ind['trend']}.")
@@ -450,7 +490,7 @@ def build_prompt(agent, round_no, prev, snap):
 def call_llm(role, prompt, cfg, provider=None, model=None):
     """Gọi LLM theo provider của role → trả về cấu trúc thống nhất."""
     if role == "trader":
-        conf = cfg["trader"]
+        conf = cfg.get("trader", {})
         if isinstance(conf, str):
             conf = {"provider": "openrouter", "model": conf}
         provider = provider or conf.get("provider", "openrouter")
@@ -877,13 +917,16 @@ TRADER_DEFAULT_STATE = {
 }
 
 
+MAX_POSITIONS = 3  # tối đa 3 lệnh mở cùng lúc — đủ 3 phải chờ 1 lệnh chạm SL/TP
+
+
 def new_trader_state():
     """State mới — các container (list/dict) phải là bản mới, KHÔNG dùng chung với hằng số."""
     return {
         "balance": 1000.0, "start_balance": 1000.0, "peak": 1000.0, "max_dd": 0.0,
-        "position": None, "history": [], "trades": 0, "wins": 0,
+        "positions": [], "position": None, "history": [], "trades": 0, "wins": 0,
         "total_pnl": 0.0, "gross_win": 0.0, "gross_loss": 0.0,
-        "sessions": 0, "equity_points": [{"t": int(time.time() * 1000), "e": 1000.0}],
+        "sessions": 0, "trade_tf": "", "equity_points": [{"t": int(time.time() * 1000), "e": 1000.0}],
     }
 
 
@@ -894,9 +937,18 @@ def load_trader_state(out_dir):
             with open(p, encoding="utf-8") as f:
                 st = json.load(f)
             if isinstance(st, dict) and "balance" in st:
-                # hợp nhất với default để file cũ thiếu key không crash
                 merged = new_trader_state()
                 merged.update(st)
+                # migrate: state cũ dùng "position" đơn → chuyển sang danh sách "positions"
+                if merged.get("position"):
+                    if not isinstance(merged.get("positions"), list):
+                        merged["positions"] = []
+                    if not any(p.get("id") == merged["position"].get("id") for p in merged["positions"]):
+                        merged["positions"].append(merged["position"])
+                merged["position"] = None
+                if not isinstance(merged.get("positions"), list):
+                    merged["positions"] = []
+                merged.setdefault("trade_tf", "")
                 return merged
         except Exception:
             pass
@@ -951,7 +1003,7 @@ def trader_llm_prompt(consensus, verdict, finals, price, atr, sup, res, target, 
 def trader_llm_decision(cfg, consensus, verdict, finals, price, atr, sup, res, target, p10, p90, prob_up, balance, position):
     if not any_api_key(cfg):
         return None
-    chosen = cfg["trader"]
+    chosen = cfg.get("trader", {})
     if isinstance(chosen, str):
         chosen = {"provider": "openrouter", "model": chosen}
     chain = _build_chain(cfg, chosen.get("provider", "openrouter"), chosen.get("model", ""))
@@ -986,80 +1038,415 @@ def trader_llm_decision(cfg, consensus, verdict, finals, price, atr, sup, res, t
 
 
 def trader_execute(st, decision, price, out_dir):
-    if st.get("position"):
-        return
+    """Mở lệnh mới — tối đa MAX_POSITIONS (3) lệnh mở cùng lúc."""
     if decision["action"] == "hold":
-        return
+        return False
+    if not isinstance(st.get("positions"), list):
+        st["positions"] = []
+    if len(st["positions"]) >= MAX_POSITIONS:
+        print(f"🚫 Đã đủ {MAX_POSITIONS} lệnh mở — chờ 1 lệnh chạm SL/TP mới được mở tiếp. (giữ lệnh hiện tại)")
+        return False
     sl_dist = abs(decision["sl"] - price)
     if sl_dist < 1e-9:
-        return
+        return False
     risk_amt = st["balance"] * decision["risk"]
     qty = risk_amt / sl_dist
     if qty * price > st["balance"] * 20:
-        return
-    st["position"] = {"id": int(time.time() * 1000), "dir": decision["action"], "tf": decision["tf"],
-                      "entry": price, "sl": decision["sl"], "tp": decision["tp"], "rr": decision["rr"],
-                      "qty": qty, "risk_pct": decision["risk"],
-                      "opened_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-                      "reason": decision["reason"], "llm": decision.get("llm", False)}
+        return False
+    st["positions"].append({"id": int(time.time() * 1000), "dir": decision["action"], "tf": decision["tf"],
+                            "entry": price, "sl": decision["sl"], "tp": decision["tp"], "rr": decision["rr"],
+                            "qty": qty, "risk_pct": decision["risk"],
+                            "opened_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                            "reason": decision["reason"], "llm": decision.get("llm", False)})
     save_trader_state(st, out_dir)
-    print(f"💼 AI TRADER MỞ LỆNH {decision['action'].upper()} {decision['tf']} · entry ${price:,.2f} · "
-          f"SL ${decision['sl']:,.2f} · TP ${decision['tp']:,.2f} · RR 1:{decision['rr']:.1f} · rủi ro ${risk_amt:,.2f}")
+    print(f"💼 AI TRADER MỞ LỆNH {decision['action'].upper()} {decision['tf']} #{len(st['positions'])}/{MAX_POSITIONS} · "
+          f"entry ${price:,.2f} · SL ${decision['sl']:,.2f} · TP ${decision['tp']:,.2f} · RR 1:{decision['rr']:.1f} · rủi ro ${risk_amt:,.2f}")
+    return True
 
 
 def trader_check_position(st, klines, out_dir):
-    if not st.get("position") or not klines:
-        return None
-    p = st["position"]
+    """Kiểm tra TẤT CẢ lệnh mở — đóng lệnh nào chạm SL/TP. Trả danh sách lệnh đã đóng."""
+    if not klines or not isinstance(st.get("positions"), list) or not st["positions"]:
+        return []
     last = klines[-1]
-    exit_p, reason = None, ""
-    if p["dir"] == "long":
-        if last["l"] <= p["sl"]:
-            exit_p, reason = p["sl"], "chạm CẮT LỖ (SL)"
-        elif last["h"] >= p["tp"]:
-            exit_p, reason = p["tp"], "chạm CHỐT LỜI (TP)"
-    else:
-        if last["h"] >= p["sl"]:
-            exit_p, reason = p["sl"], "chạm CẮT LỖ (SL)"
-        elif last["l"] <= p["tp"]:
-            exit_p, reason = p["tp"], "chạm CHỐT LỜI (TP)"
-    if exit_p is None:
-        return None
-    mult = 1 if p["dir"] == "long" else -1
-    pnl = (exit_p - p["entry"]) * mult * p["qty"]
-    pnl_pct = (exit_p / p["entry"] - 1) * mult * 100
-    st["balance"] += pnl
-    st["peak"] = max(st["peak"], st["balance"])
-    st["max_dd"] = max(st["max_dd"], (st["peak"] - st["balance"]) / st["peak"] * 100)
-    st["trades"] += 1
-    if pnl > 0:
-        st["wins"] += 1
-        st["gross_win"] += pnl
-    else:
-        st["gross_loss"] += -pnl
-    st["total_pnl"] += pnl
-    st["position"] = None
-    st["equity_points"].append({"t": int(time.time() * 1000), "e": st["balance"]})
-    st["history"].insert(0, {**p, "exit": exit_p, "pnl": pnl, "pnl_pct": pnl_pct,
-                             "exit_reason": reason, "closed_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-                             "balance_after": st["balance"]})
-    save_trader_state(st, out_dir)
-    print(f"💼 ĐÓNG LỆNH {p['dir'].upper()} — {reason} · entry ${p['entry']:,.2f} → exit ${exit_p:,.2f} · "
-          f"P&L {pnl:+,.2f}$ ({pnl_pct:+.2f}%) · vốn ${st['balance']:,.2f}")
-    return st["history"][0]
+    closed_all = []
+    remaining = []
+    for p in st["positions"]:
+        exit_p, reason = None, ""
+        if p["dir"] == "long":
+            if last["l"] <= p["sl"]:
+                exit_p, reason = p["sl"], "chạm CẮT LỖ (SL)"
+            elif last["h"] >= p["tp"]:
+                exit_p, reason = p["tp"], "chạm CHỐT LỜI (TP)"
+        else:
+            if last["h"] >= p["sl"]:
+                exit_p, reason = p["sl"], "chạm CẮT LỖ (SL)"
+            elif last["l"] <= p["tp"]:
+                exit_p, reason = p["tp"], "chạm CHỐT LỜI (TP)"
+        if exit_p is None:
+            remaining.append(p)
+            continue
+        mult = 1 if p["dir"] == "long" else -1
+        pnl = (exit_p - p["entry"]) * mult * p["qty"]
+        pnl_pct = (exit_p / p["entry"] - 1) * mult * 100
+        st["balance"] += pnl
+        st["peak"] = max(st["peak"], st["balance"])
+        st["max_dd"] = max(st["max_dd"], (st["peak"] - st["balance"]) / st["peak"] * 100)
+        st["trades"] += 1
+        if pnl > 0:
+            st["wins"] += 1
+            st["gross_win"] += pnl
+        else:
+            st["gross_loss"] += -pnl
+        st["total_pnl"] += pnl
+        st["equity_points"].append({"t": int(time.time() * 1000), "e": st["balance"]})
+        closed_rec = {**p, "exit": exit_p, "pnl": pnl, "pnl_pct": pnl_pct,
+                      "exit_reason": reason, "closed_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                      "balance_after": st["balance"]}
+        st["history"].insert(0, closed_rec)
+        closed_all.append(closed_rec)
+        print(f"💼 ĐÓNG LỆNH {p['dir'].upper()} — {reason} · entry ${p['entry']:,.2f} → exit ${exit_p:,.2f} · "
+              f"P&L {pnl:+,.2f}$ ({pnl_pct:+.2f}%) · vốn ${st['balance']:,.2f}")
+    st["positions"] = remaining
+    if closed_all:
+        save_trader_state(st, out_dir)
+    return closed_all
 
 
 def trader_status_line(st, price):
     if not st:
         return None
-    if st.get("position"):
-        p = st["position"]
-        return (f"MỞ {p['dir'].upper()} {p['tf']} · entry ${p['entry']:,.2f} · SL ${p['sl']:,.2f} · "
-                f"TP ${p['tp']:,.2f} · RR 1:{p['rr']:.1f} · rủi ro {(p.get('risk_pct', 0.01)*100):.1f}%")
+    positions = st.get("positions") or []
+    if positions:
+        parts = [f"{p['dir'].upper()} {p['tf']}@{p['entry']:,.0f}" for p in positions]
+        return f"{len(positions)}/{MAX_POSITIONS} lệnh mở: " + " · ".join(parts) + f" · vốn ${st['balance']:,.2f}"
     if st.get("history"):
         h = st["history"][0]
         return f"lệnh gần nhất: {h['dir'].upper()} {h['tf']} {h['exit_reason']} {h['pnl']:+,.2f}$ · vốn ${st['balance']:,.2f}"
     return f"đứng ngoài · vốn ${st['balance']:,.2f}"
+
+
+# =====================================================================
+# ☁️ METAAPI — Cloud MT5 (AUTO-TRADE EXNESS DEMO qua REST API, không cần MT5)
+# ---------------------------------------------------------------
+# - Dịch vụ host sẵn MT5 trên cloud (metaapi.cloud) — free 1 tài khoản
+# - Từ GitHub Actions (Linux) chỉ cần gọi REST API là đặt lệnh được
+# - Cần: METAAPI_TOKEN (từ app.metaapi.cloud) + METAAPI_ACCOUNT_ID
+#   (tài khoản MetaAPI đã được tạo + nạp thông tin Exness demo trong dashboard)
+# =====================================================================
+METAAPI_REGIONS = [
+    "mt-client-api-v1.agiliumtrade.agiliumtrade.ai",
+    "mt-client-api-v1.new-york.agiliumtrade.ai",
+    "mt-client-api-v1.london.agiliumtrade.ai",
+    "mt-client-api-v1.manila.agiliumtrade.ai",
+    "mt-client-api-v1.cyprus.agiliumtrade.ai",
+    "mt-client-api-v1.moscow.agiliumtrade.ai",
+    "mt-client-api-v1.seoul.agiliumtrade.ai",
+    "mt-client-api-v1.singapore.agiliumtrade.ai",
+]
+
+
+def load_metaapi_cfg(cfg):
+    m = cfg.get("metaapi", {}) or {}
+    return {
+        "enabled": bool(m.get("enabled", False)),
+        "token": str(m.get("token", "") or os.getenv("METAAPI_TOKEN", "")),
+        "account_id": str(m.get("account_id", "") or os.getenv("METAAPI_ACCOUNT_ID", "")),
+        "symbol": str(m.get("symbol", "XAUUSD")),
+        "magic": int(m.get("magic", 20260804) or 20260804),
+        "risk_pct": float(m.get("risk_pct", 1.0)),
+        "region": str(m.get("region", "") or ""),
+    }
+
+
+def _metaapi_req(cfg, method, path, body=None, timeout=30):
+    """Gọi REST API MetaAPI — tự dò lần lượt các region cho tới khi tìm thấy account."""
+    mc = load_metaapi_cfg(cfg)
+    if not mc["token"]:
+        raise ValueError("Thiếu METAAPI_TOKEN (tạo tại app.metaapi.cloud → API access → token)")
+    # region tùy chọn (user điền trong config, hoặc auto-dò)
+    regions = [f"mt-client-api-v1.{mc['region']}.agiliumtrade.ai"] if mc.get("region") else METAAPI_REGIONS
+    headers = {"auth-token": mc["token"], "User-Agent": UA["User-Agent"]}
+    data = json.dumps(body).encode("utf-8") if body is not None else None
+    if body is not None:
+        headers["Content-Type"] = "application/json"
+    last_err = None
+    for domain in regions:
+        try:
+            url = f"https://{domain}{path}"
+            req = urllib.request.Request(url, data=data, headers=headers, method=method)
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                raw = r.read().decode("utf-8")
+                return json.loads(raw) if raw else {}
+        except urllib.error.HTTPError as e:
+            if e.code == 401:
+                raise ValueError("METAAPI_TOKEN không hợp lệ (401) — kiểm tra lại token")
+            last_err = f"HTTP {e.code} @ {domain}"
+        except Exception as e:
+            last_err = f"{str(e)[:80]} @ {domain}"
+    raise RuntimeError(f"Không tìm thấy account MetaAPI ở mọi region. {last_err} — "
+                       f"kiểm tra: account đã deploy chưa? (app.metaapi.cloud → Accounts → state=Deployed)")
+
+
+def metaapi_ensure_deployed(cfg, timeout=180):
+    """Chờ tài khoản MetaAPI deployed (MT5 cloud sẵn sàng)."""
+    mc = load_metaapi_cfg(cfg)
+    if not mc["account_id"]:
+        raise ValueError("Thiếu METAAPI_ACCOUNT_ID (id tài khoản đã tạo trong dashboard MetaAPI)")
+    t0 = time.time()
+    while time.time() - t0 < timeout:
+        try:
+            st = _metaapi_req(cfg, "GET", f"/v1/accounts/{mc['account_id']}/state")
+            if st.get("deployed"):
+                return True
+            if st.get("error"):
+                raise ValueError(f"Tài khoản MetaAPI lỗi: {st['error']}")
+        except urllib.error.HTTPError as e:
+            if e.code != 404:
+                raise
+        print("  ⏳ Đang chờ MetaAPI deploy MT5 cloud...")
+        time.sleep(5)
+    raise ValueError("Quá thời gian chờ MetaAPI deploy (kiểm tra tài khoản trong dashboard)")
+
+
+def metaapi_account_info(cfg):
+    mc = load_metaapi_cfg(cfg)
+    d = _metaapi_req(cfg, "GET", f"/v1/accounts/{mc['account_id']}/account-information")
+    return d
+
+
+def metaapi_positions(cfg):
+    mc = load_metaapi_cfg(cfg)
+    d = _metaapi_req(cfg, "GET", f"/v1/accounts/{mc['account_id']}/positions")
+    return d.get("positions", []) if isinstance(d, dict) else []
+
+
+def metaapi_place_order(cfg, decision, price):
+    """Đặt lệnh THẬT trên Exness demo qua MetaAPI. Trả (result, error)."""
+    mc = load_metaapi_cfg(cfg)
+    try:
+        metaapi_ensure_deployed(cfg)
+    except Exception as e:
+        return None, str(e)
+    sl_dist = abs(decision["sl"] - price)
+    if sl_dist < 1e-9:
+        return None, "Khoảng cách SL quá nhỏ"
+    risk_amt = decision["risk"] * 1000
+    # ~0.01 lot/1000$ cho XAUUSD (contract 100oz, $1 pip ≈ $1/lot... tính gần đúng)
+    lot = round(max(0.01, min(risk_amt / (sl_dist * 100), 5.0)), 2)
+    body = {
+        "actionType": "ORDER_TYPE_BUY" if decision["action"] == "long" else "ORDER_TYPE_SELL",
+        "symbol": mc["symbol"],
+        "volume": lot,
+        "stopLoss": decision["sl"],
+        "takeProfit": decision["tp"],
+        "comment": "AI-ARENA",
+        "magic": mc["magic"],
+        "typeTime": "GTC",
+        "typeFilling": "ORDER_FILLING_IOC",
+        "deviation": 20,
+    }
+    try:
+        d = _metaapi_req(cfg, "POST", f"/v1/accounts/{mc['account_id']}/trade", body)
+        if "code" in d:
+            return None, f"MetaAPI từ chối: {d.get('message', d)}"
+        return {"ticket": d.get("orderId", d.get("id", "?")), "lot": lot, "response": d}, None
+    except urllib.error.HTTPError as e:
+        return None, f"HTTP {e.code}: {e.read().decode('utf-8', errors='ignore')[:200]}"
+    except Exception as e:
+        return None, f"Lỗi MetaAPI: {str(e)[:150]}"
+
+
+def metaapi_sync(cfg, st):
+    """Đồng bộ balance + lệnh mở từ tài khoản MetaAPI."""
+    try:
+        info = metaapi_account_info(cfg)
+        if info.get("balance") is not None:
+            st["balance"] = float(info["balance"])
+            st["start_balance"] = float(info.get("balance", st.get("start_balance", 1000)))
+            st["equity_points"].append({"t": int(time.time() * 1000), "e": float(info.get("equity", info["balance"]))})
+        positions = metaapi_positions(cfg)
+        my_pos = [p for p in positions if p.get("magic") == load_metaapi_cfg(cfg)["magic"]]
+        if my_pos:
+            p = my_pos[0]
+            st["position"] = {"id": p.get("id", 0), "dir": "long" if p.get("type") == "POSITION_TYPE_BUY" else "short",
+                              "tf": "metaapi", "entry": float(p.get("openPrice", 0)),
+                              "sl": float(p.get("stopLoss", 0) or 0), "tp": float(p.get("takeProfit", 0) or 0),
+                              "rr": 0, "qty": float(p.get("volume", 0)), "risk_pct": 0.01,
+                              "opened_at": time.strftime("%Y-%m-%d %H:%M:%S"), "reason": "Exness demo (MetaAPI)",
+                              "llm": False, "exness": True}
+        else:
+            st["position"] = None
+        return st, None
+    except Exception as e:
+        return st, str(e)
+
+
+# =====================================================================
+# 🏦 EXNESS — MetaTrader 5 (AUTO-TRADE, chỉ tài khoản DEMO)
+# ---------------------------------------------------------------
+# - Chỉ chạy trên WINDOWS (pip install MetaTrader5) — MT5 terminal phải cài
+# - Lấy giá XAUUSD realtime từ Exness + AI Trader đặt lệnh THẬT trên demo
+# - AN TOÀN: tự từ chối nếu phát hiện tài khoản REAL (trade_mode != DEMO)
+# =====================================================================
+def load_exness_cfg(cfg):
+    e = cfg.get("exness", {}) or {}
+    return {
+        "enabled": bool(e.get("enabled", False)),
+        "mode": str(e.get("mode", "demo")),
+        "server": str(e.get("server", "")),
+        "account": int(e.get("account", 0) or 0),
+        "password": str(e.get("password", "") or os.getenv("EXNESS_PASSWORD", "")),
+        "symbol": str(e.get("symbol", "XAUUSD")),
+        "magic": int(e.get("magic", 20260804) or 20260804),
+        "risk_pct": float(e.get("risk_pct", 1.0)),
+        "mt5_path": str(e.get("mt5_path", "")),
+    }
+
+
+_mt5 = None
+def _get_mt5():
+    global _mt5
+    if _mt5 is None:
+        try:
+            import MetaTrader5 as mt5
+            _mt5 = mt5
+        except Exception:
+            _mt5 = False
+    return _mt5 or None
+
+
+def mt5_connect(cfg):
+    """Kết nối MT5 + đăng nhập Exness. Trả (mt5, error)."""
+    mt5 = _get_mt5()
+    if not mt5:
+        return None, "MetaTrader5 chưa cài (chỉ Windows): pip install MetaTrader5"
+    ecfg = load_exness_cfg(cfg)
+    if not ecfg["enabled"]:
+        return None, None
+    try:
+        if not mt5.initialize(path=ecfg["mt5_path"] or None):
+            return None, f"Không khởi động MT5: {mt5.last_error()}"
+        if ecfg["account"] and ecfg["password"]:
+            if not mt5.login(ecfg["account"], ecfg["password"], server=ecfg["server"]):
+                err = mt5.last_error()
+                mt5.shutdown()
+                return None, f"Đăng nhập Exness thất bại: {err}"
+        acc = mt5.account_info()
+        if acc is None:
+            return None, "Không lấy được account_info"
+        mode = int(getattr(acc, "trade_mode", 1))  # 0=DEMO, 1=CONTEST, 2=REAL
+        if mode == 2:
+            mt5.shutdown()
+            return None, "🚫 TÀI KHOẢN REAL — từ chối giao dịch! Chỉ cho phép DEMO."
+        return mt5, None
+    except Exception as e:
+        try:
+            mt5.shutdown()
+        except Exception:
+            pass
+        return None, f"Lỗi MT5: {str(e)[:120]}"
+
+
+def mt5_symbol(mt5, cfg):
+    """Tìm symbol vàng hợp lệ trên tài khoản. Trả (symbol, info)."""
+    ecfg = load_exness_cfg(cfg)
+    cands = [ecfg["symbol"], "XAUUSD", "XAUUSDm", "XAUUSD.a"]
+    for s in cands:
+        info = mt5.symbol_info(s)
+        if info is not None:
+            return s, info
+    return None, None
+
+
+def mt5_price(cfg):
+    """Giá vàng XAUUSD realtime từ Exness (bid/ask). Trả (price, 'Exness MT5')."""
+    mt5 = _get_mt5()
+    if not mt5:
+        return None, None
+    try:
+        if not mt5.initialize():
+            return None, None
+        sym, _ = mt5_symbol(mt5, cfg)
+        if not sym:
+            mt5.shutdown()
+            return None, None
+        tick = mt5.symbol_info_tick(sym)
+        mt5.shutdown()
+        if tick and tick.bid:
+            return float(tick.bid), f"Exness MT5 · {sym}"
+    except Exception:
+        try:
+            mt5.shutdown()
+        except Exception:
+            pass
+    return None, None
+
+
+def mt5_place_order(mt5, cfg, decision, price):
+    """Đặt lệnh THẬT trên Exness demo. Trả (result_dict, error)."""
+    ecfg = load_exness_cfg(cfg)
+    sym, info = mt5_symbol(mt5, cfg)
+    if not sym:
+        return None, "Không tìm thấy symbol vàng"
+    tick = mt5.symbol_info_tick(sym)
+    if tick is None:
+        return None, "Không có tick giá"
+    cs = float(getattr(info, "trade_contract_size", 100) or 100)
+    sl_dist = abs(decision["sl"] - price)
+    if sl_dist < 1e-9:
+        return None, "Khoảng cách SL quá nhỏ"
+    risk_amt = decision["risk"] * 1000  # vốn mô phỏng ~$1000 → lot theo risk%
+    lot = risk_amt / (sl_dist * cs)
+    lot = round(max(0.01, min(lot, 5.0)), 2)
+    req = {
+        "action": mt5.TRADE_ACTION_DEAL,
+        "symbol": sym,
+        "volume": lot,
+        "type": mt5.ORDER_TYPE_BUY if decision["action"] == "long" else mt5.ORDER_TYPE_SELL,
+        "price": tick.ask if decision["action"] == "long" else tick.bid,
+        "sl": decision["sl"],
+        "tp": decision["tp"],
+        "deviation": 20,
+        "magic": ecfg["magic"],
+        "comment": "AI-ARENA",
+        "type_time": mt5.ORDER_TIME_GTC,
+        "type_filling": mt5.ORDER_FILLING_IOC,
+    }
+    res = mt5.order_send(req)
+    if res is None:
+        return None, f"order_send lỗi: {mt5.last_error()}"
+    if res.retcode != mt5.TRADE_RETCODE_DONE:
+        return None, f"Lệnh bị từ chối: {res.retcode} {res.comment}"
+    return {"ticket": int(res.order or res.deal or 0), "lot": lot, "price": float(res.price), "retcode": res.retcode}, None
+
+
+def mt5_sync(cfg, mt5, st):
+    """Đồng bộ trạng thái AI Trader với tài khoản Exness demo (balance + lệnh mở)."""
+    ecfg = load_exness_cfg(cfg)
+    acc = mt5.account_info()
+    if acc is None:
+        return st, "Không lấy được account_info"
+    new_balance = float(acc.balance)
+    # đồng bộ vốn
+    st["balance"] = new_balance
+    st["start_balance"] = float(getattr(acc, "balance", st.get("start_balance", 1000)))
+    st["equity_points"].append({"t": int(time.time() * 1000), "e": float(acc.equity)})
+    # lệnh đang mở (của magic này)
+    positions = mt5.positions_get(symbol=ecfg["symbol"], magic=ecfg["magic"])
+    if positions and len(positions) > 0:
+        p = positions[0]
+        st["position"] = {
+            "id": int(p.ticket), "dir": "long" if p.type == 0 else "short",
+            "tf": "exness", "entry": float(p.price_open),
+            "sl": float(p.sl) if p.sl else 0, "tp": float(p.tp) if p.tp else 0,
+            "rr": 0, "qty": float(p.volume), "risk_pct": ecfg["risk_pct"] / 100,
+            "opened_at": time.strftime("%Y-%m-%d %H:%M:%S"), "reason": "Exness demo",
+            "llm": False, "exness": True,
+        }
+    else:
+        st["position"] = None
+    return st, None
 
 
 # =====================================================================
@@ -1102,8 +1489,8 @@ def check_api_keys(cfg):
 # =====================================================================
 def send_telegram(text, cfg):
     """Gửi tin nhắn Telegram. Kiểm tra response thật (ok=true)."""
-    token = cfg["trader"].get("telegram_token", "")
-    chat = cfg["trader"].get("telegram_chat_id", "")
+    token = cfg.get("trader", {}).get("telegram_token", "")
+    chat = cfg.get("trader", {}).get("telegram_chat_id", "")
     if not token or not chat:
         print("⚠️ Telegram CHƯA cấu hình — thiếu TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID "
               "(thêm vào GitHub Secrets hoặc config.json).")
@@ -1132,7 +1519,7 @@ def send_telegram(text, cfg):
 
 
 def trader_summary(st, cfg, out_dir, force=False):
-    n = int(cfg["trader"].get("summary_every", 300))
+    n = int(cfg.get("trader", {}).get("summary_every", 300))
     if not force and st["sessions"] < n:
         return
     closed = st["history"]
@@ -1178,11 +1565,15 @@ def trader_summary(st, cfg, out_dir, force=False):
 
 def send_session_report(cfg, price, price_src, consensus, verdict, finals, mc, bt, trader_info=None, out_dir=None):
     """📊 Báo cáo MỖI PHIÊN — LUÔN ghi file (xem trên GitHub Pages), gửi Telegram nếu có token."""
-    if not cfg["trader"].get("report_every_session", True):
+    if not cfg.get("trader", {}).get("report_every_session", True):
         return False
     lines = ["📊 *XAU/USD AI DEBATE — BÁO CÁO PHIÊN*", "━━━━━━━━━━━━━━━━━",
              f"⏱️ {time.strftime('%d/%m/%Y %H:%M')} · {price_src}",
              f"💰 Giá: ${price:,.2f}", f"🧠 Đồng thuận: {consensus:+.3f} → {verdict}"]
+    # chênh lệch spot vs futures (giải thích vì sao giá lệch sàn)
+    if PRICE_INFO.get("spot") and PRICE_INFO.get("futures") and abs(PRICE_INFO["spot"] - PRICE_INFO["futures"]) > 1:
+        lines.append(f"💱 Spot XAUUSD: ${PRICE_INFO['spot']:,.2f} · Futures GC=F: ${PRICE_INFO['futures']:,.2f} "
+                     f"(chênh {PRICE_INFO['spot']-PRICE_INFO['futures']:+,.2f})")
     for f in finals:
         lines.append(f"  {f.get('icon', '🤖')} {f['title']}: {f['stance']:+.2f} (tự tin {f['conf']*100:.0f}%)")
     if mc:
@@ -1204,8 +1595,8 @@ def send_session_report(cfg, price, price_src, consensus, verdict, finals, mc, b
         except Exception as e:
             print(f"⚠️ Không lưu được file báo cáo: {e}")
     # 2) Gửi Telegram nếu có token
-    token = cfg["trader"].get("telegram_token", "")
-    chat = cfg["trader"].get("telegram_chat_id", "")
+    token = cfg.get("trader", {}).get("telegram_token", "")
+    chat = cfg.get("trader", {}).get("telegram_chat_id", "")
     if not token or not chat:
         print("⚠️ Telegram CHƯA cấu hình — thiếu TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID (thêm vào GitHub Secrets).")
         return False
@@ -1216,15 +1607,163 @@ def send_session_report(cfg, price, price_src, consensus, verdict, finals, mc, b
 
 
 # =====================================================================
+# 🧠 BỘ NHỚ PHIÊN (sessions log) — AI nhớ các phiên trước
+# =====================================================================
+def load_sessions(out_dir, max_n=200):
+    p = os.path.join(out_dir, "sessions_log.json")
+    if os.path.exists(p):
+        try:
+            with open(p, encoding="utf-8") as f:
+                s = json.load(f)
+            return s[-max_n:] if isinstance(s, list) else []
+        except Exception:
+            return []
+    return []
+
+
+def save_session(out_dir, record):
+    os.makedirs(out_dir, exist_ok=True)
+    sess = load_sessions(out_dir)
+    sess.append(record)
+    with open(os.path.join(out_dir, "sessions_log.json"), "w", encoding="utf-8") as f:
+        json.dump(sess[-500:], f, ensure_ascii=False, indent=2)
+
+
+def history_block(out_dir, n=6):
+    """Tóm tắt các phiên gần đây + hiệu suất trader → đưa vào prompt cho AI."""
+    lines = []
+    sess = load_sessions(out_dir)[-n:]
+    for s in sess:
+        try:
+            lines.append(f"• {s['time']} [{s['tf']}] giá ${s['price']:,.2f} · đồng thuận {s['consensus']:+.2f} ({s['verdict']})"
+                         + (f" · trader {s['trader_action'].upper()}" if s.get('trader_action') else ""))
+        except Exception:
+            continue
+    # hiệu suất trader
+    try:
+        st = load_trader_state(out_dir)
+        if st.get("trades"):
+            wr = st["wins"] / st["trades"] * 100
+            lines.append(f"📈 Hiệu suất AI Trader: {st['trades']} lệnh · win {wr:.0f}% · "
+                         f"P&L {st['total_pnl']:+,.2f}$ · vốn ${st['balance']:,.2f}")
+    except Exception:
+        pass
+    return "\n".join(lines) if lines else ""
+
+
+# =====================================================================
+# 🎛️ LỆNH TELEGRAM — boss ra lệnh khung giao dịch, xem status...
+#   VD: "trade 1h" · "trade 15p" · "trade 4h" · "trade 1d" · "status"
+#   Poll mỗi lần chạy phiên (GitHub Actions) → áp dụng cho phiên đó
+# =====================================================================
+def telegram_poll_commands(cfg, out_dir):
+    """Đọc tin nhắn Telegram (getUpdates) → xử lý lệnh → lưu trade_tf. Trả trade_tf mới (hoặc '')."""
+    token = cfg.get("trader", {}).get("telegram_token", "")
+    chat = cfg.get("trader", {}).get("telegram_chat_id", "")
+    if not token or not chat:
+        return ""
+    tg_state = {"offset": 0, "trade_tf": ""}
+    tg_path = os.path.join(out_dir, "tg_state.json")
+    if os.path.exists(tg_path):
+        try:
+            with open(tg_path, encoding="utf-8") as f:
+                tg_state = json.load(f)
+        except Exception:
+            pass
+    try:
+        url = f"https://api.telegram.org/bot{token}/getUpdates?offset={tg_state.get('offset', 0) + 1}&timeout=1"
+        req = urllib.request.Request(url, headers={"User-Agent": UA["User-Agent"]})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            data = json.loads(r.read().decode("utf-8"))
+        updates = data.get("result", []) if data.get("ok") else []
+        changed = False
+        for u in updates:
+            up_id = u.get("update_id")
+            msg = (u.get("message") or {}).get("text", "") or ""
+            msg_l = msg.lower().strip()
+            tf = None
+            if "trade" in msg_l or "khung" in msg_l or "giao dịch" in msg_l:
+                if "15" in msg_l: tf = "15m"
+                elif "4h" in msg_l or "4 giờ" in msg_l: tf = "4h"
+                elif "1d" in msg_l or "1 ngày" in msg_l or "ngày" in msg_l: tf = "1D"
+                elif "1h" in msg_l or "1 giờ" in msg_l or "giờ" in msg_l: tf = "1h"
+            if tf:
+                tg_state["trade_tf"] = tf
+                changed = True
+                send_telegram(f"✅ Đã đổi khung giao dịch sang **{TIMEFRAMES[tf]['label']}** — từ phiên tới AI Trader chỉ trade khung này.", cfg)
+            elif msg_l in ("status", "trạng thái", "tình hình"):
+                st = load_trader_state(out_dir)
+                info = trader_status_line(st, st.get("balance", 0))
+                tf_now = tg_state.get("trade_tf", "") or "1h"
+                send_telegram(f"📊 *TRẠNG THÁI*\nKhung giao dịch: {tf_now}\n{info}\n"
+                              f"Phiên đã chạy: {st.get('sessions', 0)}", cfg)
+            elif "reset trader" in msg_l or "reset vốn" in msg_l:
+                st = new_trader_state()
+                save_trader_state(st, out_dir)
+                send_telegram("↺ Đã reset vốn AI Trader về $1.000.", cfg)
+            elif "stop" in msg_l or "dừng" in msg_l:
+                tg_state["trade_tf"] = ""
+                changed = True
+                send_telegram("⏸️ Đã quay lại khung mặc định (1h).", cfg)
+            tg_state["offset"] = max(tg_state.get("offset", 0), up_id)
+        if changed or updates:
+            with open(tg_path, "w", encoding="utf-8") as f:
+                json.dump(tg_state, f, ensure_ascii=False, indent=2)
+        return tg_state.get("trade_tf", "")
+    except Exception as e:
+        print(f"⚠️ Poll Telegram lỗi: {str(e)[:100]}")
+        return tg_state.get("trade_tf", "")
+
+
+# =====================================================================
 # ĐIỀU PHỐI
 # =====================================================================
 def trader_step(cfg, args, ind, mc, consensus, verdict, finals, price, klines, out_dir):
-    """Chạy AI Trader 1 phiên — bọc try/except để không bao giờ làm crash cả phiên."""
+    """Chạy AI Trader 1 phiên (mô phỏng $1.000) — đa lệnh tối đa 3, khung theo lệnh Telegram."""
     try:
         st = load_trader_state(out_dir)
         st["sessions"] = st.get("sessions", 0) + 1
-        rep = trader_check_position(st, klines, out_dir)
+
+        # ---------- Kiểm tra & đóng lệnh chạm SL/TP (tất cả lệnh mở) ----------
+        closed_all = trader_check_position(st, klines, out_dir)
         trader_summary(st, cfg, out_dir)
+
+        # ---------- Khung giao dịch theo lệnh Telegram (nếu có) ----------
+        cmd_tf = st.get("trade_tf", "")
+        if cmd_tf and cmd_tf in TIMEFRAMES:
+            print(f"🎛️ Khung giao dịch theo lệnh Telegram: {TIMEFRAMES[cmd_tf]['label']}")
+
+        # ---------- Quyết định lệnh mới (nếu chưa đủ 3 lệnh) ----------
+        if len(st.get("positions") or []) < MAX_POSITIONS:
+            decision = trader_llm_decision(cfg, consensus, verdict, finals, price, ind["atr"],
+                                           ind["sup"], ind["res"], mc["target"], mc["p10"], mc["p90"],
+                                           mc["prob_up"], st["balance"], (st.get("positions") or [None])[0])
+            if not decision:
+                decision = trader_heuristic(consensus, mc["prob_up"], price, ind["atr"], mc["target"])
+            if decision["action"] == "hold":
+                print(f"🤖 AI TRADER đứng ngoài — {decision['reason'][:110]}")
+            else:
+                # Nếu có lệnh Telegram: ép khung giao dịch đúng theo lệnh
+                if cmd_tf and cmd_tf in TIMEFRAMES:
+                    decision["tf"] = cmd_tf
+                print(f"🤖 AI TRADER QUYẾT ĐỊNH: {decision['action'].upper()} {decision['tf']} · "
+                      f"SL ${decision['sl']:,.2f} · TP ${decision['tp']:,.2f} · RR 1:{decision['rr']:.1f}"
+                      + (" · (LLM)" if decision.get("llm") else ""))
+                trader_execute(st, decision, price, out_dir)
+        else:
+            print(f"🚫 Đã đủ {MAX_POSITIONS} lệnh mở — chờ 1 lệnh chạm SL/TP. (lệnh đang mở: "
+                  + ", ".join(f"{p['dir'].upper()} {p['tf']}" for p in st.get("positions") or []) + ")")
+        save_trader_state(st, out_dir)
+        # Gửi Telegram khi đóng lệnh
+        for rep in closed_all:
+            send_telegram(
+                f"💼 *AI TRADER ĐÓNG LỆNH* {rep['dir'].upper()} {rep['tf']}\nKết quả: {rep['exit_reason']}\n"
+                f"Entry ${rep['entry']:,.2f} → Exit ${rep['exit']:,.2f}\nP&L: {rep['pnl']:+,.2f}$ ({rep['pnl_pct']:+.2f}%)\n"
+                f"Vốn: ${st['balance']:,.2f}", cfg)
+    except Exception as e:
+        print(f"⚠️ AI Trader lỗi (không làm hỏng phiên): {e}")
+
+
         if not st.get("position"):
             decision = trader_llm_decision(cfg, consensus, verdict, finals, price, ind["atr"],
                                            ind["sup"], ind["res"], mc["target"], mc["p10"], mc["p90"],
@@ -1237,9 +1776,45 @@ def trader_step(cfg, args, ind, mc, consensus, verdict, finals, price, klines, o
                 print(f"🤖 AI TRADER QUYẾT ĐỊNH: {decision['action'].upper()} {decision['tf']} · "
                       f"SL ${decision['sl']:,.2f} · TP ${decision['tp']:,.2f} · RR 1:{decision['rr']:.1f}"
                       + (" · (LLM)" if decision.get("llm") else ""))
-                trader_execute(st, decision, price, out_dir)
+                if broker == "metaapi":
+                    # ☁️ Đặt lệnh THẬT qua MetaAPI cloud (Exness demo)
+                    res, err = metaapi_place_order(cfg, decision, price)
+                    if err:
+                        print(f"⚠️ MetaAPI đặt lệnh lỗi: {err} — giữ mô phỏng.")
+                        trader_execute(st, decision, price, out_dir)
+                    else:
+                        st["position"] = {"id": res["ticket"], "dir": decision["action"], "tf": "metaapi",
+                                          "entry": price, "sl": decision["sl"], "tp": decision["tp"],
+                                          "rr": decision["rr"], "qty": res["lot"], "risk_pct": decision["risk"],
+                                          "opened_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                                          "reason": decision["reason"], "llm": decision.get("llm", False),
+                                          "exness": True}
+                        print(f"💼 [METAAPI · EXNESS DEMO] ĐÃ ĐẶT LỆNH {decision['action'].upper()} #{res['ticket']} · "
+                              f"{res['lot']} lot · SL/TP {decision['sl']:,.2f}/{decision['tp']:,.2f}")
+                elif mt5:
+                    # 🏦 Đặt lệnh THẬT trên Exness demo (MT5 local)
+                    res, err = mt5_place_order(mt5, cfg, decision, price)
+                    if err:
+                        print(f"⚠️ Exness đặt lệnh lỗi: {err} — giữ mô phỏng.")
+                        trader_execute(st, decision, price, out_dir)
+                    else:
+                        st["position"] = {"id": res["ticket"], "dir": decision["action"], "tf": "exness",
+                                          "entry": res["price"], "sl": decision["sl"], "tp": decision["tp"],
+                                          "rr": decision["rr"], "qty": res["lot"], "risk_pct": decision["risk"],
+                                          "opened_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                                          "reason": decision["reason"], "llm": decision.get("llm", False),
+                                          "exness": True}
+                        print(f"💼 [EXNESS DEMO] ĐÃ ĐẶT LỆNH {decision['action'].upper()} #{res['ticket']} · "
+                              f"{res['lot']} lot · giá {res['price']:,.2f} · SL/TP {decision['sl']:,.2f}/{decision['tp']:,.2f}")
+                else:
+                    trader_execute(st, decision, price, out_dir)
         else:
             print(f"💼 AI Trader đang trong lệnh {st['position']['dir'].upper()} {st['position']['tf']} — chờ SL/TP.")
+        if mt5:
+            try:
+                mt5.shutdown()
+            except Exception:
+                pass
         save_trader_state(st, out_dir)
         # Gửi Telegram khi mở/đóng lệnh
         if rep:
@@ -1257,7 +1832,17 @@ def trader_step(cfg, args, ind, mc, consensus, verdict, finals, price, klines, o
 
 
 def run_once(cfg, args):
+    out_dir = args.out
+    os.makedirs(out_dir, exist_ok=True)
+
+    # 🎛️ Nhận lệnh Telegram (trade 1h / 15p / 4h / 1d / status...) → áp dụng khung cho phiên này
+    cmd_tf = telegram_poll_commands(cfg, out_dir)
     tf_key = args.timeframe
+    if cmd_tf and cmd_tf in TIMEFRAMES:
+        tf_key = cmd_tf
+        args.timeframe = cmd_tf
+        print(f"🎛️ Nhận lệnh Telegram: chuyển khung phiên này sang {TIMEFRAMES[tf_key]['label']}")
+
     print("=" * 64)
     print(f"🥇 XAU/USD AI DEBATE ARENA — phiên {time.strftime('%H:%M:%S')}")
     print(f"Khung: {TIMEFRAMES[tf_key]['label']} · {args.rounds} vòng · {args.voters} cử tri · {args.paths} kịch bản")
@@ -1270,13 +1855,16 @@ def run_once(cfg, args):
     print("Định tuyến: " + " · ".join(f"{a['title']}→{agent_conf(cfg, a['key'])['provider']}/{agent_conf(cfg, a['key'])['model']}" for a in AGENTS))
     print("-" * 64)
 
-    price, price_src = fetch_price()
+    price, price_src = fetch_price(cfg)
     print(f"⚡ Giá realtime: ${price:,.2f} ({price_src})")
     klines, kline_src = fetch_klines(tf_key)
     ind = compute_indicators(klines, tf_key)
     print(f"📊 {len(klines)} nến ({kline_src}) — RSI {ind['rsi']:.1f} · vol {ind['vol']*100:.2f}%/nến · {ind['trend']}")
 
-    snap = market_snapshot(cfg, price, price_src, klines, ind, tf_key, args.context)
+    hist = history_block(out_dir)  # 🧠 AI nhớ các phiên trước
+    snap = market_snapshot(cfg, price, price_src, klines, ind, tf_key, args.context, history=hist)
+    if hist:
+        print("🧠 Đã đưa lịch sử các phiên gần đây vào bối cảnh cho hội đồng AI.")
     timeline, _ = run_debate(cfg, snap, args.rounds)
     finals = timeline[-1]["entries"]
     consensus, verdict = compute_consensus(finals, tf_key)
@@ -1300,8 +1888,6 @@ def run_once(cfg, args):
         print(f"📈 Backtest: chưa đủ dữ liệu lịch sử cho khung {tf_key}.")
     print("=" * 64)
 
-    out_dir = args.out
-    os.makedirs(out_dir, exist_ok=True)
     data = build_result(cfg, args, price, price_src, klines, kline_src, ind,
                         timeline, finals, consensus, verdict, crowd, mc)
     with open(os.path.join(out_dir, "simulation_latest.json"), "w", encoding="utf-8") as f:
@@ -1309,6 +1895,21 @@ def run_once(cfg, args):
     generate_dashboard_html(data, os.path.join(out_dir, "dashboard.html"))
     if bt:
         save_backtest_history({**bt, "consensus": consensus, "verdict": verdict, "target": mc["target"]}, out_dir)
+
+    # 🧠 Ghi nhớ phiên vào lịch sử (AI nhớ các phiên sau)
+    try:
+        st_mem = load_trader_state(out_dir)
+        save_session(out_dir, {
+            "time": time.strftime("%Y-%m-%d %H:%M:%S"), "tf": tf_key,
+            "price": price, "price_src": price_src,
+            "consensus": consensus, "verdict": verdict,
+            "target": mc["target"], "p10": mc["p10"], "p90": mc["p90"],
+            "prob_up": mc["prob_up"],
+            "trader_action": (st_mem.get("positions") or [])[0]["dir"] if st_mem.get("positions") else
+                             ("hold" if not st_mem.get("history") else "closed"),
+        })
+    except Exception:
+        pass
 
     if not args.no_trader:
         trader_step(cfg, args, ind, mc, consensus, verdict, finals, price, klines, out_dir)
