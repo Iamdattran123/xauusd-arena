@@ -738,6 +738,10 @@ def run_monte_carlo(start, steps, vol, consensus, momentum, paths, seed=None):
 # BACKTEST
 # =====================================================================
 def run_backtest(klines, tf_key):
+    """Backtest heuristic — có bộ lọc RSI quá mua/quá bán + lọc xu hướng (bài học AI đã rút ra):
+    - RSI > 72: không MUA (tránh đuổi đỉnh) · RSI < 28: không BÁN (tránh bán đáy)
+    - Chỉ trade cùng chiều xu hướng EMA20/EMA50
+    """
     closes = [k["c"] for k in klines]
     n = len(closes)
     cfg = TIMEFRAMES[tf_key]
@@ -750,6 +754,7 @@ def run_backtest(klines, tf_key):
     gross_win = gross_loss = 0.0
     peak = 1.0
     max_dd = 0.0
+    skipped = 0
     for i in range(min_n, n - steps):
         sl = closes[:i + 1]
         ks = klines[:i + 1]
@@ -762,6 +767,20 @@ def run_backtest(klines, tf_key):
         score = (0.30 if e20 > e50 else -0.30) + clamp((50 - rsi) / 30 * 0.2, -0.2, 0.2) \
                 + clamp(hist / (atr if atr else 1e-9) * 0.25, -0.25, 0.25) + clamp(last_ret * 20, -0.15, 0.15)
         if abs(score) < 0.15:
+            skipped += 1
+            continue
+        # 🔒 Bộ lọc: không đuổi đỉnh/đáy khi RSI cực đoan + chỉ trade cùng trend
+        if score > 0 and rsi > 72:
+            skipped += 1
+            continue
+        if score < 0 and rsi < 28:
+            skipped += 1
+            continue
+        if score > 0 and e20 <= e50:
+            skipped += 1
+            continue
+        if score < 0 and e20 >= e50:
+            skipped += 1
             continue
         d = 1 if score > 0 else -1
         ret = (closes[i + steps] / closes[i] - 1) * d
@@ -779,7 +798,8 @@ def run_backtest(klines, tf_key):
     return {"time": time.strftime("%Y-%m-%d %H:%M:%S"), "tf": tf_key, "trades": trades,
             "win_rate": round(wins / trades * 100, 1), "total_return_pct": round((equity - 1) * 100, 2),
             "profit_factor": round(gross_win / gross_loss, 2) if gross_loss > 0 else None,
-            "max_drawdown_pct": round(max_dd * 100, 2), "points": (n - min_n - steps) // steps + 1}
+            "max_drawdown_pct": round(max_dd * 100, 2), "points": (n - min_n - steps) // steps + 1,
+            "skipped": skipped, "filtered": True}
 
 
 def save_backtest_history(entry, out_dir):
@@ -1292,6 +1312,18 @@ def trader_check_position(st, klines, out_dir):
     return closed_all
 
 
+def trader_perf_line(st):
+    """Hiệu suất THẬT của AI Trader (phân biệt với backtest heuristic)."""
+    if not st:
+        return "AI Trader: chưa có dữ liệu"
+    trades = st.get("trades", 0)
+    wins = st.get("wins", 0)
+    wr = f"{wins / max(1, trades) * 100:.0f}%" if trades else "—"
+    pnl = st.get("total_pnl", 0.0)
+    return (f"🤖 AI Trader THẬT: {trades} lệnh · win {wr} · P&L {pnl:+,.2f}$ · "
+            f"vốn ${st.get('balance', 0):,.2f} · 🏆 {st.get('trader_score', 1000):.0f}")
+
+
 def trader_status_line(st, price):
     if not st:
         return None
@@ -1774,8 +1806,17 @@ def send_session_report(cfg, price, price_src, consensus, verdict, finals, mc, b
         lines.append(f"🎯 Mục tiêu ${mc['target']:,.2f} · P10-P90 ${mc['p10']:,.2f} – ${mc['p90']:,.2f} · P(tăng) {mc['prob_up']*100:.0f}%")
     if trader_info:
         lines.append(f"💼 AI Trader: {trader_info}")
+    # phân biệt rõ: hiệu suất AI Trader THẬT vs backtest heuristic (chiến lược mẫu)
+    try:
+        st_perf = load_trader_state(out_dir) if out_dir else None
+        if st_perf:
+            lines.append(trader_perf_line(st_perf))
+    except Exception:
+        pass
     if bt:
-        lines.append(f"📈 Backtest {bt.get('tf', '')}: win {bt['win_rate']}% ({bt['trades']} lệnh) · {bt['total_return_pct']:+.2f}%")
+        lines.append(f"📈 Backtest heuristic {bt.get('tf', '')} (chiến lược mẫu): win {bt['win_rate']}% "
+                     f"({bt['trades']} lệnh) · {bt['total_return_pct']:+.2f}%"
+                     + (f" · bỏ qua {bt.get('skipped', 0)} tín hiệu bởi bộ lọc" if bt.get('filtered') else ""))
     lines.append("━━━━━━━━━━━━━━━━━")
     lines.append("_Bạn là người ra quyết định cuối cùng._")
     text = "\n".join(lines)
