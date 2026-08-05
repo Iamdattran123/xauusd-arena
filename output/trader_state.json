@@ -18,7 +18,21 @@
       "reason": "Nghe hội đồng thận trọng trước kháng cự, đặt lệnh chờ tại hỗ trợ $4,101.40 để bắt sóng phục hồi sau điều chỉnh. SL dưới hỗ trợ 2% và TP tại kháng cự chính.",
       "llm": true,
       "created_at": "2026-08-05 08:13:12",
-      "sessions_alive": 4
+      "sessions_alive": 5
+    },
+    {
+      "id": 1785948075032,
+      "dir": "long",
+      "type": "buy_limit",
+      "trigger": 4101.0,
+      "sl": 4078.0,
+      "tp": 4325.0,
+      "rr": 9.73913043478261,
+      "risk_pct": 0.015,
+      "reason": "Tôi giữ lập trường riêng: không mua đuổi tại vùng quá mua gần kháng cự, chờ giá hạ về hỗ trợ $4,101.40 để vào lệnh với SL chặt dưới hỗ trợ và TP tại kháng cự $4,325.50. Hội đồng đồng thuận tăng nhưng tôi ưu tiên bảo toàn vốn, tận dụng nhịp điều chỉnh.",
+      "llm": true,
+      "created_at": "2026-08-05 16:41:15",
+      "sessions_alive": 0
     }
   ],
   "history": [
@@ -73,7 +87,7 @@
   "lessons": [
     "✅ LONG 1h +2.4% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
   ],
-  "sessions": 23,
+  "sessions": 24,
   "trade_tf": "",
   "equity_points": [
     {
