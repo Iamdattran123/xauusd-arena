@@ -3,20 +3,23 @@
   "start_balance": 1000.0,
   "peak": 1028.7199124726467,
   "max_dd": 0.0,
-  "position": {
-    "id": 1785853004935,
-    "dir": "long",
-    "tf": "1h",
-    "entry": 4141.9,
-    "sl": 4118.221533203125,
-    "tp": 4241.002591970051,
-    "rr": 4.185346662019969,
-    "qty": 0.4344537681841856,
-    "risk_pct": 0.01,
-    "opened_at": "2026-08-04 14:16:44",
-    "reason": "Tự quyết LONG theo phán quyết hội đồng (+0.19), P(tăng) 65%.",
-    "llm": false
-  },
+  "positions": [
+    {
+      "id": 1785853004935,
+      "dir": "long",
+      "tf": "1h",
+      "entry": 4141.9,
+      "sl": 4118.221533203125,
+      "tp": 4241.002591970051,
+      "rr": 4.185346662019969,
+      "qty": 0.4344537681841856,
+      "risk_pct": 0.01,
+      "opened_at": "2026-08-04 14:16:44",
+      "reason": "Tự quyết LONG theo phán quyết hội đồng (+0.19), P(tăng) 65%.",
+      "llm": false
+    }
+  ],
+  "position": null,
   "history": [
     {
       "id": 1785849705354,
@@ -44,7 +47,8 @@
   "total_pnl": 28.719912472646673,
   "gross_win": 28.719912472646673,
   "gross_loss": 0.0,
-  "sessions": 15,
+  "sessions": 16,
+  "trade_tf": "",
   "equity_points": [
     {
       "t": 1785837755119,
