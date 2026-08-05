@@ -1794,6 +1794,67 @@ def trader_summary(st, cfg, out_dir, force=False):
     save_trader_state(st, out_dir)
 
 
+def build_summary_report(st, mode="day"):
+    """Tổng kết AI Trader: 'day' = hôm nay · 'all' = toàn bộ lịch sử.
+    Trả về chuỗi tin nhắn (đã định dạng Telegram)."""
+    if not st:
+        return "Chưa có dữ liệu AI Trader."
+    hist = st.get("history") or []
+    if mode == "day":
+        today = time.strftime("%Y-%m-%d")
+        filtered = [h for h in hist if str(h.get("closed_at", ""))[:10] == today]
+        label = f"*TỔNG KẾT HÔM NAY ({today})*"
+    else:
+        filtered = hist
+        label = "*TỔNG KẾT TOÀN BỘ LỊCH SỬ*"
+    trades = len(filtered)
+    wins = sum(1 for h in filtered if h.get("pnl", 0) > 0)
+    pnl = sum(h.get("pnl", 0) for h in filtered)
+    gross_win = sum(h.get("pnl", 0) for h in filtered if h.get("pnl", 0) > 0)
+    gross_loss = sum(-h.get("pnl", 0) for h in filtered if h.get("pnl", 0) < 0)
+    pf = (gross_win / gross_loss) if gross_loss > 0 else (float("inf") if gross_win > 0 else 0)
+    lines = ["📊 *XAU/USD AI DEBATE — " + label + "*", "━━━━━━━━━━━━━━━━━"]
+    if mode == "day":
+        lines.append(f"⏱️ {time.strftime('%d/%m/%Y %H:%M')}")
+    lines.append(f"💰 Vốn: ${st.get('start_balance', 1000):,.2f} → ${st.get('balance', 0):,.2f}")
+    lines.append(f"🎯 Số lệnh: {trades} · Thắng: {wins} · Thua: {trades - wins}")
+    if trades:
+        lines.append(f"⚡ Win rate: {wins / trades * 100:.1f}%")
+    lines.append(f"💵 P&L: {pnl:+,.2f}$ · PF: {'∞' if pf == float('inf') else f'{pf:.2f}'}")
+    lines.append(f"🏆 Điểm kinh nghiệm: {st.get('trader_score', 1000):.0f}")
+    # lệnh gần nhất (tối đa 8)
+    top = filtered[:8]
+    if top:
+        lines.append("━━━━━━━━━━━━━━━━━")
+        lines.append("🕘 Các lệnh:")
+        for h in top:
+            lines.append(f"  • {h.get('dir', '?').upper()} {h.get('tf', '?')} {str(h.get('closed_at', ''))[5:16]}: "
+                         f"{h.get('pnl', 0):+,.2f}$ ({h.get('exit_reason', '')})")
+    # lệnh đang mở + chờ
+    positions = st.get("positions") or []
+    pend = st.get("pending_orders") or []
+    if positions:
+        lines.append("━━━━━━━━━━━━━━━━━")
+        lines.append(f"📌 Lệnh đang mở ({len(positions)}):")
+        for p in positions:
+            lines.append(f"  • {p.get('dir', '?').upper()} {p.get('tf', '?')}@{p.get('entry', 0):,.0f} "
+                         f"(SL {p.get('sl', 0):,.0f}/TP {p.get('tp', 0):,.0f})")
+    if pend:
+        lines.append(f"⏳ Lệnh chờ ({len(pend)}):")
+        for p in pend:
+            lines.append(f"  • {p.get('type', '?').upper()}@{p.get('trigger', 0):,.0f}")
+    # bài học gần nhất
+    lessons = (st.get("lessons") or [])[-4:]
+    if lessons:
+        lines.append("━━━━━━━━━━━━━━━━━")
+        lines.append("🧠 Bài học gần nhất:")
+        for l in lessons:
+            lines.append(f"  {l}")
+    lines.append("━━━━━━━━━━━━━━━━━")
+    lines.append("👨‍💼 *Bạn là người ra quyết định cuối cùng.*")
+    return "\n".join(lines)
+
+
 def send_session_report(cfg, price, price_src, consensus, verdict, finals, mc, bt, trader_info=None, out_dir=None):
     """📊 Báo cáo MỖI PHIÊN — LUÔN ghi file (xem trên GitHub Pages), gửi Telegram nếu có token."""
     if not cfg.get("trader", {}).get("report_every_session", True):
@@ -1937,6 +1998,12 @@ def telegram_poll_commands(cfg, out_dir):
                 tf_now = tg_state.get("trade_tf", "") or "1h"
                 send_telegram(f"📊 *TRẠNG THÁI*\nKhung giao dịch: {tf_now}\n{info}\n"
                               f"Phiên đã chạy: {st.get('sessions', 0)}", cfg)
+            elif msg_l in ("tổng kết ngày", "tong ket ngay", "tổng kết hôm nay", "tk ngày", "tk hom nay", "summary day"):
+                st = load_trader_state(out_dir)
+                send_telegram(build_summary_report(st, "day"), cfg)
+            elif msg_l in ("tổng kết tổng", "tong ket tong", "tổng kết toàn bộ", "tk tổng", "tk tong", "summary all", "tổng kết tất cả", "tong ket tat ca", "tổng kết"):
+                st = load_trader_state(out_dir)
+                send_telegram(build_summary_report(st, "all"), cfg)
             elif "reset trader" in msg_l or "reset vốn" in msg_l:
                 st = new_trader_state()
                 save_trader_state(st, out_dir)
