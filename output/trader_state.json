@@ -16,11 +16,27 @@
       "risk_pct": 0.01,
       "opened_at": "2026-08-04 14:16:44",
       "reason": "Tự quyết LONG theo phán quyết hội đồng (+0.19), P(tăng) 65%.",
-      "llm": false
+      "llm": false,
+      "warned": true
     }
   ],
   "position": null,
-  "pending_orders": [],
+  "pending_orders": [
+    {
+      "id": 1785917592930,
+      "dir": "long",
+      "type": "buy_limit",
+      "trigger": 4101.4,
+      "sl": 4080.0,
+      "tp": 4238.5,
+      "rr": 6.406542056074892,
+      "risk_pct": 0.02,
+      "reason": "Nghe hội đồng thận trọng trước kháng cự, đặt lệnh chờ tại hỗ trợ $4,101.40 để bắt sóng phục hồi sau điều chỉnh. SL dưới hỗ trợ 2% và TP tại kháng cự chính.",
+      "llm": true,
+      "created_at": "2026-08-05 08:13:12",
+      "sessions_alive": 0
+    }
+  ],
   "history": [
     {
       "id": 1785849705354,
@@ -50,7 +66,7 @@
   "gross_loss": 0.0,
   "trader_score": 1000.0,
   "lessons": [],
-  "sessions": 18,
+  "sessions": 19,
   "trade_tf": "",
   "equity_points": [
     {
