@@ -22,20 +22,6 @@
   "position": null,
   "pending_orders": [
     {
-      "id": 1786128805393,
-      "dir": "long",
-      "type": "buy_limit",
-      "trigger": 4281.0,
-      "sl": 4250.0,
-      "tp": 4432.0,
-      "rr": 4.870967741935484,
-      "risk_pct": 0.006999999999999999,
-      "reason": "Đặt lệnh chờ tại hỗ trợ $4,281 dựa trên đồng thuận mua mạnh của hội đồng và lịch sử giao dịch thành công. Quản lý rủi ro với SL dưới hỗ trợ và TP tại kháng cự gần, ưu tiên bảo toàn vốn.",
-      "llm": true,
-      "created_at": "2026-08-07 18:53:25",
-      "sessions_alive": 7
-    },
-    {
       "id": 1786152102319,
       "dir": "long",
       "type": "buy_limit",
@@ -47,7 +33,7 @@
       "reason": "Tôi nghe theo ý kiến đa số từ Hội đồng với đồng thuận mua mạnh (+0.498), nhưng ưu tiên bảo toàn vốn nên chọn entry an toàn tại hỗ trợ $4,281.20 (kết hợp phân tích kỹ thuật và quản lý rủi ro). Khung 1h phù hợp với chiến lược hiện tại do win rate 100% trước đó.",
       "llm": true,
       "created_at": "2026-08-08 01:21:42",
-      "sessions_alive": 1
+      "sessions_alive": 2
     }
   ],
   "history": [
@@ -102,7 +88,7 @@
   "lessons": [
     "✅ LONG 1h +2.4% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
   ],
-  "sessions": 54,
+  "sessions": 55,
   "trade_tf": "",
   "equity_points": [
     {
