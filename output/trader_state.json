@@ -3,7 +3,22 @@
   "start_balance": 1000.0,
   "peak": 1071.7754069908553,
   "max_dd": 0.0,
-  "positions": [],
+  "positions": [
+    {
+      "id": 1786159574550,
+      "dir": "long",
+      "tf": "1h",
+      "entry": 4343.299805,
+      "sl": 4281.2,
+      "tp": 4432.3,
+      "rr": 1.433179943157644,
+      "qty": 0.2588837614685404,
+      "risk_pct": 0.015,
+      "opened_at": "2026-08-08 03:26:14",
+      "reason": "Duy trì xu hướng tăng với giá trên EMA20, nhưng đặt SL tại hỗ trợ $4,281.20 để quản lý rủi ro. Đồng thuận hội đồng cho thấy tiềm năng phục hồi mạnh về kháng cự $4,432.30.",
+      "llm": true
+    }
+  ],
   "position": null,
   "pending_orders": [
     {
@@ -18,7 +33,7 @@
       "reason": "Đặt lệnh chờ tại hỗ trợ $4,281 dựa trên đồng thuận mua mạnh của hội đồng và lịch sử giao dịch thành công. Quản lý rủi ro với SL dưới hỗ trợ và TP tại kháng cự gần, ưu tiên bảo toàn vốn.",
       "llm": true,
       "created_at": "2026-08-07 18:53:25",
-      "sessions_alive": 6
+      "sessions_alive": 7
     },
     {
       "id": 1786152102319,
@@ -32,7 +47,7 @@
       "reason": "Tôi nghe theo ý kiến đa số từ Hội đồng với đồng thuận mua mạnh (+0.498), nhưng ưu tiên bảo toàn vốn nên chọn entry an toàn tại hỗ trợ $4,281.20 (kết hợp phân tích kỹ thuật và quản lý rủi ro). Khung 1h phù hợp với chiến lược hiện tại do win rate 100% trước đó.",
       "llm": true,
       "created_at": "2026-08-08 01:21:42",
-      "sessions_alive": 0
+      "sessions_alive": 1
     }
   ],
   "history": [
@@ -87,7 +102,7 @@
   "lessons": [
     "✅ LONG 1h +2.4% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
   ],
-  "sessions": 53,
+  "sessions": 54,
   "trade_tf": "",
   "equity_points": [
     {
