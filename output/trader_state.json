@@ -36,20 +36,6 @@
   "position": null,
   "pending_orders": [
     {
-      "id": 1786181903606,
-      "dir": "long",
-      "type": "buy_limit",
-      "trigger": 4281.2,
-      "sl": 4250.0,
-      "tp": 4432.3,
-      "rr": 4.842948717948758,
-      "risk_pct": 0.028999999999999998,
-      "reason": "Giữ lập trường riêng: Đặt lệnh chờ tại hỗ trợ $4,281.20 để kiểm tra độ bền trước khi mua. SL dưới hỗ trợ và TP tại kháng cự gần, chấp nhận rủi ro 2.9% (≈$31.2) phù hợp với nguyên tắc bảo toàn vốn.",
-      "llm": true,
-      "created_at": "2026-08-08 09:38:23",
-      "sessions_alive": 7
-    },
-    {
       "id": 1786188470200,
       "dir": "long",
       "type": "buy_limit",
@@ -61,7 +47,7 @@
       "reason": "Tôi quyết định đặt lệnh buy_limit tại mức hỗ trợ $4,281.20 dựa trên phân tích kỹ thuật và sự đồng thuận mua mạnh từ Hội đồng. Mặc dù xu hướng tăng vẫn được hỗ trợ bởi MACD và RSI, tôi muốn tận dụng mức điều chỉnh tiềm năng để vào lệnh với mức rủi ro thấp hơn. Tôi cũng lưu ý đến kháng cự tại $4,432.30 để chốt lời.",
       "llm": true,
       "created_at": "2026-08-08 11:27:50",
-      "sessions_alive": 5
+      "sessions_alive": 6
     },
     {
       "id": 1786199518002,
@@ -75,7 +61,7 @@
       "reason": "Tôi nghe theo ý kiến Hội đồng về xu hướng tăng nhưng cần thận trọng do RSI gần vùng quá mua. Đặt lệnh chờ mua tại hỗ trợ $4,281.20 để tối ưu rủi ro/lợi nhuận, kết hợp SL/TP hợp lý dựa trên ATR và kháng cự.",
       "llm": true,
       "created_at": "2026-08-08 14:31:57",
-      "sessions_alive": 2
+      "sessions_alive": 3
     }
   ],
   "history": [
@@ -130,7 +116,7 @@
   "lessons": [
     "✅ LONG 1h +2.4% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
   ],
-  "sessions": 67,
+  "sessions": 68,
   "trade_tf": "",
   "equity_points": [
     {
