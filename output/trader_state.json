@@ -16,7 +16,8 @@
       "risk_pct": 0.015,
       "opened_at": "2026-08-08 03:26:14",
       "reason": "Duy trì xu hướng tăng với giá trên EMA20, nhưng đặt SL tại hỗ trợ $4,281.20 để quản lý rủi ro. Đồng thuận hội đồng cho thấy tiềm năng phục hồi mạnh về kháng cự $4,432.30.",
-      "llm": true
+      "llm": true,
+      "warned": true
     },
     {
       "id": 1786167766384,
@@ -30,7 +31,8 @@
       "risk_pct": 0.01,
       "opened_at": "2026-08-08 05:42:46",
       "reason": "Dựa vào phân tích từ hội đồng, xu hướng tăng vẫn mạnh mẽ và có sự đồng thuận cao. Tuy nhiên, cần chú ý đến vùng kháng cự $4,432.30 và có thể điều chỉnh chiến lược nếu giá không vượt qua được mức này.",
-      "llm": true
+      "llm": true,
+      "warned": true
     },
     {
       "id": 1786246909359,
@@ -44,7 +46,8 @@
       "risk_pct": 0.0217,
       "opened_at": "2026-08-09 03:41:49",
       "reason": "Xu hướng tăng vẫn mạnh với EMA20/50 và MACD tích cực, nhưng cần theo dõi kháng cự $4,432.30. SL đặt dưới hỗ trợ $4,300 để giảm rủi ro, TP tại kháng cự gần.",
-      "llm": true
+      "llm": true,
+      "warned": true
     }
   ],
   "position": null,
@@ -101,7 +104,7 @@
   "lessons": [
     "✅ LONG 1h +2.4% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
   ],
-  "sessions": 105,
+  "sessions": 106,
   "trade_tf": "",
   "equity_points": [
     {
