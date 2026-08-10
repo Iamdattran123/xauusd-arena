@@ -1,23 +1,47 @@
 {
-  "balance": 1071.7754069908553,
+  "balance": 1157.9810558678075,
   "start_balance": 1000.0,
-  "peak": 1071.7754069908553,
+  "peak": 1157.9810558678075,
   "max_dd": 0.0,
-  "positions": [
+  "positions": [],
+  "position": null,
+  "pending_orders": [
     {
-      "id": 1786159574550,
+      "id": 1786388230157,
+      "dir": "long",
+      "type": "buy_limit",
+      "trigger": 4361.0,
+      "sl": 4344.0,
+      "tp": 4442.5,
+      "rr": 4.794117647058823,
+      "risk_pct": 0.015,
+      "reason": "Chờ giá kiểm tra lại hỗ trợ $4,361.00 với SL dưới mốc này để bảo toàn vốn. Đồng thuận thị trường vẫn tích cực nhưng thận trọng trước rủi ro điều chỉnh.",
+      "llm": true,
+      "created_at": "2026-08-10 18:57:10",
+      "sessions_alive": 0
+    }
+  ],
+  "history": [
+    {
+      "id": 1786246909359,
       "dir": "long",
       "tf": "1h",
       "entry": 4343.299805,
-      "sl": 4281.2,
+      "sl": 4300.0,
       "tp": 4432.3,
-      "rr": 1.433179943157644,
-      "qty": 0.2588837614685404,
-      "risk_pct": 0.015,
-      "opened_at": "2026-08-08 03:26:14",
-      "reason": "Duy trì xu hướng tăng với giá trên EMA20, nhưng đặt SL tại hỗ trợ $4,281.20 để quản lý rủi ro. Đồng thuận hội đồng cho thấy tiềm năng phục hồi mạnh về kháng cự $4,432.30.",
+      "rr": 2.055441011801352,
+      "qty": 0.5371277383743819,
+      "risk_pct": 0.0217,
+      "opened_at": "2026-08-09 03:41:49",
+      "reason": "Xu hướng tăng vẫn mạnh với EMA20/50 và MACD tích cực, nhưng cần theo dõi kháng cự $4,432.30. SL đặt dưới hỗ trợ $4,300 để giảm rủi ro, TP tại kháng cự gần.",
       "llm": true,
-      "warned": true
+      "warned": true,
+      "exit": 4432.3,
+      "pnl": 47.80447345522926,
+      "pnl_pct": 2.049137729280015,
+      "exit_reason": "chạm CHỐT LỜI (TP)",
+      "closed_at": "2026-08-10 18:56:47",
+      "balance_after": 1157.9810558678075
     },
     {
       "id": 1786167766384,
@@ -32,27 +56,35 @@
       "opened_at": "2026-08-08 05:42:46",
       "reason": "Dựa vào phân tích từ hội đồng, xu hướng tăng vẫn mạnh mẽ và có sự đồng thuận cao. Tuy nhiên, cần chú ý đến vùng kháng cự $4,432.30 và có thể điều chỉnh chiến lược nếu giá không vượt qua được mức này.",
       "llm": true,
-      "warned": true
+      "warned": true,
+      "exit": 4432.3,
+      "pnl": 15.360470168689146,
+      "pnl_pct": 2.049137729280015,
+      "exit_reason": "chạm CHỐT LỜI (TP)",
+      "closed_at": "2026-08-10 18:56:47",
+      "balance_after": 1110.1765824125782
     },
     {
-      "id": 1786246909359,
+      "id": 1786159574550,
       "dir": "long",
       "tf": "1h",
       "entry": 4343.299805,
-      "sl": 4300.0,
+      "sl": 4281.2,
       "tp": 4432.3,
-      "rr": 2.055441011801352,
-      "qty": 0.5371277383743819,
-      "risk_pct": 0.0217,
-      "opened_at": "2026-08-09 03:41:49",
-      "reason": "Xu hướng tăng vẫn mạnh với EMA20/50 và MACD tích cực, nhưng cần theo dõi kháng cự $4,432.30. SL đặt dưới hỗ trợ $4,300 để giảm rủi ro, TP tại kháng cự gần.",
+      "rr": 1.433179943157644,
+      "qty": 0.2588837614685404,
+      "risk_pct": 0.015,
+      "opened_at": "2026-08-08 03:26:14",
+      "reason": "Duy trì xu hướng tăng với giá trên EMA20, nhưng đặt SL tại hỗ trợ $4,281.20 để quản lý rủi ro. Đồng thuận hội đồng cho thấy tiềm năng phục hồi mạnh về kháng cự $4,432.30.",
       "llm": true,
-      "warned": true
-    }
-  ],
-  "position": null,
-  "pending_orders": [],
-  "history": [
+      "warned": true,
+      "exit": 4432.3,
+      "pnl": 23.04070525303372,
+      "pnl_pct": 2.049137729280015,
+      "exit_reason": "chạm CHỐT LỜI (TP)",
+      "closed_at": "2026-08-10 18:56:47",
+      "balance_after": 1094.8161122438892
+    },
     {
       "id": 1785853004935,
       "dir": "long",
@@ -95,16 +127,19 @@
       "balance_after": 1028.7199124726467
     }
   ],
-  "trades": 2,
-  "wins": 2,
-  "total_pnl": 71.77540699085533,
-  "gross_win": 71.77540699085533,
+  "trades": 5,
+  "wins": 5,
+  "total_pnl": 157.98105586780747,
+  "gross_win": 157.98105586780747,
   "gross_loss": 0.0,
-  "trader_score": 1047.8536864579305,
+  "trader_score": 1170.8019502147315,
   "lessons": [
-    "✅ LONG 1h +2.4% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
+    "✅ LONG 1h +2.4% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
+    "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
+    "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
+    "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
   ],
-  "sessions": 106,
+  "sessions": 107,
   "trade_tf": "",
   "equity_points": [
     {
@@ -118,6 +153,18 @@
     {
       "t": 1785931171867,
       "e": 1071.7754069908553
+    },
+    {
+      "t": 1786388207709,
+      "e": 1094.8161122438892
+    },
+    {
+      "t": 1786388207709,
+      "e": 1110.1765824125782
+    },
+    {
+      "t": 1786388207709,
+      "e": 1157.9810558678075
     }
   ]
 }
