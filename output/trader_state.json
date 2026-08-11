@@ -18,7 +18,7 @@
       "reason": "Chờ giá kiểm tra lại hỗ trợ $4,361.00 với SL dưới mốc này để bảo toàn vốn. Đồng thuận thị trường vẫn tích cực nhưng thận trọng trước rủi ro điều chỉnh.",
       "llm": true,
       "created_at": "2026-08-10 18:57:10",
-      "sessions_alive": 5
+      "sessions_alive": 6
     },
     {
       "id": 1786401423021,
@@ -32,7 +32,21 @@
       "reason": "Dựa vào phân tích kỹ thuật và xu hướng tăng giá hiện tại, tôi quyết định đặt lệnh buy_limit tại vùng hỗ trợ $4,361 để tối ưu điểm vào lệnh. Tôi có tham khảo ý kiến từ Hội đồng nhưng vẫn giữ lập trường riêng với mức risk_pct 1.5% để bảo toàn vốn.",
       "llm": true,
       "created_at": "2026-08-10 22:37:03",
-      "sessions_alive": 1
+      "sessions_alive": 2
+    },
+    {
+      "id": 1786411568138,
+      "dir": "long",
+      "type": "buy_limit",
+      "trigger": 4373.9,
+      "sl": 4352.41,
+      "tp": 4478.6,
+      "rr": 4.872033503955412,
+      "risk_pct": 0.015,
+      "reason": "Chờ giá test hỗ trợ $4,373.90 để xác nhận breakout kháng cự $4,478.60. Đồng thuận ròng MUA MẠNH nhưng cần phòng rủi ro điều chỉnh kỹ thuật.",
+      "llm": true,
+      "created_at": "2026-08-11 01:26:08",
+      "sessions_alive": 0
     }
   ],
   "history": [
@@ -153,7 +167,7 @@
     "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
   ],
-  "sessions": 112,
+  "sessions": 113,
   "trade_tf": "",
   "equity_points": [
     {
