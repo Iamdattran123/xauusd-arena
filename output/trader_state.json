@@ -7,20 +7,6 @@
   "position": null,
   "pending_orders": [
     {
-      "id": 1786388230157,
-      "dir": "long",
-      "type": "buy_limit",
-      "trigger": 4361.0,
-      "sl": 4344.0,
-      "tp": 4442.5,
-      "rr": 4.794117647058823,
-      "risk_pct": 0.015,
-      "reason": "Chờ giá kiểm tra lại hỗ trợ $4,361.00 với SL dưới mốc này để bảo toàn vốn. Đồng thuận thị trường vẫn tích cực nhưng thận trọng trước rủi ro điều chỉnh.",
-      "llm": true,
-      "created_at": "2026-08-10 18:57:10",
-      "sessions_alive": 7
-    },
-    {
       "id": 1786401423021,
       "dir": "long",
       "type": "buy_limit",
@@ -32,7 +18,7 @@
       "reason": "Dựa vào phân tích kỹ thuật và xu hướng tăng giá hiện tại, tôi quyết định đặt lệnh buy_limit tại vùng hỗ trợ $4,361 để tối ưu điểm vào lệnh. Tôi có tham khảo ý kiến từ Hội đồng nhưng vẫn giữ lập trường riêng với mức risk_pct 1.5% để bảo toàn vốn.",
       "llm": true,
       "created_at": "2026-08-10 22:37:03",
-      "sessions_alive": 3
+      "sessions_alive": 4
     },
     {
       "id": 1786411568138,
@@ -46,7 +32,21 @@
       "reason": "Chờ giá test hỗ trợ $4,373.90 để xác nhận breakout kháng cự $4,478.60. Đồng thuận ròng MUA MẠNH nhưng cần phòng rủi ro điều chỉnh kỹ thuật.",
       "llm": true,
       "created_at": "2026-08-11 01:26:08",
-      "sessions_alive": 1
+      "sessions_alive": 2
+    },
+    {
+      "id": 1786424992669,
+      "dir": "long",
+      "type": "buy_limit",
+      "trigger": 4373.9,
+      "sl": 4354.1,
+      "tp": 4495.0,
+      "rr": 6.116161616161859,
+      "risk_pct": 0.005,
+      "reason": "Giá vàng đang test hỗ trợ mạnh $4,373.90 với xu hướng tăng vẫn ổn định nhờ EMA50. Đặt buy_limit tại vùng hỗ trợ để tận dụng cơ hội phục hồi, đồng thời tuân thủ nguyên tắc bảo toàn vốn và chờ đợi tín hiệu kỹ thuật rõ ràng.",
+      "llm": true,
+      "created_at": "2026-08-11 05:09:52",
+      "sessions_alive": 0
     }
   ],
   "history": [
@@ -167,7 +167,7 @@
     "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
   ],
-  "sessions": 114,
+  "sessions": 115,
   "trade_tf": "",
   "equity_points": [
     {
