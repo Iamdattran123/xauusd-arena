@@ -16,25 +16,12 @@
       "risk_pct": 0.01,
       "opened_at": "2026-08-11 20:06:15",
       "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.16), P(tăng) 60%.",
-      "llm": false
+      "llm": false,
+      "warned": true
     }
   ],
   "position": null,
   "pending_orders": [
-    {
-      "id": 1786448682326,
-      "dir": "long",
-      "type": "buy_limit",
-      "trigger": 4374.0,
-      "sl": 4360.0,
-      "tp": 4420.0,
-      "rr": 3.2857142857142856,
-      "risk_pct": 0.015,
-      "reason": "Giá đang gần hỗ trợ $4,375.00 chưa bị phá vỡ, phù hợp chiến lược mua giá thấp. Đặt lệnh chờ dưới hỗ trợ để tận dụng tiềm năng phục hồi, đồng thời giữ stop loss dưới hỗ trợ để bảo toàn vốn. Hội đồng cho tín hiệu mua mạnh nhưng tôi giữ thận trọng về rủi ro kỹ thuật.",
-      "llm": true,
-      "created_at": "2026-08-11 11:44:42",
-      "sessions_alive": 7
-    },
     {
       "id": 1786453142986,
       "dir": "long",
@@ -47,7 +34,7 @@
       "reason": "Dựa vào xu hướng tăng của EMA20/50 và tín hiệu đồng thuận mua mạnh từ Hội đồng, tôi quyết định đặt lệnh mua giới hạn tại hỗ trợ $4,374 để tối ưu điểm vào lệnh. Tuy nhiên, tôi vẫn thận trọng với rủi ro điều chỉnh kỹ thuật trước kháng cự $4,495, nên đặt SL tại $4,355 và TP tại $4,495.",
       "llm": true,
       "created_at": "2026-08-11 12:59:02",
-      "sessions_alive": 6
+      "sessions_alive": 7
     },
     {
       "id": 1786464080296,
@@ -61,7 +48,7 @@
       "reason": "Tôi đã nghe ý kiến từ hội đồng và đồng thuận rằng xu hướng tăng trung hạn vẫn còn, nhưng với sự thận trọng do vùng kháng cự gần. Tôi quyết định đặt lệnh chờ mua ở mức hỗ trợ để tối ưu hóa lợi nhuận khi giá điều chỉnh.",
       "llm": true,
       "created_at": "2026-08-11 16:01:20",
-      "sessions_alive": 4
+      "sessions_alive": 5
     }
   ],
   "history": [
@@ -182,7 +169,7 @@
     "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
   ],
-  "sessions": 127,
+  "sessions": 128,
   "trade_tf": "",
   "equity_points": [
     {
