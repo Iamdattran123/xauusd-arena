@@ -7,18 +7,18 @@
   "position": null,
   "pending_orders": [
     {
-      "id": 1786464080296,
+      "id": 1786507659320,
       "dir": "long",
       "type": "buy_limit",
-      "trigger": 4374.0,
-      "sl": 4350.0,
-      "tp": 4450.0,
-      "rr": 3.1666666666666665,
+      "trigger": 4373.9,
+      "sl": 4343.9,
+      "tp": 4495.0,
+      "rr": 4.036666666666679,
       "risk_pct": 0.015,
-      "reason": "Tôi đã nghe ý kiến từ hội đồng và đồng thuận rằng xu hướng tăng trung hạn vẫn còn, nhưng với sự thận trọng do vùng kháng cự gần. Tôi quyết định đặt lệnh chờ mua ở mức hỗ trợ để tối ưu hóa lợi nhuận khi giá điều chỉnh.",
+      "reason": "Giữ lập trường riêng dựa trên xu hướng bullish từ EMA20/50 và MACD histogram dương, đồng thời tôn trọng hỗ trợ tại $4,373.90 để giảm rủi ro.",
       "llm": true,
-      "created_at": "2026-08-11 16:01:20",
-      "sessions_alive": 7
+      "created_at": "2026-08-12 04:07:39",
+      "sessions_alive": 0
     }
   ],
   "history": [
@@ -161,7 +161,7 @@
     "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +1.7% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
   ],
-  "sessions": 130,
+  "sessions": 131,
   "trade_tf": "",
   "equity_points": [
     {
