@@ -3,7 +3,22 @@
   "start_balance": 1000.0,
   "peak": 1193.3307106934005,
   "max_dd": 0.0,
-  "positions": [],
+  "positions": [
+    {
+      "id": 1786557606914,
+      "dir": "long",
+      "tf": "4h",
+      "entry": 4401.200195,
+      "sl": 4369.271518939732,
+      "tp": 4653.739352418329,
+      "rr": 7.909477891962676,
+      "qty": 0.37374888593591743,
+      "risk_pct": 0.01,
+      "opened_at": "2026-08-12 18:00:06",
+      "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.43), P(tăng) 83%.",
+      "llm": false
+    }
+  ],
   "position": null,
   "pending_orders": [
     {
@@ -18,7 +33,7 @@
       "reason": "Dựa trên phân tích hỗ trợ và kháng cự, giá vàng có khả năng kiểm tra lại mức hỗ trợ $4,415.70 trước khi tiếp tục tăng. Đặt lệnh buy_limit tại $4,374 để tối ưu hóa điểm vào lệnh, đồng thời giảm thiểu rủi ro với mức SL và TP hợp lý.",
       "llm": true,
       "created_at": "2026-08-12 10:02:52",
-      "sessions_alive": 5
+      "sessions_alive": 6
     },
     {
       "id": 1786532972272,
@@ -32,7 +47,7 @@
       "reason": "Giá gần hỗ trợ $4,415.70 với xác suất phá vỡ thấp (60% từ chuyên gia Vĩ mô), đặt lệnh chờ dưới hỗ trợ để bắt đáy tiềm năng. Đồng thuận thị trường vẫn tích cực nhưng ưu tiên bảo toàn vốn bằng SL dưới hỗ trợ.",
       "llm": true,
       "created_at": "2026-08-12 11:09:32",
-      "sessions_alive": 4
+      "sessions_alive": 5
     },
     {
       "id": 1786553922510,
@@ -46,7 +61,7 @@
       "reason": "Tôi nghe theo ý kiến đa số từ Hội đồng với đồng thuận ròng +0.288 (MUA NHẸ), đồng thời kết hợp phân tích kỹ thuật về hỗ trợ tại $4,419.70 và xu hướng tăng từ EMA20/50. Đặt lệnh chờ mua tại hỗ trợ để tối ưu rủi ro/lợi nhuận.",
       "llm": true,
       "created_at": "2026-08-12 16:58:42",
-      "sessions_alive": 0
+      "sessions_alive": 1
     }
   ],
   "history": [
@@ -189,7 +204,7 @@
     "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +1.7% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
   ],
-  "sessions": 139,
+  "sessions": 140,
   "trade_tf": "",
   "equity_points": [
     {
