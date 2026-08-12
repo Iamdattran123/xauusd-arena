@@ -1,25 +1,9 @@
 {
-  "balance": 1157.9810558678075,
+  "balance": 1193.3307106934005,
   "start_balance": 1000.0,
-  "peak": 1157.9810558678075,
+  "peak": 1193.3307106934005,
   "max_dd": 0.0,
-  "positions": [
-    {
-      "id": 1786478775545,
-      "dir": "long",
-      "tf": "1h",
-      "entry": 4371.299805,
-      "sl": 4347.664289514509,
-      "tp": 4443.451876038063,
-      "rr": 3.0526971617080005,
-      "qty": 0.4899326425009235,
-      "risk_pct": 0.01,
-      "opened_at": "2026-08-11 20:06:15",
-      "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.16), P(tăng) 60%.",
-      "llm": false,
-      "warned": true
-    }
-  ],
+  "positions": [],
   "position": null,
   "pending_orders": [
     {
@@ -34,10 +18,31 @@
       "reason": "Tôi đã nghe ý kiến từ hội đồng và đồng thuận rằng xu hướng tăng trung hạn vẫn còn, nhưng với sự thận trọng do vùng kháng cự gần. Tôi quyết định đặt lệnh chờ mua ở mức hỗ trợ để tối ưu hóa lợi nhuận khi giá điều chỉnh.",
       "llm": true,
       "created_at": "2026-08-11 16:01:20",
-      "sessions_alive": 6
+      "sessions_alive": 7
     }
   ],
   "history": [
+    {
+      "id": 1786478775545,
+      "dir": "long",
+      "tf": "1h",
+      "entry": 4371.299805,
+      "sl": 4347.664289514509,
+      "tp": 4443.451876038063,
+      "rr": 3.0526971617080005,
+      "qty": 0.4899326425009235,
+      "risk_pct": 0.01,
+      "opened_at": "2026-08-11 20:06:15",
+      "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.16), P(tăng) 60%.",
+      "llm": false,
+      "warned": true,
+      "exit": 4443.451876038063,
+      "pnl": 35.3496548255929,
+      "pnl_pct": 1.650586193047987,
+      "exit_reason": "chạm CHỐT LỜI (TP)",
+      "closed_at": "2026-08-12 01:42:27",
+      "balance_after": 1193.3307106934005
+    },
     {
       "id": 1786246909359,
       "dir": "long",
@@ -143,19 +148,20 @@
       "balance_after": 1028.7199124726467
     }
   ],
-  "trades": 5,
-  "wins": 5,
-  "total_pnl": 157.98105586780747,
-  "gross_win": 157.98105586780747,
+  "trades": 6,
+  "wins": 6,
+  "total_pnl": 193.33071069340036,
+  "gross_win": 193.33071069340036,
   "gross_loss": 0.0,
-  "trader_score": 1170.8019502147315,
+  "trader_score": 1203.8136740756913,
   "lessons": [
     "✅ LONG 1h +2.4% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
-    "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
+    "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
+    "✅ LONG 1h +1.7% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
   ],
-  "sessions": 129,
+  "sessions": 130,
   "trade_tf": "",
   "equity_points": [
     {
@@ -181,6 +187,10 @@
     {
       "t": 1786388207709,
       "e": 1157.9810558678075
+    },
+    {
+      "t": 1786498947849,
+      "e": 1193.3307106934005
     }
   ]
 }
