@@ -1,7 +1,7 @@
 {
-  "balance": 1193.3307106934005,
+  "balance": 1242.524795096044,
   "start_balance": 1000.0,
-  "peak": 1193.3307106934005,
+  "peak": 1242.524795096044,
   "max_dd": 0.0,
   "positions": [
     {
@@ -17,38 +17,10 @@
       "opened_at": "2026-08-12 18:00:06",
       "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.43), P(tăng) 83%.",
       "llm": false
-    },
-    {
-      "id": 1786567424674,
-      "dir": "long",
-      "tf": "1h",
-      "entry": 4409.600098,
-      "sl": 4390.0,
-      "tp": 4450.0,
-      "rr": 2.061209183750017,
-      "qty": 1.217678310275191,
-      "risk_pct": 0.02,
-      "opened_at": "2026-08-12 20:43:44",
-      "reason": "Tôi quyết định giao dịch ngay do xu hướng tăng vẫn được duy trì theo phân tích của hội đồng. Mặc dù có áp lực ngắn hạn, nhưng các chỉ số kỹ thuật vẫn ủng hộ cho việc mở vị thế LONG. Tôi sẽ đặt SL ở mức 4390 để quản lý rủi ro và TP ở mức 4450.",
-      "llm": true
     }
   ],
   "position": null,
   "pending_orders": [
-    {
-      "id": 1786532972272,
-      "dir": "long",
-      "type": "buy_limit",
-      "trigger": 4410.0,
-      "sl": 4400.0,
-      "tp": 4484.0,
-      "rr": 7.4,
-      "risk_pct": 0.015,
-      "reason": "Giá gần hỗ trợ $4,415.70 với xác suất phá vỡ thấp (60% từ chuyên gia Vĩ mô), đặt lệnh chờ dưới hỗ trợ để bắt đáy tiềm năng. Đồng thuận thị trường vẫn tích cực nhưng ưu tiên bảo toàn vốn bằng SL dưới hỗ trợ.",
-      "llm": true,
-      "created_at": "2026-08-12 11:09:32",
-      "sessions_alive": 7
-    },
     {
       "id": 1786553922510,
       "dir": "long",
@@ -61,10 +33,30 @@
       "reason": "Tôi nghe theo ý kiến đa số từ Hội đồng với đồng thuận ròng +0.288 (MUA NHẸ), đồng thời kết hợp phân tích kỹ thuật về hỗ trợ tại $4,419.70 và xu hướng tăng từ EMA20/50. Đặt lệnh chờ mua tại hỗ trợ để tối ưu rủi ro/lợi nhuận.",
       "llm": true,
       "created_at": "2026-08-12 16:58:42",
-      "sessions_alive": 3
+      "sessions_alive": 4
     }
   ],
   "history": [
+    {
+      "id": 1786567424674,
+      "dir": "long",
+      "tf": "1h",
+      "entry": 4409.600098,
+      "sl": 4390.0,
+      "tp": 4450.0,
+      "rr": 2.061209183750017,
+      "qty": 1.217678310275191,
+      "risk_pct": 0.02,
+      "opened_at": "2026-08-12 20:43:44",
+      "reason": "Tôi quyết định giao dịch ngay do xu hướng tăng vẫn được duy trì theo phân tích của hội đồng. Mặc dù có áp lực ngắn hạn, nhưng các chỉ số kỹ thuật vẫn ủng hộ cho việc mở vị thế LONG. Tôi sẽ đặt SL ở mức 4390 để quản lý rủi ro và TP ở mức 4450.",
+      "llm": true,
+      "exit": 4450.0,
+      "pnl": 49.19408440264344,
+      "pnl_pct": 0.9161806309448295,
+      "exit_reason": "chạm CHỐT LỜI (TP)",
+      "closed_at": "2026-08-12 21:43:07",
+      "balance_after": 1242.524795096044
+    },
     {
       "id": 1786478775545,
       "dir": "long",
@@ -191,20 +183,21 @@
       "balance_after": 1028.7199124726467
     }
   ],
-  "trades": 6,
-  "wins": 6,
-  "total_pnl": 193.33071069340036,
-  "gross_win": 193.33071069340036,
+  "trades": 7,
+  "wins": 7,
+  "total_pnl": 242.52479509604382,
+  "gross_win": 242.52479509604382,
   "gross_loss": 0.0,
-  "trader_score": 1203.8136740756913,
+  "trader_score": 1222.1372866945878,
   "lessons": [
     "✅ LONG 1h +2.4% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
-    "✅ LONG 1h +1.7% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
+    "✅ LONG 1h +1.7% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
+    "✅ LONG 1h +0.9% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
   ],
-  "sessions": 142,
+  "sessions": 143,
   "trade_tf": "",
   "equity_points": [
     {
@@ -234,6 +227,10 @@
     {
       "t": 1786498947849,
       "e": 1193.3307106934005
+    },
+    {
+      "t": 1786570987530,
+      "e": 1242.524795096044
     }
   ]
 }
