@@ -22,20 +22,6 @@
   "position": null,
   "pending_orders": [
     {
-      "id": 1786553922510,
-      "dir": "long",
-      "type": "buy_limit",
-      "trigger": 4419.7,
-      "sl": 4390.0,
-      "tp": 4502.7,
-      "rr": 2.794612794612812,
-      "risk_pct": 0.015,
-      "reason": "Tôi nghe theo ý kiến đa số từ Hội đồng với đồng thuận ròng +0.288 (MUA NHẸ), đồng thời kết hợp phân tích kỹ thuật về hỗ trợ tại $4,419.70 và xu hướng tăng từ EMA20/50. Đặt lệnh chờ mua tại hỗ trợ để tối ưu rủi ro/lợi nhuận.",
-      "llm": true,
-      "created_at": "2026-08-12 16:58:42",
-      "sessions_alive": 7
-    },
-    {
       "id": 1786585636574,
       "dir": "long",
       "type": "buy_limit",
@@ -47,7 +33,7 @@
       "reason": "Tôi duy trì chiến lược LONG dựa trên hiệu suất lịch sử tích cực và đồng thuận nhẹ từ Hội đồng. Đặt lệnh BUY_LIMIT tại $4,420 (gần hỗ trợ) để tối ưu điểm vào, với SL dưới hỗ trợ và TP hướng đến kháng cự. Tôi cân nhắc ý kiến kỹ thuật về điều chỉnh ngắn hạn nhưng vẫn lạc quan thận trọng.",
       "llm": true,
       "created_at": "2026-08-13 01:47:16",
-      "sessions_alive": 0
+      "sessions_alive": 1
     }
   ],
   "history": [
@@ -211,7 +197,7 @@
     "✅ LONG 1h +1.7% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +0.9% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
   ],
-  "sessions": 146,
+  "sessions": 147,
   "trade_tf": "",
   "equity_points": [
     {
