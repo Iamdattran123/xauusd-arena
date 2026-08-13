@@ -17,25 +17,25 @@
       "opened_at": "2026-08-12 18:00:06",
       "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.43), P(tăng) 83%.",
       "llm": false
-    }
-  ],
-  "position": null,
-  "pending_orders": [
+    },
     {
-      "id": 1786585636574,
+      "id": 1786633058476,
       "dir": "long",
-      "type": "buy_limit",
-      "trigger": 4420.0,
+      "tf": "1h",
+      "entry": 4420.0,
       "sl": 4390.0,
       "tp": 4490.0,
       "rr": 2.3333333333333335,
+      "qty": 0.8283498633973626,
       "risk_pct": 0.02,
+      "pending": true,
+      "opened_at": "2026-08-13 14:57:38",
       "reason": "Tôi duy trì chiến lược LONG dựa trên hiệu suất lịch sử tích cực và đồng thuận nhẹ từ Hội đồng. Đặt lệnh BUY_LIMIT tại $4,420 (gần hỗ trợ) để tối ưu điểm vào, với SL dưới hỗ trợ và TP hướng đến kháng cự. Tôi cân nhắc ý kiến kỹ thuật về điều chỉnh ngắn hạn nhưng vẫn lạc quan thận trọng.",
-      "llm": true,
-      "created_at": "2026-08-13 01:47:16",
-      "sessions_alive": 6
+      "llm": true
     }
   ],
+  "position": null,
+  "pending_orders": [],
   "history": [
     {
       "id": 1786567424674,
@@ -197,7 +197,7 @@
     "✅ LONG 1h +1.7% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +0.9% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
   ],
-  "sessions": 152,
+  "sessions": 153,
   "trade_tf": "",
   "equity_points": [
     {
