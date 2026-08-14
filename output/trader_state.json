@@ -1,9 +1,12 @@
 {
-  "balance": 1217.6742991941233,
+  "balance": 1205.7409920871892,
   "start_balance": 1000.0,
   "peak": 1242.524795096044,
-  "max_dd": 1.9999999999999931,
-  "positions": [
+  "max_dd": 2.9604079656222537,
+  "positions": [],
+  "position": null,
+  "pending_orders": [],
+  "history": [
     {
       "id": 1786557606914,
       "dir": "long",
@@ -17,12 +20,14 @@
       "opened_at": "2026-08-12 18:00:06",
       "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.43), P(tăng) 83%.",
       "llm": false,
-      "warned": true
-    }
-  ],
-  "position": null,
-  "pending_orders": [],
-  "history": [
+      "warned": true,
+      "exit": 4369.271518939732,
+      "pnl": -11.933307106934006,
+      "pnl_pct": -0.7254538454429027,
+      "exit_reason": "chạm CẮT LỖ (SL)",
+      "closed_at": "2026-08-14 04:07:08",
+      "balance_after": 1205.7409920871892
+    },
     {
       "id": 1786633058476,
       "dir": "long",
@@ -191,12 +196,12 @@
       "balance_after": 1028.7199124726467
     }
   ],
-  "trades": 8,
+  "trades": 9,
   "wins": 7,
-  "total_pnl": 217.67429919412294,
+  "total_pnl": 205.74099208718894,
   "gross_win": 242.52479509604382,
-  "gross_loss": 24.85049590192088,
-  "trader_score": 1208.5626260611036,
+  "gross_loss": 36.78380300885489,
+  "trader_score": 1194.0535491522455,
   "lessons": [
     "✅ LONG 1h +2.4% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
@@ -204,9 +209,10 @@
     "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +1.7% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +0.9% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
-    "❌ LONG 1h -0.7% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
+    "❌ LONG 1h -0.7% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
+    "❌ LONG 4h -0.7% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 162,
+  "sessions": 163,
   "trade_tf": "",
   "equity_points": [
     {
@@ -244,6 +250,10 @@
     {
       "t": 1786671720557,
       "e": 1217.6742991941233
+    },
+    {
+      "t": 1786680428295,
+      "e": 1205.7409920871892
     }
   ]
 }
