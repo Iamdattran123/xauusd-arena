@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-15 12:33:24",
+  "generated_at": "2026-08-15 13:30:25",
   "timeframe": "1h",
   "timeframe_label": "1 giờ",
   "horizon": "24 nến",
@@ -22,37 +22,37 @@
     "trend": "GIẢM",
     "n": 109
   },
-  "consensus": -0.25698847262247837,
+  "consensus": -0.22760115606936415,
   "verdict": "BÁN NHẸ 📉",
-  "target": 4217.6331836536865,
-  "p10": 3894.814881397471,
-  "p50": 4209.624635613538,
-  "p90": 4523.388679848947,
-  "prob_up": 0.25,
-  "drift": -0.0013245804178549476,
+  "target": 4239.038447454528,
+  "p10": 3944.7442450533126,
+  "p50": 4225.527929626678,
+  "p90": 4558.8259964575855,
+  "prob_up": 0.2833333333333333,
+  "drift": -0.0011722190666002123,
   "n_paths": 300,
   "crowd": {
     "n_voters": 80,
     "bull": 0,
-    "neu": 14,
-    "bear": 66,
-    "crowd_mean": -0.16456991275023927,
+    "neu": 17,
+    "bear": 63,
+    "crowd_mean": -0.20805450835706757,
     "votes": {
-      "Macro_Analyst": 13,
-      "Technical_Analyst": 2,
+      "Macro_Analyst": 22,
+      "Technical_Analyst": 24,
       "Institutional_Whale": 26,
-      "Retail_Crowd": 39
+      "Retail_Crowd": 8
     },
-    "momentum": 0.0027269426009787125
+    "momentum": 0.018970262869791706
   },
   "agents": [
     {
       "key": "Macro_Analyst",
       "title": "Chuyên gia Vĩ mô",
       "icon": "🏛️",
-      "stance": -0.45,
-      "conf": 0.75,
-      "reasoning": "Duy trì lập trường bán nhưng giảm cường độ do tín hiệu phân kỳ kỹ thuật và MACD dương, cần cảnh giác với đợt phục hồi nếu giá giữ được $4,365.50.",
+      "stance": -0.15,
+      "conf": 0.7,
+      "reasoning": "Giá vẫn trong xu hướng giảm ngắn hạn nhưng tín hiệu kỹ thuật không đủ mạnh để xác nhận đà giảm gia tăng. Cần theo dõi thêm phản ứng quanh hỗ trợ $4,365.50 và sự hồi phục của MACD.",
       "model": "openrouter/deepseek/deepseek-chat",
       "fallback": false
     },
@@ -60,9 +60,9 @@
       "key": "Technical_Analyst",
       "title": "Chuyên gia Kỹ thuật",
       "icon": "📐",
-      "stance": -0.4,
-      "conf": 0.65,
-      "reasoning": "Xu hướng giảm vẫn chiếm ưu thế nhờ EMA20/50 và đồng thuận bán (-0.33), nhưng MACD dương và hỗ trợ gần có thể tạo lực cân bằng. Nên theo dõi phản ứng giá tại $4,365.50 trước khi kết luận xu hướng.",
+      "stance": -0.1,
+      "conf": 0.7,
+      "reasoning": "Mặc dù xu hướng EMA20/50 giảm và tâm lý chung vẫn bearish, MACD hist dương nhẹ cho thấy lực mua âm thầm. Hỗ trợ $4,365.50 cần được quan sát kỹ lưỡng, vì nếu giữ được có thể hình thành mô hình nến hồi phục.",
       "model": "openrouter/qwen/qwen3-32b",
       "fallback": false
     },
@@ -71,8 +71,8 @@
       "title": "Quỹ & Ngân hàng TW",
       "icon": "🐋",
       "stance": -0.1,
-      "conf": 0.8,
-      "reasoning": "Mặc dù các chỉ báo kỹ thuật cho thấy xu hướng giảm, nhưng việc không tính đến dòng tiền tổ chức có thể là một thiếu sót. Các quỹ ETF vàng lớn có thể có chiến lược đầu tư dài hạn và nhu cầu tích trữ, ảnh hưởng đến thanh khoản và chi phí cơ hội, khiến giá vàng có thể ổn định hơn so với dự đoán.",
+      "conf": 0.7,
+      "reasoning": "Giá vàng có thể đang trong giai đoạn điều chỉnh ngắn hạn, nhưng sự phục hồi gần đây cho thấy khả năng đảo chiều. Mức hỗ trợ $4,365.50 có thể là một ngưỡng quan trọng, và việc theo dõi chặt chẽ các yếu tố cơ bản sẽ giúp xác định xu hướng dài hạn.",
       "model": "cohere/command-r-plus-08-2024",
       "fallback": false
     },
@@ -80,9 +80,9 @@
       "key": "Retail_Crowd",
       "title": "Đám đông Nhỏ lẻ",
       "icon": "👥",
-      "stance": 0.1,
-      "conf": 0.8,
-      "reasoning": "Dựa trên dữ liệu lịch sử gần đây, giá vàng đang có xu hướng giảm nhẹ, nhưng không nên bỏ qua khả năng giá vàng có thể phục hồi do ảnh hưởng của các yếu tố vĩ mô. Tôi sẽ tiếp tục theo dõi tình hình và cập nhật lập trường khi có thêm thông tin.",
+      "stance": -0.8,
+      "conf": 0.9,
+      "reasoning": "Tôi vẫn dự đoán giá vàng sẽ tiếp tục giảm, nhưng cần xem xét khả năng phản ứng tăng trước khi tiếp tục giảm. Giá vàng có thể sẽ kiểm tra mức hỗ trợ gần $4,365.50 trước khi tiếp tục giảm.",
       "model": "groq/llama-3.1-8b-instant",
       "fallback": false
     }
@@ -95,11 +95,11 @@
           "key": "Macro_Analyst",
           "title": "Chuyên gia Vĩ mô",
           "icon": "🏛️",
-          "stance": -0.25,
-          "conf": 0.72,
-          "reason": "Giá vàng hiện tại ($4,377.60) dưới EMA20 ($4,424.86) và EMA50 ($4,427.51), xu hướng giảm tiếp tục. Đồng thuận bán nhẹ (-0.13 đến -0.33) trong 6 phiên gần nhất cho thấy áp lực ngắn hạn, cùng với hỗ trợ gần nhất tại $4,365.50 có thể bị xuyên thủng nếu biến động tăng 1.15%/nến duy trì.",
+          "stance": -0.2,
+          "conf": 0.6,
+          "reason": "价格$4,377.60低于EMA20($4,424.86)和EMA50($4,427.51)，且EMA20低于EMA50显示短期下行趋势，但RSI 54.2中性且MACD柱为正(+3.22)暗示反弹可能，历史信号多次为BÁN NHẸ，整体偏空但力度有限。",
           "critique": null,
-          "model": "openrouter/qwen/qwen3-32b",
+          "model": "openrouter/deepseek/deepseek-v4-flash-0731",
           "fallback": false
         },
         {
@@ -108,7 +108,7 @@
           "icon": "📐",
           "stance": -0.3,
           "conf": 0.6,
-          "reason": "价格$4,377.60低于EMA20($4,424.86)和EMA50($4,427.51)，均线呈空头排列，趋势偏弱。尽管RSI 54.2中性且MACD柱+3.22，但近期信号连续偏空，支撑$4,365.50临近，阻力$4,454.60较远，预计短期承压下行。",
+          "reason": "Giá hiện tại $4,377.60 nằm dưới EMA20 ($4,424.86) và EMA50 ($4,427.51), xu hướng EMA20/50 giảm, cho thấy áp lực bán ngắn hạn. RSI 54.2 trung tính nhưng các tín hiệu lịch sử gần đây đều là bán nhẹ/mạnh, hỗ trợ gần $4,365.50 có thể được kiểm tra. MACD hist dương (+3.22) nhưng yếu, không đủ đảo chiều xu hướng giảm.",
           "critique": null,
           "model": "openrouter/deepseek/deepseek-v4-flash-0731",
           "fallback": false
@@ -117,9 +117,9 @@
           "key": "Institutional_Whale",
           "title": "Quỹ & Ngân hàng TW",
           "icon": "🐋",
-          "stance": -0.6,
-          "conf": 0.8,
-          "reason": "Giá vàng hiện tại đang ở mức $4,377.60/oz, với xu hướng giảm được thể hiện qua chỉ báo EMA20/50. Trong các phiên gần đây, đồng thuận của các trader nghiêng về bán, đặc biệt là trong 5 phiên gần nhất với mức đồng thuận bán mạnh ở -0.33. RSI(14) ở mức 54.2 cho thấy giá chưa ở vùng quá bán, và có thể tiếp tục giảm. Hỗ trợ gần nhất ở $4,365.50 có thể là mục tiêu giảm giá trong thời gian tới.",
+          "stance": -0.4,
+          "conf": 0.7,
+          "reason": "Giá vàng hiện tại cho thấy một xu hướng giảm trong ngắn hạn, với đồng thuận bán nhẹ đến bán mạnh trong các phiên gần đây. Chỉ báo RSI(14) ở mức 54.2, cho thấy giá chưa ở trong vùng quá bán, và có thể tiếp tục giảm. Giá hiện tại đang ở dưới EMA20 và EMA50, với xu hướng giảm. Tuy nhiên, cần lưu ý rằng giá đã có sự phục hồi nhẹ trong phiên gần nhất, và mức hỗ trợ gần nhất là $4,365.50 có thể là một ngưỡng quan trọng để theo dõi.",
           "critique": null,
           "model": "cohere/command-r-plus-08-2024",
           "fallback": false
@@ -130,7 +130,7 @@
           "icon": "👥",
           "stance": -0.2,
           "conf": 0.6,
-          "reason": "Dựa trên dữ liệu lịch sử gần đây, giá vàng đang có xu hướng giảm nhẹ với đồng thuận bán nhẹ và giá hiện tại $4,377.60. Các chỉ báo như EMA20 và EMA50 cũng cho thấy xu hướng giảm, với EMA20 ở mức $4,424.86 và EMA50 ở mức $4,427.51, cao hơn giá hiện tại.",
+          "reason": "Dựa trên dữ liệu lịch sử gần đây, giá vàng đang có xu hướng giảm với đồng thuận bán nhẹ và bán mạnh. Với RSI(14) ở mức 54.2 và xu hướng EMA20/50 giảm, tôi dự đoán giá vàng sẽ tiếp tục giảm trong thời gian tới, với hỗ trợ gần nhất ở mức $4,365.50.",
           "critique": null,
           "model": "groq/llama-3.3-70b-versatile",
           "fallback": false
@@ -144,10 +144,10 @@
           "key": "Macro_Analyst",
           "title": "Chuyên gia Vĩ mô",
           "icon": "🏛️",
-          "stance": -0.45,
-          "conf": 0.75,
-          "reason": "Duy trì lập trường bán nhưng giảm cường độ do tín hiệu phân kỳ kỹ thuật và MACD dương, cần cảnh giác với đợt phục hồi nếu giá giữ được $4,365.50.",
-          "critique": "Các phân tích đều bỏ qua sự phân kỳ dương giữa RSI (54.2, trung lập) và giá, khi giá giảm nhưng RSI không xác nhận xu hướng. MACD (+3.22) cũng cho thấy đà giảm đang chậm lại, tiềm ẩn khả năng đảo chiều kỹ thuật dù EMA vẫn nghiêng giảm.",
+          "stance": -0.15,
+          "conf": 0.7,
+          "reason": "Giá vẫn trong xu hướng giảm ngắn hạn nhưng tín hiệu kỹ thuật không đủ mạnh để xác nhận đà giảm gia tăng. Cần theo dõi thêm phản ứng quanh hỗ trợ $4,365.50 và sự hồi phục của MACD.",
+          "critique": "Các phân tích đều bỏ qua yếu tố MACD hist dương (+3.22) dù yếu nhưng có thể là dấu hiệu sớm của đảo chiều, đồng thời RSI 54.2 trung tính chưa xác nhận xu hướng giảm mạnh. Hỗ trợ $4,365.50 chưa bị phá vỡ nên áp lực bán chưa rõ ràng.",
           "model": "openrouter/deepseek/deepseek-chat",
           "fallback": false
         },
@@ -155,10 +155,10 @@
           "key": "Technical_Analyst",
           "title": "Chuyên gia Kỹ thuật",
           "icon": "📐",
-          "stance": -0.4,
-          "conf": 0.65,
-          "reason": "Xu hướng giảm vẫn chiếm ưu thế nhờ EMA20/50 và đồng thuận bán (-0.33), nhưng MACD dương và hỗ trợ gần có thể tạo lực cân bằng. Nên theo dõi phản ứng giá tại $4,365.50 trước khi kết luận xu hướng.",
-          "critique": "Các chuyên gia đều tập trung vào xu hướng giảm nhưng bỏ qua tín hiệu MACD dương (+3.22) và vùng hỗ trợ $4,365.50 chưa bị phá vỡ. RSI 54.2 ở mức trung tính, chưa đạt mốc quá bán (30) để xác nhận tín hiệu mua.",
+          "stance": -0.1,
+          "conf": 0.7,
+          "reason": "Mặc dù xu hướng EMA20/50 giảm và tâm lý chung vẫn bearish, MACD hist dương nhẹ cho thấy lực mua âm thầm. Hỗ trợ $4,365.50 cần được quan sát kỹ lưỡng, vì nếu giữ được có thể hình thành mô hình nến hồi phục.",
+          "critique": "Các chuyên gia đều bỏ qua khả năng MACD hist dương (+3.22) có thể là tín hiệu phục hồi ngắn hạn nếu giá không phá vỡ hỗ trợ $4,365.50. Việc EMA20 ($4,424.86) và EMA50 ($4,427.51) gần như chồng chéo không xác định rõ ngưỡng kháng cự tiềm năng.",
           "model": "openrouter/qwen/qwen3-32b",
           "fallback": false
         },
@@ -167,9 +167,9 @@
           "title": "Quỹ & Ngân hàng TW",
           "icon": "🐋",
           "stance": -0.1,
-          "conf": 0.8,
-          "reason": "Mặc dù các chỉ báo kỹ thuật cho thấy xu hướng giảm, nhưng việc không tính đến dòng tiền tổ chức có thể là một thiếu sót. Các quỹ ETF vàng lớn có thể có chiến lược đầu tư dài hạn và nhu cầu tích trữ, ảnh hưởng đến thanh khoản và chi phí cơ hội, khiến giá vàng có thể ổn định hơn so với dự đoán.",
-          "critique": "Lập trường của các chuyên gia có thể bỏ qua một yếu tố quan trọng: sự tham gia của các nhà đầu tư tổ chức và các quỹ lớn. Dòng tiền tổ chức thường có ảnh hưởng đáng kể đến giá vàng, và việc thiếu dữ liệu về hoạt động của họ có thể dẫn đến kết luận thiếu chính xác.",
+          "conf": 0.7,
+          "reason": "Giá vàng có thể đang trong giai đoạn điều chỉnh ngắn hạn, nhưng sự phục hồi gần đây cho thấy khả năng đảo chiều. Mức hỗ trợ $4,365.50 có thể là một ngưỡng quan trọng, và việc theo dõi chặt chẽ các yếu tố cơ bản sẽ giúp xác định xu hướng dài hạn.",
+          "critique": "Mặc dù các chỉ báo kỹ thuật cho thấy xu hướng giảm và đồng thuận bán, việc chỉ dựa vào các tín hiệu này có thể bỏ qua những yếu tố cơ bản ảnh hưởng đến giá vàng. RSI ở mức 54.2 không phải là dấu hiệu rõ ràng cho việc bán tháo, và sự phục hồi gần đây có thể là một tín hiệu sớm cho sự đảo chiều.",
           "model": "cohere/command-r-plus-08-2024",
           "fallback": false
         },
@@ -177,10 +177,10 @@
           "key": "Retail_Crowd",
           "title": "Đám đông Nhỏ lẻ",
           "icon": "👥",
-          "stance": 0.1,
-          "conf": 0.8,
-          "reason": "Dựa trên dữ liệu lịch sử gần đây, giá vàng đang có xu hướng giảm nhẹ, nhưng không nên bỏ qua khả năng giá vàng có thể phục hồi do ảnh hưởng của các yếu tố vĩ mô. Tôi sẽ tiếp tục theo dõi tình hình và cập nhật lập trường khi có thêm thông tin.",
-          "critique": "Các chuyên gia đều tập trung vào xu hướng giảm của giá vàng, nhưng không đề cập đến khả năng giá vàng có thể phục hồi do ảnh hưởng của các yếu tố vĩ mô như lãi suất và chính sách tiền tệ.",
+          "stance": -0.8,
+          "conf": 0.9,
+          "reason": "Tôi vẫn dự đoán giá vàng sẽ tiếp tục giảm, nhưng cần xem xét khả năng phản ứng tăng trước khi tiếp tục giảm. Giá vàng có thể sẽ kiểm tra mức hỗ trợ gần $4,365.50 trước khi tiếp tục giảm.",
+          "critique": "Các chuyên gia không xem xét kỹ lưỡng về khả năng giá vàng sẽ tăng trở lại do chỉ báo MACD hist dương (+3.22) và RSI 54.2 trung tính, có thể là dấu hiệu của một phản ứng tăng trước khi tiếp tục giảm.",
           "model": "groq/llama-3.1-8b-instant",
           "fallback": false
         }
@@ -195,148 +195,148 @@
       "p90": 1.0
     },
     {
-      "mean": 4369.326685340784,
-      "p10": 4309.993853089042,
-      "p50": 4368.051512137563,
-      "p90": 4434.151023655089
+      "mean": 4376.565997320643,
+      "p10": 4308.942546729077,
+      "p50": 4373.389184534437,
+      "p90": 4442.334587633644
     },
     {
-      "mean": 4360.679201964657,
-      "p10": 4269.981497909296,
-      "p50": 4359.452063836381,
-      "p90": 4446.838197836581
+      "mean": 4370.476054826495,
+      "p10": 4287.466863506232,
+      "p50": 4374.334249707825,
+      "p90": 4457.114940046269
     },
     {
-      "mean": 4352.401569236022,
-      "p10": 4240.034748553818,
-      "p50": 4351.192759153211,
-      "p90": 4461.8325003376185
+      "mean": 4362.021225807155,
+      "p10": 4256.5213997755345,
+      "p50": 4360.112062267607,
+      "p90": 4465.990598307824
     },
     {
-      "mean": 4342.885300083136,
-      "p10": 4218.378083264627,
-      "p50": 4342.857754935791,
-      "p90": 4467.0218587041545
+      "mean": 4361.363222798381,
+      "p10": 4237.683695771194,
+      "p50": 4359.243225046498,
+      "p90": 4492.901412789619
     },
     {
-      "mean": 4336.291921230263,
-      "p10": 4195.8082057013435,
-      "p50": 4338.185086504427,
-      "p90": 4474.744832702751
+      "mean": 4352.842768755273,
+      "p10": 4217.124235301567,
+      "p50": 4350.400076321722,
+      "p90": 4494.185079326617
     },
     {
-      "mean": 4330.948286210832,
-      "p10": 4171.5923853606055,
-      "p50": 4330.655133139057,
-      "p90": 4494.56505658462
+      "mean": 4347.105825397194,
+      "p10": 4195.664387248133,
+      "p50": 4343.045822974709,
+      "p90": 4502.7564039839035
     },
     {
-      "mean": 4323.181178775178,
-      "p10": 4152.016943193417,
-      "p50": 4316.666898142337,
-      "p90": 4490.03505282027
+      "mean": 4342.635280866815,
+      "p10": 4187.974508597135,
+      "p50": 4341.289067320904,
+      "p90": 4515.391895938722
     },
     {
-      "mean": 4313.3856579066405,
-      "p10": 4128.242304458689,
-      "p50": 4308.065125797544,
-      "p90": 4505.08151254103
+      "mean": 4333.390003601868,
+      "p10": 4157.573407137534,
+      "p50": 4328.525924420381,
+      "p90": 4503.10410481417
     },
     {
-      "mean": 4312.680016508898,
-      "p10": 4115.76465227018,
-      "p50": 4308.633830981627,
-      "p90": 4518.055126022901
+      "mean": 4329.6510196264335,
+      "p10": 4167.66319600867,
+      "p50": 4323.87096346171,
+      "p90": 4498.053303121169
     },
     {
-      "mean": 4301.390517294488,
-      "p10": 4114.9266028374395,
-      "p50": 4306.55462480628,
-      "p90": 4501.78789141666
+      "mean": 4320.933307617106,
+      "p10": 4148.698367560074,
+      "p50": 4303.824899152338,
+      "p90": 4512.766912924455
     },
     {
-      "mean": 4300.237793193566,
-      "p10": 4102.470588806877,
-      "p50": 4300.557685584198,
-      "p90": 4519.9892289194295
+      "mean": 4313.304811460688,
+      "p10": 4141.760907323136,
+      "p50": 4302.154154810722,
+      "p90": 4505.411273636777
     },
     {
-      "mean": 4296.529827306397,
-      "p10": 4080.0957236561662,
-      "p50": 4289.575441105415,
-      "p90": 4510.056079863706
+      "mean": 4304.94291212068,
+      "p10": 4125.020608414734,
+      "p50": 4297.852546821352,
+      "p90": 4516.964366910752
     },
     {
-      "mean": 4290.166624299514,
-      "p10": 4051.14152144502,
-      "p50": 4290.370237500646,
-      "p90": 4512.831000388284
+      "mean": 4298.45373914526,
+      "p10": 4103.777544206989,
+      "p50": 4290.791265225214,
+      "p90": 4506.840535875656
     },
     {
-      "mean": 4282.068841937004,
-      "p10": 4045.9903736563556,
-      "p50": 4286.370836312428,
-      "p90": 4506.7595438435665
+      "mean": 4291.980588377585,
+      "p10": 4077.336907191089,
+      "p50": 4283.132505730801,
+      "p90": 4507.040670531009
     },
     {
-      "mean": 4273.3441099114,
-      "p10": 4025.751538178534,
-      "p50": 4275.6300920062295,
-      "p90": 4520.722389969795
+      "mean": 4284.736997872489,
+      "p10": 4055.216662251696,
+      "p50": 4279.304596494163,
+      "p90": 4532.549225981723
     },
     {
-      "mean": 4267.748647881582,
-      "p10": 4029.1228915547135,
-      "p50": 4271.611723078011,
-      "p90": 4520.433153440397
+      "mean": 4279.904452190776,
+      "p10": 4056.558343855938,
+      "p50": 4268.153957528882,
+      "p90": 4520.750298119684
     },
     {
-      "mean": 4262.280816128155,
-      "p10": 4022.709078994267,
-      "p50": 4252.899362771186,
-      "p90": 4514.6873024363995
+      "mean": 4276.992698006838,
+      "p10": 4035.288952596805,
+      "p50": 4264.665909160326,
+      "p90": 4545.172939613442
     },
     {
-      "mean": 4250.9292733200045,
-      "p10": 3987.9096409735976,
-      "p50": 4241.474840419956,
-      "p90": 4523.005038786609
+      "mean": 4272.396910578666,
+      "p10": 4022.456732290795,
+      "p50": 4249.038890867454,
+      "p90": 4538.708578739187
     },
     {
-      "mean": 4248.410178658269,
-      "p10": 3989.8963579375486,
-      "p50": 4237.395917026855,
-      "p90": 4522.159073595617
+      "mean": 4274.607130850761,
+      "p10": 3999.7126617197005,
+      "p50": 4258.969811857556,
+      "p90": 4540.729221654207
     },
     {
-      "mean": 4245.2785061498,
-      "p10": 3966.522633448344,
-      "p50": 4243.640831051581,
-      "p90": 4535.400864673021
+      "mean": 4265.338135796428,
+      "p10": 3994.325129339841,
+      "p50": 4251.033958657929,
+      "p90": 4539.809471586889
     },
     {
-      "mean": 4236.8053084742405,
-      "p10": 3944.6141052505122,
-      "p50": 4238.516464807734,
-      "p90": 4528.4350318074885
+      "mean": 4261.2998776520135,
+      "p10": 3981.7634374354425,
+      "p50": 4256.25463802032,
+      "p90": 4534.9636196829715
     },
     {
-      "mean": 4231.127585853569,
-      "p10": 3921.910076590154,
-      "p50": 4224.6038489991515,
-      "p90": 4532.764875816846
+      "mean": 4254.9051031123145,
+      "p10": 3958.3221691819563,
+      "p50": 4255.738972443454,
+      "p90": 4532.52777255955
     },
     {
-      "mean": 4223.317748569932,
-      "p10": 3905.713770686077,
-      "p50": 4219.505891646405,
-      "p90": 4516.424993921326
+      "mean": 4247.873706768939,
+      "p10": 3963.3717462614723,
+      "p50": 4241.19877857961,
+      "p90": 4550.472944746305
     },
     {
-      "mean": 4217.6331836536865,
-      "p10": 3894.814881397471,
-      "p50": 4209.624635613538,
-      "p90": 4523.388679848947
+      "mean": 4239.038447454528,
+      "p10": 3944.7442450533126,
+      "p50": 4225.527929626678,
+      "p90": 4558.8259964575855
     }
   ],
   "klines": [
