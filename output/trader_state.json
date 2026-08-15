@@ -7,18 +7,18 @@
   "position": null,
   "pending_orders": [
     {
-      "id": 1786779079540,
+      "id": 1786807337122,
       "dir": "long",
       "type": "buy_limit",
-      "trigger": 4366.0,
+      "trigger": 4365.5,
       "sl": 4350.0,
-      "tp": 4400.0,
-      "rr": 2.125,
-      "risk_pct": 0.015,
-      "reason": "Giá đang cận mốc hỗ trợ 4,365.50 với tiềm năng phục hồi kỹ thuật. Duy trì chiến lược mua cận hỗ trợ nhưng giảm rủi ro nhờ cắt lỗ dưới 1 ATR.",
+      "tp": 4454.6,
+      "rr": 5.748387096774217,
+      "risk_pct": 0.01,
+      "reason": "Giá đang cận hỗ trợ $4,365.50 với tiềm năng phản ứng tích cực từ quỹ ETF và chỉ báo động lượng chưa cực đoan. Sử dụng buy_limit để chờ giá hồi về hỗ trợ, SL dưới hỗ trợ 1 ATR, TP tại kháng cự gần. Giữ lập trường riêng thay vì theo đồng thuận bán nhẹ.",
       "llm": true,
-      "created_at": "2026-08-15 07:31:19",
-      "sessions_alive": 7
+      "created_at": "2026-08-15 15:22:17",
+      "sessions_alive": 0
     }
   ],
   "history": [
@@ -227,7 +227,7 @@
     "❌ LONG 1h -0.7% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 4h -0.7% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 193,
+  "sessions": 194,
   "trade_tf": "",
   "equity_points": [
     {
