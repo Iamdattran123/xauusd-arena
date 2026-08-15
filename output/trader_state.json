@@ -18,7 +18,7 @@
       "reason": "Giá đang gần hỗ trợ mạnh $4,365.50 với MACD histogram dương. Dù xu hướng dài hạn giảm nhưng có khả năng phục hồi ngắn hạn về $4,400. Nghe theo tín hiệu kỹ thuật về nhịp hồi phục trước khi kiểm tra hỗ trợ.",
       "llm": true,
       "created_at": "2026-08-14 22:21:03",
-      "sessions_alive": 5
+      "sessions_alive": 6
     },
     {
       "id": 1786762285331,
@@ -32,7 +32,21 @@
       "reason": "Giữ lệnh chờ tại hỗ trợ $4,365.50 như đề xuất của chuyên gia kỹ thuật và vĩ mô. Xu hướng EMA giảm nhưng MACD dương cho thấy tiềm năng phục hồi ngắn hạn. SL đặt dưới hỗ trợ để bảo toàn vốn, TP ở mức kháng cự gần.",
       "llm": true,
       "created_at": "2026-08-15 02:51:25",
-      "sessions_alive": 2
+      "sessions_alive": 3
+    },
+    {
+      "id": 1786771451536,
+      "dir": "long",
+      "type": "buy_limit",
+      "trigger": 4365.5,
+      "sl": 4350.0,
+      "tp": 4400.0,
+      "rr": 2.225806451612903,
+      "risk_pct": 0.015,
+      "reason": "Chờ giá hồi về hỗ trợ $4,365.50 để mua vào, dựa trên khả năng phục hồi kỹ thuật và tâm lý nhà đầu tư nhỏ lẻ. Dừng lỗ dưới hỗ trợ để phòng rủi ro phá vỡ xu hướng giảm.",
+      "llm": true,
+      "created_at": "2026-08-15 05:24:11",
+      "sessions_alive": 0
     }
   ],
   "history": [
@@ -241,7 +255,7 @@
     "❌ LONG 1h -0.7% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 4h -0.7% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 183,
+  "sessions": 184,
   "trade_tf": "",
   "equity_points": [
     {
