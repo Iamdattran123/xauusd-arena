@@ -3,7 +3,22 @@
   "start_balance": 1000.0,
   "peak": 1242.524795096044,
   "max_dd": 2.9604079656222537,
-  "positions": [],
+  "positions": [
+    {
+      "id": 1786862131892,
+      "dir": "short",
+      "tf": "1h",
+      "entry": 4377.600098,
+      "sl": 4400.0,
+      "tp": 4320.0,
+      "rr": 2.5714441964969135,
+      "qty": 0.8074193753752916,
+      "risk_pct": 0.015,
+      "opened_at": "2026-08-16 06:35:31",
+      "reason": "Hội đồng đồng thuận BÁN MẠNH (-0.556) với RSI(14)=54.1 dưới 50 và EMA20/50 giảm mạnh. Duy trì xu hướng ngắn hạn giảm, đặt SL trên kháng cự $4,400 và TP dưới hỗ trợ $4,365.50.",
+      "llm": true
+    }
+  ],
   "position": null,
   "pending_orders": [],
   "history": [
@@ -212,7 +227,7 @@
     "❌ LONG 1h -0.7% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 4h -0.7% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 207,
+  "sessions": 208,
   "trade_tf": "",
   "equity_points": [
     {
