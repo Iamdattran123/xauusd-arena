@@ -5,7 +5,22 @@
   "max_dd": 4.4160018461379185,
   "positions": [],
   "position": null,
-  "pending_orders": [],
+  "pending_orders": [
+    {
+      "id": 1786949554610,
+      "dir": "long",
+      "type": "buy_limit",
+      "trigger": 4365.5,
+      "sl": 4350.0,
+      "tp": 4473.2,
+      "rr": 6.948387096774182,
+      "risk_pct": 0.015,
+      "reason": "Chờ giá hồi về hỗ trợ 4365.50 để vào lệnh an toàn, tránh rủi ro từ chênh lệch futures-spot. Đồng thuận thị trường nhẹ nhàng tăng nhưng kỹ thuật cần chờ tín hiệu rõ ràng hơn.",
+      "llm": true,
+      "created_at": "2026-08-17 06:52:34",
+      "sessions_alive": 0
+    }
+  ],
   "history": [
     {
       "id": 1786862131892,
@@ -233,7 +248,7 @@
     "❌ LONG 4h -0.7% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ SHORT 1h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 230,
+  "sessions": 231,
   "trade_tf": "",
   "equity_points": [
     {
