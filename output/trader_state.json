@@ -7,20 +7,6 @@
   "position": null,
   "pending_orders": [
     {
-      "id": 1786949554610,
-      "dir": "long",
-      "type": "buy_limit",
-      "trigger": 4365.5,
-      "sl": 4350.0,
-      "tp": 4473.2,
-      "rr": 6.948387096774182,
-      "risk_pct": 0.015,
-      "reason": "Chờ giá hồi về hỗ trợ 4365.50 để vào lệnh an toàn, tránh rủi ro từ chênh lệch futures-spot. Đồng thuận thị trường nhẹ nhàng tăng nhưng kỹ thuật cần chờ tín hiệu rõ ràng hơn.",
-      "llm": true,
-      "created_at": "2026-08-17 06:52:34",
-      "sessions_alive": 7
-    },
-    {
       "id": 1786956134479,
       "dir": "long",
       "type": "buy_limit",
@@ -32,7 +18,7 @@
       "reason": "Chờ giá test hỗ trợ $4,365.60 (lệnh chờ hiện có) để vào lệnh mua an toàn. Đồng thuận chuyên gia ủng hộ xu hướng tăng nhưng cảnh báo thận trọng trước kháng cự. Giữ chiến lược 1h với SL dưới hỗ trợ và TP tại kháng cự chính.",
       "llm": true,
       "created_at": "2026-08-17 08:42:14",
-      "sessions_alive": 5
+      "sessions_alive": 6
     },
     {
       "id": 1786959643537,
@@ -46,7 +32,21 @@
       "reason": "Nghe theo hội đồng kỹ thuật và quỹ TW, đặt lệnh chờ tại hỗ trợ gần $4,365.60 để tránh mua sớm. SL dưới hỗ trợ, TP tại kháng cự gần, ưu tiên bảo toàn vốn.",
       "llm": true,
       "created_at": "2026-08-17 09:40:43",
-      "sessions_alive": 4
+      "sessions_alive": 5
+    },
+    {
+      "id": 1786976918148,
+      "dir": "long",
+      "type": "buy_limit",
+      "trigger": 4402.0,
+      "sl": 4387.1,
+      "tp": 4450.0,
+      "rr": 3.221476510067193,
+      "risk_pct": 0.015,
+      "reason": "Nghe theo chuyên gia Kỹ thuật và Vĩ mô về việc chờ giá kiểm tra lại hỗ trợ $4,402.00. SL dưới hỗ trợ để bảo toàn vốn, TP tại kháng cự gần nhất. Tín hiệu Monte Carlo 84% tăng và bài học từ lệnh chờ thất bại trước đây.",
+      "llm": true,
+      "created_at": "2026-08-17 14:28:38",
+      "sessions_alive": 0
     }
   ],
   "history": [
@@ -276,7 +276,7 @@
     "❌ LONG 4h -0.7% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ SHORT 1h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 238,
+  "sessions": 239,
   "trade_tf": "",
   "equity_points": [
     {
