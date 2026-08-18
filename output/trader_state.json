@@ -1,25 +1,9 @@
 {
-  "balance": 1187.6548772058813,
+  "balance": 1175.7783284338225,
   "start_balance": 1000.0,
   "peak": 1242.524795096044,
-  "max_dd": 4.4160018461379185,
-  "positions": [
-    {
-      "id": 1787024672723,
-      "dir": "short",
-      "tf": "1h",
-      "entry": 4422.3,
-      "sl": 4440.33,
-      "tp": 4373.07,
-      "rr": 2.7304492512479848,
-      "qty": 0.6587104144236817,
-      "risk_pct": 0.01,
-      "pending": true,
-      "opened_at": "2026-08-18 03:44:32",
-      "reason": "Tôi giữ lập trường kỹ thuật riêng: giá đã phá vỡ hỗ trợ $4,422.30 và Monte Carlo hướng về $4,373, nên không mua theo lệnh chờ hiện tại. Tôi đặt bán chờ tại vùng kháng cự $4,422.30 để đón nhịp hồi, SL trên ATR và TP theo mục tiêu xác suất. Hội đồng trung lập nên tôi ưu tiên chờ mốc tốt hơn thay vì vào lệnh sớm.",
-      "llm": true
-    }
-  ],
+  "max_dd": 5.371841827676544,
+  "positions": [],
   "position": null,
   "pending_orders": [
     {
@@ -34,10 +18,31 @@
       "reason": "Dựa trên xu hướng tăng kỹ thuật được hỗ trợ bởi phân tích Hội đồng và lịch sử giao dịch gần đây (70% win rate), tôi chọn đặt lệnh mua giới hạn tại vùng hỗ trợ $4,402 để tối ưu tỷ lệ rủi ro/lợi nhuận. Mặc dù có chênh lệch giá và biến động, nhưng xu hướng chung vẫn tích cực với P(tăng) 80% từ mô phỏng Monte Carlo.",
       "llm": true,
       "created_at": "2026-08-18 01:05:53",
-      "sessions_alive": 2
+      "sessions_alive": 3
     }
   ],
   "history": [
+    {
+      "id": 1787024672723,
+      "dir": "short",
+      "tf": "1h",
+      "entry": 4422.3,
+      "sl": 4440.33,
+      "tp": 4373.07,
+      "rr": 2.7304492512479848,
+      "qty": 0.6587104144236817,
+      "risk_pct": 0.01,
+      "pending": true,
+      "opened_at": "2026-08-18 03:44:32",
+      "reason": "Tôi giữ lập trường kỹ thuật riêng: giá đã phá vỡ hỗ trợ $4,422.30 và Monte Carlo hướng về $4,373, nên không mua theo lệnh chờ hiện tại. Tôi đặt bán chờ tại vùng kháng cự $4,422.30 để đón nhịp hồi, SL trên ATR và TP theo mục tiêu xác suất. Hội đồng trung lập nên tôi ưu tiên chờ mốc tốt hơn thay vì vào lệnh sớm.",
+      "llm": true,
+      "exit": 4440.33,
+      "pnl": -11.876548772058813,
+      "pnl_pct": -0.40770639712366386,
+      "exit_reason": "chạm CẮT LỖ (SL)",
+      "closed_at": "2026-08-18 04:35:10",
+      "balance_after": 1175.7783284338225
+    },
     {
       "id": 1786862131892,
       "dir": "short",
@@ -247,12 +252,12 @@
       "balance_after": 1028.7199124726467
     }
   ],
-  "trades": 10,
+  "trades": 11,
   "wins": 7,
-  "total_pnl": 187.65487720588112,
+  "total_pnl": 175.7783284338223,
   "gross_win": 242.52479509604382,
-  "gross_loss": 54.869917890162725,
-  "trader_score": 1183.8196760260848,
+  "gross_loss": 66.74646666222154,
+  "trader_score": 1175.6655480836116,
   "lessons": [
     "✅ LONG 1h +2.4% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
@@ -262,9 +267,10 @@
     "✅ LONG 1h +0.9% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "❌ LONG 1h -0.7% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 4h -0.7% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
-    "❌ SHORT 1h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
+    "❌ SHORT 1h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
+    "❌ SHORT 1h -0.4% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 251,
+  "sessions": 252,
   "trade_tf": "",
   "equity_points": [
     {
@@ -310,6 +316,10 @@
     {
       "t": 1786865409410,
       "e": 1187.6548772058813
+    },
+    {
+      "t": 1787027710232,
+      "e": 1175.7783284338225
     }
   ]
 }
