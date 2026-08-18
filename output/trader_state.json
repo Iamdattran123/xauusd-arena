@@ -7,20 +7,6 @@
   "position": null,
   "pending_orders": [
     {
-      "id": 1786984017467,
-      "dir": "long",
-      "type": "buy_limit",
-      "trigger": 4404.7,
-      "sl": 4380.0,
-      "tp": 4486.5,
-      "rr": 3.311740890688291,
-      "risk_pct": 0.015,
-      "reason": "Tôi đồng ý với Hội đồng về xu hướng tăng dài hạn nhưng cần điều chỉnh ngắn hạn. Đặt lệnh BUY_LIMIT tại hỗ trợ $4,404.70 (theo chuyên gia Vĩ mô) để tối ưu tỷ lệ risk/reward, kết hợp bài học tránh vào lệnh sớm. Dừng lỗ dưới hỗ trợ và chốt lời tại kháng cự $4,486.50.",
-      "llm": true,
-      "created_at": "2026-08-17 16:26:57",
-      "sessions_alive": 7
-    },
-    {
       "id": 1786987782849,
       "dir": "long",
       "type": "buy_limit",
@@ -32,7 +18,21 @@
       "reason": "Tôi nghe theo đồng thuận mua mạnh từ Hội đồng (+0.312) nhưng chọn vào lệnh thận trọng với buy_limit tại hỗ trợ $4,402, kết hợp bài học tránh vào sớm. Dự phòng SL rộng hơn ATR để giảm nhiễu, TP hướng kháng cự $4,486.50. Ưu tiên bảo toàn vốn.",
       "llm": true,
       "created_at": "2026-08-17 17:29:42",
-      "sessions_alive": 6
+      "sessions_alive": 7
+    },
+    {
+      "id": 1787015153678,
+      "dir": "long",
+      "type": "buy_limit",
+      "trigger": 4402.0,
+      "sl": 4382.0,
+      "tp": 4490.0,
+      "rr": 4.4,
+      "risk_pct": 0.015,
+      "reason": "Dựa trên xu hướng tăng kỹ thuật được hỗ trợ bởi phân tích Hội đồng và lịch sử giao dịch gần đây (70% win rate), tôi chọn đặt lệnh mua giới hạn tại vùng hỗ trợ $4,402 để tối ưu tỷ lệ rủi ro/lợi nhuận. Mặc dù có chênh lệch giá và biến động, nhưng xu hướng chung vẫn tích cực với P(tăng) 80% từ mô phỏng Monte Carlo.",
+      "llm": true,
+      "created_at": "2026-08-18 01:05:53",
+      "sessions_alive": 0
     }
   ],
   "history": [
@@ -262,7 +262,7 @@
     "❌ LONG 4h -0.7% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ SHORT 1h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 248,
+  "sessions": 249,
   "trade_tf": "",
   "equity_points": [
     {
