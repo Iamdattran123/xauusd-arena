@@ -1,58 +1,58 @@
 {
-  "generated_at": "2026-08-18 23:21:37",
+  "generated_at": "2026-08-19 01:05:14",
   "timeframe": "1h",
   "timeframe_label": "1 giờ",
   "horizon": "24 nến",
   "rounds": 2,
-  "price": 4334.600098,
+  "price": 4331.600098,
   "price_source": "gold-api.com · XAU spot",
   "kline_source": "Yahoo · GC=F 1 giờ",
-  "n_candles": 89,
+  "n_candles": 90,
   "indicators": {
-    "rsi": 23.750260484466068,
-    "ema20": 4423.832187438852,
-    "ema50": 4437.346886380092,
-    "macd_hist": -5.876750562315582,
-    "atr": 16.257219587053573,
+    "rsi": 32.47537110855326,
+    "ema20": 4421.186332342166,
+    "ema50": 4435.736883897591,
+    "macd_hist": -4.649803954884181,
+    "atr": 17.285784040178573,
     "res": 4493.10009765625,
-    "sup": 4383.2998046875,
-    "vol": 0.011343666086426573,
-    "momentum": 0.017096745540989833,
-    "last_ret_pct": 0.034193491081979666,
+    "sup": 4379.60009765625,
+    "vol": 0.011513425027737452,
+    "momentum": 0.1367989056087593,
+    "last_ret_pct": 0.2735978112175186,
     "trend": "GIẢM",
-    "n": 89
+    "n": 90
   },
-  "consensus": -0.44950424929178456,
+  "consensus": -0.33619186046511623,
   "verdict": "BÁN MẠNH 📉",
-  "target": 4072.6996005641404,
-  "p10": 3779.375215208281,
-  "p50": 4066.130341085068,
-  "p90": 4383.329920831635,
-  "prob_up": 0.14666666666666667,
-  "drift": -0.0022751677715199745,
+  "target": 4175.710606725188,
+  "p10": 3875.3374554489615,
+  "p50": 4176.116209181386,
+  "p90": 4478.0753198362845,
+  "prob_up": 0.25,
+  "drift": -0.0015843215068200105,
   "n_paths": 300,
   "crowd": {
     "n_voters": 80,
     "bull": 0,
     "neu": 0,
     "bear": 80,
-    "crowd_mean": -0.3866928749972551,
+    "crowd_mean": -0.32970511215776127,
     "votes": {
-      "Macro_Analyst": 26,
-      "Technical_Analyst": 11,
-      "Institutional_Whale": 35,
-      "Retail_Crowd": 8
+      "Macro_Analyst": 52,
+      "Technical_Analyst": 5,
+      "Institutional_Whale": 17,
+      "Retail_Crowd": 6
     },
-    "momentum": -0.01150123239699867
+    "momentum": 0.027886771682391485
   },
   "agents": [
     {
       "key": "Macro_Analyst",
       "title": "Chuyên gia Vĩ mô",
       "icon": "🏛️",
-      "stance": -0.35,
-      "conf": 0.75,
-      "reasoning": "Xu hướng giảm vẫn chiếm ưu thế nhưng cần cảnh giác với đợt phục hồi kỹ thuật do RSI cực thấp. Hỗ trợ 4,383.30 và chênh lệch futures-spot tạo kịch bản giằng co trước khi tiếp tục đà giảm.",
+      "stance": -0.25,
+      "conf": 0.85,
+      "reasoning": "Duy trì xu hướng giảm chính nhưng giảm áp lực bán do RSI quá bán và khoảng cách giá lớn với trung bình động tạo cơ hội điều chỉnh kỹ thuật ngắn hạn.",
       "model": "openrouter/deepseek/deepseek-chat",
       "fallback": false
     },
@@ -60,19 +60,19 @@
       "key": "Technical_Analyst",
       "title": "Chuyên gia Kỹ thuật",
       "icon": "📐",
-      "stance": -0.7,
-      "conf": 0.85,
-      "reasoning": "Mặc dù RSI ở vùng quá bán, xu hướng giảm vẫn mạnh với EMA và MACD hỗ trợ. Giá dưới vùng hỗ trợ có thể tiếp tục giảm trước khi hồi phục.",
-      "model": "openrouter/deepseek/deepseek-chat",
+      "stance": -0.35,
+      "conf": 0.6,
+      "reasoning": "虽然EMA和MACD确认下跌趋势，但RSI超卖和接近支撑位增加了短期反弹概率，因此将情绪从强烈看空调整为温和看空，但仍以逢高做空为主。",
+      "model": "openrouter/deepseek/deepseek-v4-flash-0731",
       "fallback": false
     },
     {
       "key": "Institutional_Whale",
       "title": "Quỹ & Ngân hàng TW",
       "icon": "🐋",
-      "stance": -0.2,
-      "conf": 0.7,
-      "reasoning": "Mặc dù thị trường có thể bị bán quá mức trong ngắn hạn, nhưng sự tham gia của các tổ chức lớn có thể tạo ra sự hỗ trợ đáng kể cho giá vàng. Với chênh lệch giá đáng kể, các ngân hàng trung ương có thể xem đây là cơ hội mua vào, giúp giảm áp lực bán và tạo ra sự hồi phục. Tuy nhiên, cần theo dõi chặt chẽ các giao dịch OTC và dòng tiền tổ chức để xác nhận tín hiệu này.",
+      "stance": -0.4,
+      "conf": 0.8,
+      "reasoning": "Thị trường có thể đã phản ứng thái quá với các yếu tố vĩ mô và kỹ thuật ngắn hạn, tạo ra cơ hội mua vào giá tốt. Tuy nhiên, cần theo dõi chặt chẽ các chỉ báo và mức hỗ trợ, vì việc phá vỡ hỗ trợ có thể dẫn đến xu hướng giảm sâu hơn.",
       "model": "cohere/command-r-plus-08-2024",
       "fallback": false
     },
@@ -80,10 +80,10 @@
       "key": "Retail_Crowd",
       "title": "Đám đông Nhỏ lẻ",
       "icon": "👥",
-      "stance": -0.4,
-      "conf": 0.7,
-      "reasoning": "Mặc dù xu hướng giảm vẫn rõ ràng, nhưng sự quá bán có thể tạo ra cơ hội cho các nhà đầu tư bắt đáy. Điều này có thể dẫn đến sự phục hồi tạm thời trước khi giá vàng tiếp tục giảm.",
-      "model": "openrouter/openai/gpt-4o-mini",
+      "stance": -0.35,
+      "conf": 0.65,
+      "reasoning": "Mặc dù xu hướng giảm vẫn chiếm ưu thế với MACD hist -4.65 và EMA20/50 giảm, RSI(14) 32.5 tạo cơ hội phục hồi ngắn hạn. Tâm lý FOMO của nhà đầu tư cá nhân có thể đẩy giá test lại hỗ trợ $4,379.60 trước khi tiếp tục xu hướng giảm dài hạn.",
+      "model": "openrouter/qwen/qwen3-32b",
       "fallback": false
     }
   ],
@@ -95,9 +95,9 @@
           "key": "Macro_Analyst",
           "title": "Chuyên gia Vĩ mô",
           "icon": "🏛️",
-          "stance": -0.45,
-          "conf": 0.72,
-          "reason": "Giá vàng đang giảm mạnh theo xu hướng EMA20/50 (4,423.83/4,437.35) và MACD âm (-5.88), cùng với RSI (23.8) ở vùng oversold. Futures GC=F thấp hơn spot (-55.00) cho thấy áp lực bán ngắn hạn, nhưng hỗ trợ gần nhất tại 4,383.30 có thể cản đà giảm. Đồng thuận trader liên tiếp ở mức -0.38 đến -0.50 cho thấy tâm lý tiêu cực rõ rệt.",
+          "stance": -0.6,
+          "conf": 0.85,
+          "reason": "Giá vàng đang trong xu hướng giảm mạnh với EMA20/50 giảm, RSI(14) 32.5 và MACD hist -4.65. Giá đóng cửa liên tiếp dưới hỗ trợ gần nhất $4,379.60, đồng thuận bán mạnh (-0.43 đến -0.50) trong 6 phiên gần nhất. Futures cao hơn spot $65 cho thấy kỳ vọng giảm giá tiếp tục.",
           "critique": null,
           "model": "openrouter/qwen/qwen3-32b",
           "fallback": false
@@ -106,9 +106,9 @@
           "key": "Technical_Analyst",
           "title": "Chuyên gia Kỹ thuật",
           "icon": "📐",
-          "stance": -0.65,
-          "conf": 0.72,
-          "reason": "RSI(14) ở mức 23.8 cho thấy giá vàng bị bán quá đà, trong khi EMA20 ($4,423.83) và EMA50 ($4,437.35) đều trên giá hiện tại ($4,334.60) xác nhận xu hướng giảm. MACD hist (-5.88) và 6 phiên giảm liên tiếp (giảm 0.38-0.50 mỗi giờ) cho thấy áp lực bán mạnh, đặc biệt khi giá đang dưới vùng hỗ trợ gần nhất ($4,383.30).",
+          "stance": -0.6,
+          "conf": 0.7,
+          "reason": "Giá vàng hiện tại $4,331.60 đang dưới EMA20 ($4,421.19) và EMA50 ($4,435.74) với xu hướng giảm mạnh. RSI(14) ở 32.5 (dưới 30) cho thấy vùng quá bán, nhưng MACD histogram âm (-4.65) và 6 phiên gần nhất đều cho tín hiệu bán mạnh (đồng thuận -0.43 đến -0.50) cho thấy áp lực giảm tiếp tục chiếm ưu thế.",
           "critique": null,
           "model": "openrouter/qwen/qwen3-32b",
           "fallback": false
@@ -117,9 +117,9 @@
           "key": "Institutional_Whale",
           "title": "Quỹ & Ngân hàng TW",
           "icon": "🐋",
-          "stance": -0.6,
+          "stance": -0.5,
           "conf": 0.8,
-          "reason": "Giá vàng đang trong xu hướng giảm với 6 phiên giảm liên tiếp, đồng thời chỉ báo RSI(14) ở mức 23.8, cho thấy thị trường đang bị bán quá mức. Tuy nhiên, chênh lệch giữa giá spot và futures ($-55.00) có thể là một tín hiệu cảnh báo về áp lực bán mạnh từ các quỹ ETF. Với sự đồng thuận bán mạnh (-0.38 đến -0.50) trong các phiên gần đây, có thể dự đoán giá vàng sẽ tiếp tục giảm trong ngắn hạn, hướng đến vùng hỗ trợ $4,383.30.",
+          "reason": "Giá vàng có xu hướng giảm trong các phiên gần đây, với đồng thuận bán mạnh. Chỉ báo RSI ở mức 32.5 cho thấy thị trường đang ở vùng bán quá mức. Giá hiện tại thấp hơn EMA20 và EMA50, cho thấy xu hướng giảm. Hỗ trợ gần nhất ở mức $4,379.60 có thể là mức giá mà thị trường sẽ kiểm tra trong thời gian tới.",
           "critique": null,
           "model": "cohere/command-r-plus-08-2024",
           "fallback": false
@@ -128,9 +128,9 @@
           "key": "Retail_Crowd",
           "title": "Đám đông Nhỏ lẻ",
           "icon": "👥",
-          "stance": -0.65,
-          "conf": 0.6,
-          "reason": "Giá vàng liên tiếp giảm mạnh trong 6 phiên gần nhất (từ $4,367 xuống $4,335), đồng thuận bán mạnh (-0.47) và EMA20/50 đều trên giá hiện tại ($4,423.83 vs $4,437.35) cho thấy xu hướng giảm. RSI(14) ở mức 23.8 (quá bán) nhưng chưa đủ lực để chặn đà bán, trong khi MACD hist (-5.88) và chênh lệch futures-spot (-$55) củng cố tâm lý bán lẻ và đòn bẩy thoát lệnh.",
+          "stance": -0.45,
+          "conf": 0.68,
+          "reason": "Giá vàng hiện tại $4,331.60 đang dưới mức hỗ trợ gần nhất $4,379.60, cho thấy xu hướng giảm tiếp tục. Đồng thuận trader trong 6 phiên gần nhất đều ở mức -0.43 đến -0.50 (BÁN MẠNH), kết hợp với MACD hist âm (-4.65) và EMA20/50 giảm, xác nhận áp lực bán chủ đạo. Tuy nhiên, RSI(14) 32.5 cho thấy vùng quá bán có thể tạo cơ hội bắt đáy ngắn hạn nếu giá hồi về hỗ trợ.",
           "critique": null,
           "model": "openrouter/qwen/qwen3-32b",
           "fallback": false
@@ -144,10 +144,10 @@
           "key": "Macro_Analyst",
           "title": "Chuyên gia Vĩ mô",
           "icon": "🏛️",
-          "stance": -0.35,
-          "conf": 0.75,
-          "reason": "Xu hướng giảm vẫn chiếm ưu thế nhưng cần cảnh giác với đợt phục hồi kỹ thuật do RSI cực thấp. Hỗ trợ 4,383.30 và chênh lệch futures-spot tạo kịch bản giằng co trước khi tiếp tục đà giảm.",
-          "critique": "Các phân tích đều bỏ qua khả năng bật tạm thời do RSI(14) ở vùng quá bán (23.8) - điều kiện thường kích hoạt đợt mua kỹ thuật ngắn hạn, đặc biệt khi có hỗ trợ gần 4,383.30. Chênh lệch futures-spot (-55.00) phản ánh áp lực bán tương lai nhưng không tính đến dòng tiền thực tế vào spot khi giá rơi quá sâu.",
+          "stance": -0.25,
+          "conf": 0.85,
+          "reason": "Duy trì xu hướng giảm chính nhưng giảm áp lực bán do RSI quá bán và khoảng cách giá lớn với trung bình động tạo cơ hội điều chỉnh kỹ thuật ngắn hạn.",
+          "critique": "Các phân tích đều bỏ qua yếu tố RSI(14) ở 32.5 (vùng quá bán) - đây là tín hiệu kỹ thuật mạnh cho khả năng đảo chiều ngắn hạn, đặc biệt khi giá cách xa EMA20/50. Lập luận 'MACD âm áp đảo' có thể sai lầm nếu đà giảm đã quá mức.",
           "model": "openrouter/deepseek/deepseek-chat",
           "fallback": false
         },
@@ -155,21 +155,21 @@
           "key": "Technical_Analyst",
           "title": "Chuyên gia Kỹ thuật",
           "icon": "📐",
-          "stance": -0.7,
-          "conf": 0.85,
-          "reason": "Mặc dù RSI ở vùng quá bán, xu hướng giảm vẫn mạnh với EMA và MACD hỗ trợ. Giá dưới vùng hỗ trợ có thể tiếp tục giảm trước khi hồi phục.",
-          "critique": "RSI(14) ở mức 23.8 cho thấy giá vàng đã bị bán quá mức, nhưng điều này không đảm bảo sẽ có đảo chiều ngay lập tức. Các chỉ báo EMA và MACD vẫn củng cố xu hướng giảm, và giá đang ở dưới vùng hỗ trợ $4,383.30, điều này có thể dẫn đến việc giá tiếp tục giảm trước khi có bất kỳ sự hồi phục nào.",
-          "model": "openrouter/deepseek/deepseek-chat",
+          "stance": -0.35,
+          "conf": 0.6,
+          "reason": "虽然EMA和MACD确认下跌趋势，但RSI超卖和接近支撑位增加了短期反弹概率，因此将情绪从强烈看空调整为温和看空，但仍以逢高做空为主。",
+          "critique": "所有观点均一致看空，但忽略了RSI 32.5已进入超卖区域，历史上超卖常伴随技术性反弹，且价格4331.60距支撑4379.60仅约1.1%，若反弹可能快速回补缺口。此外，MACD负值但未给出柱状图收缩迹象，过度依赖趋势指标可能错失反转信号。",
+          "model": "openrouter/deepseek/deepseek-v4-flash-0731",
           "fallback": false
         },
         {
           "key": "Institutional_Whale",
           "title": "Quỹ & Ngân hàng TW",
           "icon": "🐋",
-          "stance": -0.2,
-          "conf": 0.7,
-          "reason": "Mặc dù thị trường có thể bị bán quá mức trong ngắn hạn, nhưng sự tham gia của các tổ chức lớn có thể tạo ra sự hỗ trợ đáng kể cho giá vàng. Với chênh lệch giá đáng kể, các ngân hàng trung ương có thể xem đây là cơ hội mua vào, giúp giảm áp lực bán và tạo ra sự hồi phục. Tuy nhiên, cần theo dõi chặt chẽ các giao dịch OTC và dòng tiền tổ chức để xác nhận tín hiệu này.",
-          "critique": "Các chuyên gia có thể đã bỏ qua tác động tiềm tàng từ các giao dịch OTC và dòng tiền tổ chức. Chênh lệch giữa giá spot và futures có thể không chỉ đơn thuần là áp lực bán từ các quỹ ETF, mà còn phản ánh nhu cầu tích trữ vàng vật chất, đặc biệt là từ các ngân hàng trung ương.",
+          "stance": -0.4,
+          "conf": 0.8,
+          "reason": "Thị trường có thể đã phản ứng thái quá với các yếu tố vĩ mô và kỹ thuật ngắn hạn, tạo ra cơ hội mua vào giá tốt. Tuy nhiên, cần theo dõi chặt chẽ các chỉ báo và mức hỗ trợ, vì việc phá vỡ hỗ trợ có thể dẫn đến xu hướng giảm sâu hơn.",
+          "critique": "Mặc dù các chỉ báo kỹ thuật cho thấy xu hướng giảm và áp lực bán mạnh, nhưng việc chỉ tập trung vào các yếu tố ngắn hạn có thể bỏ qua những yếu tố cơ bản quan trọng. Giá vàng có thể đã giảm quá mức, và mức hỗ trợ gần nhất có thể là cơ hội mua vào cho các nhà đầu tư dài hạn.",
           "model": "cohere/command-r-plus-08-2024",
           "fallback": false
         },
@@ -177,11 +177,11 @@
           "key": "Retail_Crowd",
           "title": "Đám đông Nhỏ lẻ",
           "icon": "👥",
-          "stance": -0.4,
-          "conf": 0.7,
-          "reason": "Mặc dù xu hướng giảm vẫn rõ ràng, nhưng sự quá bán có thể tạo ra cơ hội cho các nhà đầu tư bắt đáy. Điều này có thể dẫn đến sự phục hồi tạm thời trước khi giá vàng tiếp tục giảm.",
-          "critique": "Các chuyên gia đều nhấn mạnh vào xu hướng giảm và áp lực bán, nhưng không xem xét khả năng phục hồi ngắn hạn từ vùng hỗ trợ 4,383.30. Hơn nữa, chỉ báo RSI(14) ở mức 23.8 cho thấy thị trường có thể đã bán quá mức, có thể tạo ra cơ hội cho những nhà đầu tư tìm kiếm mức giá thấp hơn để vào lệnh.",
-          "model": "openrouter/openai/gpt-4o-mini",
+          "stance": -0.35,
+          "conf": 0.65,
+          "reason": "Mặc dù xu hướng giảm vẫn chiếm ưu thế với MACD hist -4.65 và EMA20/50 giảm, RSI(14) 32.5 tạo cơ hội phục hồi ngắn hạn. Tâm lý FOMO của nhà đầu tư cá nhân có thể đẩy giá test lại hỗ trợ $4,379.60 trước khi tiếp tục xu hướng giảm dài hạn.",
+          "critique": "Các chuyên gia bỏ qua rủi ro phục hồi ngắn hạn từ hỗ trợ $4,379.60 khi RSI(14) 32.5 cho thấy vùng quá bán có thể thu hút dòng tiền nhỏ lẻ bắt đáy, đặc biệt khi giá chỉ cách hỗ trợ 1.1% (4,331.60 → 4,379.60). Đồng thuận bán mạnh (-0.43 đến -0.50) có thể bị đột phá nếu áp lực chốt lời ngắn hạn gia tăng.",
+          "model": "openrouter/qwen/qwen3-32b",
           "fallback": false
         }
       ]
@@ -195,148 +195,148 @@
       "p90": 1.0
     },
     {
-      "mean": 4320.988228946862,
-      "p10": 4256.134133134153,
-      "p50": 4323.846080441017,
-      "p90": 4383.02776375953
+      "mean": 4326.422543423364,
+      "p10": 4262.812483352955,
+      "p50": 4324.340023607834,
+      "p90": 4391.841681839791
     },
     {
-      "mean": 4310.4918619309665,
-      "p10": 4223.428860131978,
-      "p50": 4310.67757826156,
-      "p90": 4396.7762169624775
+      "mean": 4313.542821177645,
+      "p10": 4228.2205572657,
+      "p50": 4315.7613133624145,
+      "p90": 4404.645470884643
     },
     {
-      "mean": 4302.101945358272,
-      "p10": 4199.271513423618,
-      "p50": 4307.6851061010075,
-      "p90": 4399.203753045467
+      "mean": 4313.772083072791,
+      "p10": 4210.022666981774,
+      "p50": 4313.7942023706955,
+      "p90": 4420.959294005917
     },
     {
-      "mean": 4287.948976207546,
-      "p10": 4182.228727903066,
-      "p50": 4288.980766070126,
-      "p90": 4397.666700201467
+      "mean": 4309.26178023442,
+      "p10": 4199.457414226746,
+      "p50": 4303.462060770016,
+      "p90": 4429.8903444327125
     },
     {
-      "mean": 4281.27062413833,
-      "p10": 4154.271445845155,
-      "p50": 4281.355705097446,
-      "p90": 4416.904837664124
+      "mean": 4303.051923671818,
+      "p10": 4180.257678657336,
+      "p50": 4302.359623945638,
+      "p90": 4437.207356804144
     },
     {
-      "mean": 4271.593495313574,
-      "p10": 4128.067781107861,
-      "p50": 4278.648275546133,
-      "p90": 4410.737070927367
+      "mean": 4293.7985870640405,
+      "p10": 4161.878489143995,
+      "p50": 4296.807122755854,
+      "p90": 4429.943749300444
     },
     {
-      "mean": 4260.394017202692,
-      "p10": 4113.806540702977,
-      "p50": 4262.579172734983,
-      "p90": 4406.747961135343
+      "mean": 4290.236807081972,
+      "p10": 4147.565008138093,
+      "p50": 4289.264640382064,
+      "p90": 4442.0537079940905
     },
     {
-      "mean": 4245.950991346586,
-      "p10": 4081.1947233866445,
-      "p50": 4249.601783184635,
-      "p90": 4397.322712641256
+      "mean": 4281.084624619782,
+      "p10": 4108.0832409489,
+      "p50": 4287.449182086311,
+      "p90": 4443.582246325578
     },
     {
-      "mean": 4236.185980069496,
-      "p10": 4061.4757785484794,
-      "p50": 4237.4324977164315,
-      "p90": 4406.378435803493
+      "mean": 4271.828838491768,
+      "p10": 4107.007599629834,
+      "p50": 4274.827760113643,
+      "p90": 4445.453504510572
     },
     {
-      "mean": 4225.843003293994,
-      "p10": 4035.3107768180107,
-      "p50": 4226.398092832989,
-      "p90": 4405.1382618326525
+      "mean": 4265.751207737408,
+      "p10": 4082.159285422055,
+      "p50": 4267.637406007833,
+      "p90": 4447.7789000794
     },
     {
-      "mean": 4218.41968963195,
-      "p10": 4028.9164415281607,
-      "p50": 4216.124622289707,
-      "p90": 4411.167350227523
+      "mean": 4262.5179309672685,
+      "p10": 4076.258653850397,
+      "p50": 4271.773786694237,
+      "p90": 4441.780227873285
     },
     {
-      "mean": 4207.225353313698,
-      "p10": 4004.454300188064,
-      "p50": 4202.383618109347,
-      "p90": 4404.452495797631
+      "mean": 4259.703938572231,
+      "p10": 4061.44197244412,
+      "p50": 4264.57479170714,
+      "p90": 4443.392883268979
     },
     {
-      "mean": 4197.862804290094,
-      "p10": 3990.135079743255,
-      "p50": 4194.549698118555,
-      "p90": 4417.815361960152
+      "mean": 4250.007385595889,
+      "p10": 4048.5093597128935,
+      "p50": 4249.327601923751,
+      "p90": 4438.836901692009
     },
     {
-      "mean": 4185.508831113864,
-      "p10": 3960.4881149306534,
-      "p50": 4175.2730534343555,
-      "p90": 4421.772024283101
+      "mean": 4246.342876243576,
+      "p10": 4042.4307002972473,
+      "p50": 4244.597618504762,
+      "p90": 4446.706282333816
     },
     {
-      "mean": 4174.408918702235,
-      "p10": 3941.5749745273347,
-      "p50": 4168.251795386303,
-      "p90": 4415.276339563936
+      "mean": 4234.4789814193055,
+      "p10": 4013.4518798369054,
+      "p50": 4227.739090891855,
+      "p90": 4457.096220110051
     },
     {
-      "mean": 4161.913627925834,
-      "p10": 3924.117118076291,
-      "p50": 4160.330615659015,
-      "p90": 4401.075026969653
+      "mean": 4232.085799403578,
+      "p10": 4000.013119944594,
+      "p50": 4231.166632529152,
+      "p90": 4453.137263507093
     },
     {
-      "mean": 4151.116533852514,
-      "p10": 3919.043867398219,
-      "p50": 4128.739597205639,
-      "p90": 4393.462176370475
+      "mean": 4228.987708174853,
+      "p10": 3984.56617876201,
+      "p50": 4229.438455476314,
+      "p90": 4465.502779673368
     },
     {
-      "mean": 4137.956720969705,
-      "p10": 3902.73027175796,
-      "p50": 4130.907665957716,
-      "p90": 4393.127950584343
+      "mean": 4223.978286470945,
+      "p10": 3966.829046854807,
+      "p50": 4217.584563723207,
+      "p90": 4469.108938724346
     },
     {
-      "mean": 4123.040317834893,
-      "p10": 3878.2291696784655,
-      "p50": 4115.2264366976,
-      "p90": 4390.8430063195965
+      "mean": 4214.599413399325,
+      "p10": 3950.7056912576577,
+      "p50": 4219.894172180021,
+      "p90": 4475.683777805173
     },
     {
-      "mean": 4113.201921343513,
-      "p10": 3864.2998930785097,
-      "p50": 4105.354236294805,
-      "p90": 4380.701373236305
+      "mean": 4205.974210117135,
+      "p10": 3936.0880040014663,
+      "p50": 4209.362098067557,
+      "p90": 4463.35374669365
     },
     {
-      "mean": 4103.285564617879,
-      "p10": 3840.8552793775198,
-      "p50": 4104.0657903384035,
-      "p90": 4389.131898779415
+      "mean": 4196.045778041088,
+      "p10": 3928.3533842202573,
+      "p50": 4193.725961293803,
+      "p90": 4449.158712908106
     },
     {
-      "mean": 4092.715996851974,
-      "p10": 3797.094839538843,
-      "p50": 4088.25075646204,
-      "p90": 4380.592061349152
+      "mean": 4185.1796298129175,
+      "p10": 3898.432007119569,
+      "p50": 4186.4374783414705,
+      "p90": 4449.2873979347205
     },
     {
-      "mean": 4082.3831699053244,
-      "p10": 3796.3674226566072,
-      "p50": 4083.0894235340947,
-      "p90": 4373.150360803077
+      "mean": 4178.307401664304,
+      "p10": 3893.590583158318,
+      "p50": 4177.542081033313,
+      "p90": 4442.904952373405
     },
     {
-      "mean": 4072.6996005641404,
-      "p10": 3779.375215208281,
-      "p50": 4066.130341085068,
-      "p90": 4383.329920831635
+      "mean": 4175.710606725188,
+      "p10": 3875.3374554489615,
+      "p50": 4176.116209181386,
+      "p90": 4478.0753198362845
     }
   ],
   "klines": [
@@ -352,11 +352,11 @@
       "o": 4455.2001953125,
       "h": 4465.2001953125,
       "l": 4437.2001953125,
-      "c": 4440.39990234375
+      "c": 4440.60009765625
     },
     {
       "t": 1786600800000,
-      "o": 4440.2998046875,
+      "o": 4440.5,
       "h": 4443.0,
       "l": 4425.60009765625,
       "c": 4437.7001953125
@@ -401,18 +401,18 @@
       "o": 4444.5,
       "h": 4460.0,
       "l": 4437.10009765625,
-      "c": 4458.89990234375
+      "c": 4458.7998046875
     },
     {
       "t": 1786626000000,
-      "o": 4458.5,
+      "o": 4458.89990234375,
       "h": 4459.0,
       "l": 4427.10009765625,
-      "c": 4429.10009765625
+      "c": 4429.2001953125
     },
     {
       "t": 1786629600000,
-      "o": 4429.2998046875,
+      "o": 4429.0,
       "h": 4444.7001953125,
       "l": 4408.7998046875,
       "c": 4440.89990234375
@@ -422,7 +422,7 @@
       "o": 4441.2001953125,
       "h": 4443.10009765625,
       "l": 4413.60009765625,
-      "c": 4422.39990234375
+      "c": 4422.10009765625
     },
     {
       "t": 1786636800000,
@@ -440,7 +440,7 @@
     },
     {
       "t": 1786644000000,
-      "o": 4412.60009765625,
+      "o": 4412.7001953125,
       "h": 4420.5,
       "l": 4411.39990234375,
       "c": 4413.60009765625
@@ -450,11 +450,11 @@
       "o": 4414.0,
       "h": 4415.5,
       "l": 4400.0,
-      "c": 4406.2001953125
+      "c": 4406.39990234375
     },
     {
       "t": 1786651200000,
-      "o": 4406.2001953125,
+      "o": 4406.0,
       "h": 4408.39990234375,
       "l": 4402.89990234375,
       "c": 4407.10009765625
@@ -482,7 +482,7 @@
     },
     {
       "t": 1786669200000,
-      "o": 4396.2001953125,
+      "o": 4395.7001953125,
       "h": 4397.10009765625,
       "l": 4367.5,
       "c": 4373.7001953125
@@ -497,7 +497,7 @@
     {
       "t": 1786676400000,
       "o": 4370.7001953125,
-      "h": 4383.7998046875,
+      "h": 4382.5,
       "l": 4368.89990234375,
       "c": 4379.60009765625
     },
@@ -527,11 +527,11 @@
       "o": 4391.39990234375,
       "h": 4401.60009765625,
       "l": 4385.7001953125,
-      "c": 4399.7998046875
+      "c": 4400.2998046875
     },
     {
       "t": 1786694400000,
-      "o": 4399.7998046875,
+      "o": 4400.2998046875,
       "h": 4405.7001953125,
       "l": 4398.10009765625,
       "c": 4404.7001953125
@@ -541,7 +541,7 @@
       "o": 4404.5,
       "h": 4413.7998046875,
       "l": 4402.0,
-      "c": 4413.60009765625
+      "c": 4413.2998046875
     },
     {
       "t": 1786701600000,
@@ -566,14 +566,14 @@
     },
     {
       "t": 1786712400000,
-      "o": 4430.7001953125,
+      "o": 4430.89990234375,
       "h": 4454.60009765625,
       "l": 4427.2998046875,
       "c": 4442.0
     },
     {
       "t": 1786716000000,
-      "o": 4441.60009765625,
+      "o": 4441.7001953125,
       "h": 4452.2001953125,
       "l": 4436.2001953125,
       "c": 4438.60009765625
@@ -583,7 +583,7 @@
       "o": 4438.7001953125,
       "h": 4452.2998046875,
       "l": 4436.39990234375,
-      "c": 4449.0
+      "c": 4448.7998046875
     },
     {
       "t": 1786723200000,
@@ -604,14 +604,14 @@
       "o": 4435.89990234375,
       "h": 4439.60009765625,
       "l": 4427.5,
-      "c": 4430.2998046875
+      "c": 4430.2001953125
     },
     {
       "t": 1786734000000,
-      "o": 4430.2998046875,
+      "o": 4429.7998046875,
       "h": 4435.60009765625,
       "l": 4428.60009765625,
-      "c": 4431.5
+      "c": 4431.60009765625
     },
     {
       "t": 1786737600000,
@@ -660,7 +660,7 @@
       "o": 4451.89990234375,
       "h": 4454.7001953125,
       "l": 4444.89990234375,
-      "c": 4449.7998046875
+      "c": 4450.0
     },
     {
       "t": 1786935600000,
@@ -674,32 +674,32 @@
       "o": 4453.5,
       "h": 4456.2998046875,
       "l": 4445.5,
-      "c": 4447.10009765625
+      "c": 4447.2001953125
     },
     {
       "t": 1786942800000,
-      "o": 4447.2998046875,
+      "o": 4447.0,
       "h": 4457.7001953125,
       "l": 4443.39990234375,
       "c": 4451.2998046875
     },
     {
       "t": 1786946400000,
-      "o": 4451.60009765625,
+      "o": 4451.5,
       "h": 4460.7001953125,
       "l": 4449.10009765625,
       "c": 4459.2998046875
     },
     {
       "t": 1786950000000,
-      "o": 4459.0,
+      "o": 4458.89990234375,
       "h": 4467.89990234375,
       "l": 4452.2001953125,
       "c": 4461.5
     },
     {
       "t": 1786953600000,
-      "o": 4461.7998046875,
+      "o": 4460.89990234375,
       "h": 4461.7998046875,
       "l": 4448.7998046875,
       "c": 4451.10009765625
@@ -723,11 +723,11 @@
       "o": 4455.89990234375,
       "h": 4461.7998046875,
       "l": 4451.7998046875,
-      "c": 4453.39990234375
+      "c": 4453.5
     },
     {
       "t": 1786968000000,
-      "o": 4453.10009765625,
+      "o": 4453.39990234375,
       "h": 4455.39990234375,
       "l": 4433.39990234375,
       "c": 4441.39990234375
@@ -737,11 +737,11 @@
       "o": 4441.7001953125,
       "h": 4473.0,
       "l": 4438.10009765625,
-      "c": 4465.2998046875
+      "c": 4465.7001953125
     },
     {
       "t": 1786975200000,
-      "o": 4465.2998046875,
+      "o": 4465.2001953125,
       "h": 4484.89990234375,
       "l": 4460.39990234375,
       "c": 4474.5
@@ -755,14 +755,14 @@
     },
     {
       "t": 1786982400000,
-      "o": 4485.0,
+      "o": 4485.10009765625,
       "h": 4486.5,
       "l": 4479.7001953125,
       "c": 4481.5
     },
     {
       "t": 1786986000000,
-      "o": 4481.7001953125,
+      "o": 4481.7998046875,
       "h": 4483.7001953125,
       "l": 4468.2001953125,
       "c": 4471.0
@@ -779,18 +779,18 @@
       "o": 4462.89990234375,
       "h": 4477.0,
       "l": 4456.60009765625,
-      "c": 4475.7001953125
+      "c": 4475.89990234375
     },
     {
       "t": 1786996800000,
-      "o": 4475.89990234375,
+      "o": 4475.7001953125,
       "h": 4477.5,
       "l": 4471.10009765625,
       "c": 4473.10009765625
     },
     {
       "t": 1787004000000,
-      "o": 4473.39990234375,
+      "o": 4474.89990234375,
       "h": 4475.89990234375,
       "l": 4466.5,
       "c": 4467.89990234375
@@ -804,24 +804,24 @@
     },
     {
       "t": 1787011200000,
-      "o": 4482.2998046875,
+      "o": 4482.5,
       "h": 4491.7001953125,
       "l": 4475.0,
       "c": 4491.2001953125
     },
     {
       "t": 1787014800000,
-      "o": 4491.60009765625,
+      "o": 4491.2998046875,
       "h": 4493.10009765625,
       "l": 4460.89990234375,
       "c": 4464.60009765625
     },
     {
       "t": 1787018400000,
-      "o": 4464.60009765625,
+      "o": 4464.2998046875,
       "h": 4464.89990234375,
       "l": 4450.0,
-      "c": 4456.10009765625
+      "c": 4456.39990234375
     },
     {
       "t": 1787022000000,
@@ -884,7 +884,7 @@
       "o": 4454.2001953125,
       "h": 4455.7998046875,
       "l": 4444.7998046875,
-      "c": 4452.2998046875
+      "c": 4452.5
     },
     {
       "t": 1787054400000,
@@ -895,7 +895,7 @@
     },
     {
       "t": 1787058000000,
-      "o": 4450.5,
+      "o": 4450.60009765625,
       "h": 4463.0,
       "l": 4430.89990234375,
       "c": 4451.0
@@ -909,14 +909,14 @@
     },
     {
       "t": 1787065200000,
-      "o": 4422.60009765625,
+      "o": 4422.89990234375,
       "h": 4434.10009765625,
       "l": 4406.7998046875,
       "c": 4420.2001953125
     },
     {
       "t": 1787068800000,
-      "o": 4420.2998046875,
+      "o": 4420.89990234375,
       "h": 4427.0,
       "l": 4417.7998046875,
       "c": 4419.0
@@ -944,7 +944,7 @@
     },
     {
       "t": 1787083200000,
-      "o": 4400.10009765625,
+      "o": 4400.0,
       "h": 4401.2001953125,
       "l": 4383.2998046875,
       "c": 4389.5
@@ -958,10 +958,17 @@
     },
     {
       "t": 1787094000000,
-      "o": 4387.2001953125,
+      "o": 4386.89990234375,
       "h": 4391.5,
-      "l": 4385.89990234375,
-      "c": 4388.2998046875
+      "l": 4379.60009765625,
+      "c": 4386.0
+    },
+    {
+      "t": 1787097600000,
+      "o": 4386.10009765625,
+      "h": 4401.0,
+      "l": 4384.60009765625,
+      "c": 4398.0
     }
   ]
 }
