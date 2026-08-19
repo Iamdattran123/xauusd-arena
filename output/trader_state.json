@@ -18,7 +18,7 @@
       "reason": "Giá đang gần hỗ trợ $4,378.00 với MACD tích cực và RSI gần quá bán. Mua chờ giá về hỗ trợ để bắt cơ hội hồi phục ngắn hạn, đồng thời SL dưới hỗ trợ để bảo toàn vốn. Hội đồng có xu hướng bán nhẹ nhưng tôi giữ quan điểm mua vào ở mức giá then chốt.",
       "llm": true,
       "created_at": "2026-08-19 09:33:13",
-      "sessions_alive": 5
+      "sessions_alive": 6
     },
     {
       "id": 1787150093915,
@@ -32,6 +32,20 @@
       "reason": "当前价格接近阻力位，追高风险较大；等待回调至支撑区4400附近做多，止损设在4370下方，目标看至4530，符合趋势偏多但控制风险的原则。",
       "llm": true,
       "created_at": "2026-08-19 14:34:53",
+      "sessions_alive": 1
+    },
+    {
+      "id": 1787153577939,
+      "dir": "long",
+      "type": "buy_limit",
+      "trigger": 4378.0,
+      "sl": 4350.0,
+      "tp": 4557.6,
+      "rr": 6.414285714285727,
+      "risk_pct": 0.02,
+      "reason": "Đồng thuận chuyên gia cho thấy xu hướng tăng mạnh, hỗ trợ $4,378 là mốc mua tiềm năng. Đặt lệnh chờ tại hỗ trợ để vào lệnh an toàn, kết hợp quản lý rủi ro với SL dưới hỗ trợ và TP tại kháng cự gần nhất.",
+      "llm": true,
+      "created_at": "2026-08-19 15:32:57",
       "sessions_alive": 0
     }
   ],
@@ -284,7 +298,7 @@
     "❌ SHORT 1h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ SHORT 1h -0.4% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 285,
+  "sessions": 286,
   "trade_tf": "",
   "equity_points": [
     {
