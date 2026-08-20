@@ -7,20 +7,6 @@
   "position": null,
   "pending_orders": [
     {
-      "id": 1787178263042,
-      "dir": "long",
-      "type": "buy_limit",
-      "trigger": 4380.0,
-      "sl": 4350.0,
-      "tp": 4500.0,
-      "rr": 4.0,
-      "risk_pct": 0.01,
-      "reason": "RSI超买但趋势仍偏多，等待回调至支撑位附近买入，止损设于支撑下方，止盈看向阻力区域，风险回报合理。",
-      "llm": true,
-      "created_at": "2026-08-19 22:24:23",
-      "sessions_alive": 7
-    },
-    {
       "id": 1787208176166,
       "dir": "long",
       "type": "buy_limit",
@@ -32,7 +18,7 @@
       "reason": "Tôi đồng ý với hội đồng về xu hướng tăng nhẹ trong ngắn hạn, nhưng chờ giá về vùng hỗ trợ $4,380 để vào lệnh an toàn hơn. Đặt SL dưới hỗ trợ $4,378 và TP gần kháng cự $4,583.80, phù hợp với phân tích kỹ thuật và quản lý rủi ro.",
       "llm": true,
       "created_at": "2026-08-20 06:42:56",
-      "sessions_alive": 0
+      "sessions_alive": 1
     }
   ],
   "history": [
@@ -284,7 +270,7 @@
     "❌ SHORT 1h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ SHORT 1h -0.4% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 0,
+  "sessions": 1,
   "trade_tf": "",
   "equity_points": [
     {
