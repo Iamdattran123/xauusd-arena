@@ -1,0 +1,21 @@
+# systemd unit mẫu — deploy/install.sh tự sinh file này theo đường dẫn thật.
+# Nếu muốn cài thủ công: copy vào ~/.config/systemd/user/ và sửa 2 đường dẫn dưới.
+[Unit]
+Description=XAU/USD AI Debate Arena
+After=network-online.target
+
+[Service]
+WorkingDirectory=/home/USER/xauusd-arena
+ExecStart=/home/USER/xauusd-arena/venv/bin/python /home/USER/xauusd-arena/app.py --watch 60
+# Tùy chọn: chạy cả khi thị trường đóng (phân tích vẫn chạy, trader không mở lệnh)
+# ExecStart=/home/USER/xauusd-arena/venv/bin/python /home/USER/xauusd-arena/app.py --watch 60 --run-closed
+Restart=always
+RestartSec=30
+Environment=PYTHONUNBUFFERED=1
+# Có thể đặt API key trực tiếp tại đây (thay cho config.json):
+# Environment=OPENROUTER_API_KEY=sk-or-v1-...
+# Environment=TELEGRAM_BOT_TOKEN=123:abc
+# Environment=TELEGRAM_CHAT_ID=123456789
+
+[Install]
+WantedBy=default.target

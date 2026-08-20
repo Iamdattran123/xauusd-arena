@@ -1,0 +1,65 @@
+{
+  "_hướng_dẫn": "Copy file này thành config.json rồi điền giá trị. config.json đã bị gitignore — KHÔNG commit file thật lên GitHub.",
+  "_ghi_chú_key": "Nếu chạy trên GitHub Actions thì để các key API trong Secrets (OPENROUTER_API_KEY...) thay vì file này. Biến môi trường luôn ưu tiên hơn config.json.",
+
+  "openrouter_api_key": "",
+  "gemini_api_key": "",
+  "groq_api_key": "",
+  "cohere_api_key": "",
+
+  "models": {
+    "Macro_Analyst":       { "provider": "openrouter", "model": "qwen/qwen3-32b" },
+    "Technical_Analyst":   { "provider": "openrouter", "model": "deepseek/deepseek-v4-flash-0731" },
+    "Institutional_Whale": { "provider": "cohere",     "model": "command-r-plus-08-2024" },
+    "Retail_Crowd":        { "provider": "groq",       "model": "llama-3.3-70b-versatile" }
+  },
+
+  "trader": {
+    "provider": "openrouter",
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "risk_pct": 1.0,
+    "summary_every": 300,
+    "report_every_session": true,
+    "telegram_token": "",
+    "telegram_chat_id": "",
+    "allowed_user_ids": []
+  },
+
+  "data": {
+    "price_providers": ["metaapi", "gold_api", "binance", "yahoo"],
+    "kline_providers": ["metaapi", "binance", "yahoo"],
+    "closed_rounds": 1
+  },
+
+  "market_hours": {
+    "sun_open": "22:00",
+    "fri_close": "21:00",
+    "daily_break_start": "21:00",
+    "daily_break_end": "22:00",
+    "early_close": "18:00",
+    "extra_holidays": [],
+    "extra_early_closes": []
+  },
+
+  "metaapi": {
+    "enabled": false,
+    "token": "",
+    "account_id": "",
+    "symbol": "XAUUSD",
+    "magic": 20260804,
+    "region": "",
+    "risk_pct": 1.0
+  },
+
+  "exness": {
+    "enabled": false,
+    "mode": "demo",
+    "server": "",
+    "account": 0,
+    "password": "",
+    "symbol": "XAUUSD",
+    "magic": 20260804,
+    "risk_pct": 1.0,
+    "mt5_path": ""
+  }
+}
