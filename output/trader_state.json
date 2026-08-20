@@ -7,20 +7,6 @@
   "position": null,
   "pending_orders": [
     {
-      "id": 1787160402701,
-      "dir": "long",
-      "type": "buy_limit",
-      "trigger": 4378.0,
-      "sl": 4350.0,
-      "tp": 4557.6,
-      "rr": 6.414285714285727,
-      "risk_pct": 0.015,
-      "reason": "Chờ pullback về hỗ trợ $4,378 theo khuyến nghị của chuyên gia Vĩ mô và Kỹ thuật. SL dưới hỗ trợ EMA20, TP tại kháng cự $4,557.60. Giảm rủi ro bằng cách đặt lệnh chờ thay vì mua ngay.",
-      "llm": true,
-      "created_at": "2026-08-19 17:26:42",
-      "sessions_alive": 7
-    },
-    {
       "id": 1787178263042,
       "dir": "long",
       "type": "buy_limit",
@@ -32,7 +18,7 @@
       "reason": "RSI超买但趋势仍偏多，等待回调至支撑位附近买入，止损设于支撑下方，止盈看向阻力区域，风险回报合理。",
       "llm": true,
       "created_at": "2026-08-19 22:24:23",
-      "sessions_alive": 2
+      "sessions_alive": 3
     }
   ],
   "history": [
@@ -284,7 +270,7 @@
     "❌ SHORT 1h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ SHORT 1h -0.4% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 295,
+  "sessions": 296,
   "trade_tf": "",
   "equity_points": [
     {
