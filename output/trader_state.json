@@ -3,7 +3,22 @@
   "start_balance": 1000.0,
   "peak": 1242.524795096044,
   "max_dd": 5.371841827676544,
-  "positions": [],
+  "positions": [
+    {
+      "id": 1787214860580,
+      "dir": "long",
+      "tf": "1h",
+      "entry": 4489.0,
+      "sl": 4465.235735212053,
+      "tp": 4668.929251906887,
+      "rr": 7.571420934433807,
+      "qty": 0.4947673908389489,
+      "risk_pct": 0.01,
+      "opened_at": "2026-08-20 08:34:20",
+      "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.21), P(tăng) 64%.",
+      "llm": false
+    }
+  ],
   "position": null,
   "pending_orders": [
     {
@@ -18,7 +33,7 @@
       "reason": "Tôi đồng ý với hội đồng về xu hướng tăng nhẹ trong ngắn hạn, nhưng chờ giá về vùng hỗ trợ $4,380 để vào lệnh an toàn hơn. Đặt SL dưới hỗ trợ $4,378 và TP gần kháng cự $4,583.80, phù hợp với phân tích kỹ thuật và quản lý rủi ro.",
       "llm": true,
       "created_at": "2026-08-20 06:42:56",
-      "sessions_alive": 1
+      "sessions_alive": 2
     }
   ],
   "history": [
@@ -270,7 +285,7 @@
     "❌ SHORT 1h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ SHORT 1h -0.4% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 1,
+  "sessions": 2,
   "trade_tf": "",
   "equity_points": [
     {
