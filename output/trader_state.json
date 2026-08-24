@@ -44,7 +44,8 @@
       "risk_pct": 0.01,
       "opened_at": "2026-08-24 14:38:48",
       "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.21), P(tăng) 68%.",
-      "llm": false
+      "llm": false,
+      "warned": true
     }
   ],
   "position": null,
@@ -404,10 +405,10 @@
     "✅ LONG 1h +3.1% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +2.9% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
   ],
-  "sessions": 100,
+  "sessions": 101,
   "closed_sessions": 47,
   "trade_tf": "",
-  "last_candle_ts": 1787580000000,
+  "last_candle_ts": 1787583600000,
   "data_quality": "spot",
   "equity_points": [
     {
