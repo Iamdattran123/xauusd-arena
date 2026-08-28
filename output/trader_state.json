@@ -1,9 +1,12 @@
 {
-  "balance": 1171.337833383333,
+  "balance": 1171.6461619313582,
   "start_balance": 1000.0,
   "peak": 1259.513572245441,
   "max_dd": 8.210686572846267,
-  "positions": [
+  "positions": [],
+  "position": null,
+  "pending_orders": [],
+  "history": [
     {
       "id": 1787281174496,
       "dir": "long",
@@ -16,7 +19,33 @@
       "risk_pct": 0.01,
       "opened_at": "2026-08-21 02:59:34",
       "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.28), P(tăng) 77%.",
-      "llm": false
+      "llm": false,
+      "exit": 4511.9268207813075,
+      "pnl": -11.405049785808076,
+      "pnl_pct": -0.5898907852117552,
+      "exit_reason": "chạm CẮT LỖ (SL)",
+      "closed_at": "2026-08-28 20:42:09",
+      "balance_after": 1171.6461619313582
+    },
+    {
+      "id": 1787907506313,
+      "dir": "long",
+      "tf": "1h",
+      "entry": 4598.16,
+      "sl": 4576.741116056115,
+      "tp": 4695.189450040675,
+      "rr": 4.530088976385614,
+      "qty": 0.5468715533695004,
+      "risk_pct": 0.01,
+      "opened_at": "2026-08-28 08:58:26",
+      "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.18), P(tăng) 62%.",
+      "llm": false,
+      "exit": 4576.741116056115,
+      "pnl": -11.71337833383333,
+      "pnl_pct": -0.4658142375185914,
+      "exit_reason": "chạm CẮT LỖ (SL)",
+      "closed_at": "2026-08-28 20:42:09",
+      "balance_after": 1183.0512117171663
     },
     {
       "id": 1787873621158,
@@ -32,26 +61,14 @@
       "opened_at": "2026-08-27 23:33:41",
       "reason": "Tự quyết LONG (lệnh chờ buy_limit @ $4,561) theo phán quyết hội đồng (+0.17), P(tăng) 66%.",
       "llm": false,
-      "warned": true
+      "warned": true,
+      "exit": 4611.0919130028715,
+      "pnl": 23.42675666766666,
+      "pnl_pct": 1.0985773766370777,
+      "exit_reason": "chạm CHỐT LỜI (TP)",
+      "closed_at": "2026-08-28 20:42:09",
+      "balance_after": 1194.7645900509997
     },
-    {
-      "id": 1787907506313,
-      "dir": "long",
-      "tf": "1h",
-      "entry": 4598.16,
-      "sl": 4576.741116056115,
-      "tp": 4695.189450040675,
-      "rr": 4.530088976385614,
-      "qty": 0.5468715533695004,
-      "risk_pct": 0.01,
-      "opened_at": "2026-08-28 08:58:26",
-      "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.18), P(tăng) 62%.",
-      "llm": false
-    }
-  ],
-  "position": null,
-  "pending_orders": [],
-  "history": [
     {
       "id": 1787770693566,
       "dir": "long",
@@ -594,12 +611,12 @@
       "balance_after": 1028.7199124726467
     }
   ],
-  "trades": 26,
-  "wins": 10,
-  "total_pnl": 171.33783338333333,
-  "gross_win": 385.70231827590897,
-  "gross_loss": 214.36448489257577,
-  "trader_score": 1184.4048405516744,
+  "trades": 29,
+  "wins": 11,
+  "total_pnl": 171.6461619313586,
+  "gross_win": 409.12907494357563,
+  "gross_loss": 237.48291301221718,
+  "trader_score": 1185.2622876298092,
   "lessons": [
     "✅ LONG 1h +2.4% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
@@ -625,13 +642,16 @@
     "❌ LONG 4h -0.6% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 1h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 1h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
-    "❌ LONG 1h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
+    "❌ LONG 1h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
+    "✅ LONG 1h +1.1% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
+    "❌ LONG 1h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
+    "❌ LONG 4h -0.6% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 151,
+  "sessions": 152,
   "closed_sessions": 50,
   "trade_tf": "",
-  "last_candle_ts": 1787900400000,
-  "data_quality": "crypto_spot",
+  "last_candle_ts": 1787943600000,
+  "data_quality": "spot",
   "equity_points": [
     {
       "t": 1785837755119,
@@ -740,6 +760,18 @@
     {
       "t": 1787838224221,
       "e": 1171.337833383333
+    },
+    {
+      "t": 1787949729913,
+      "e": 1194.7645900509997
+    },
+    {
+      "t": 1787949729913,
+      "e": 1183.0512117171663
+    },
+    {
+      "t": 1787949729913,
+      "e": 1171.6461619313582
     }
   ]
 }
