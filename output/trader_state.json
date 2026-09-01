@@ -1,9 +1,48 @@
 {
-  "balance": 1159.9297003120446,
+  "balance": 1130.0648522867152,
   "start_balance": 1000.0,
   "peak": 1259.513572245441,
-  "max_dd": 8.210686572846267,
-  "positions": [
+  "max_dd": 10.277675668706507,
+  "positions": [],
+  "position": null,
+  "pending_orders": [
+    {
+      "id": 1788267793426,
+      "dir": "long",
+      "type": "buy_limit",
+      "trigger": 4338.099465808701,
+      "sl": 4311.239580233076,
+      "tp": 4391.819236959952,
+      "rr": 2.0,
+      "risk_pct": 0.01,
+      "reason": "Tự quyết LONG (lệnh chờ buy_limit @ $4,338) theo phán quyết hội đồng (+0.16), P(tăng) 60%.",
+      "llm": false,
+      "created_at": "2026-09-01 13:03:13",
+      "sessions_alive": 0
+    }
+  ],
+  "history": [
+    {
+      "id": 1788267793306,
+      "dir": "long",
+      "tf": "1h",
+      "entry": 4397.506447355062,
+      "sl": 4378.540236137099,
+      "tp": 4435.438869790988,
+      "rr": 2.0,
+      "qty": 0.601849064980018,
+      "risk_pct": 0.01,
+      "pending": true,
+      "opened_at": "2026-09-01 13:03:13",
+      "reason": "Tự quyết LONG (lệnh chờ buy_limit @ $4,398) theo phán quyết hội đồng (+0.18), P(tăng) 61%.",
+      "llm": false,
+      "exit": 4378.540236137099,
+      "pnl": -11.4147964877446,
+      "pnl_pct": -0.43129467676780164,
+      "exit_reason": "chạm CẮT LỖ (SL)",
+      "closed_at": "2026-09-01 13:03:13",
+      "balance_after": 1130.0648522867152
+    },
     {
       "id": 1788226602768,
       "dir": "long",
@@ -17,27 +56,14 @@
       "opened_at": "2026-09-01 01:36:42",
       "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.26), P(tăng) 74%.",
       "llm": false,
-      "warned": true
-    }
-  ],
-  "position": null,
-  "pending_orders": [
-    {
-      "id": 1788246764870,
-      "dir": "long",
-      "type": "buy_limit",
-      "trigger": 4397.506447355062,
-      "sl": 4378.540236137099,
-      "tp": 4435.438869790988,
-      "rr": 2.0,
-      "risk_pct": 0.01,
-      "reason": "Tự quyết LONG (lệnh chờ buy_limit @ $4,398) theo phán quyết hội đồng (+0.18), P(tăng) 61%.",
-      "llm": false,
-      "created_at": "2026-09-01 07:12:44",
-      "sessions_alive": 0
-    }
-  ],
-  "history": [
+      "warned": true,
+      "exit": 4409.595065243822,
+      "pnl": -18.450051537584756,
+      "pnl_pct": -0.75855200493673,
+      "exit_reason": "GAP qua SL (trượt giá)",
+      "closed_at": "2026-09-01 13:03:13",
+      "balance_after": 1141.4796487744597
+    },
     {
       "id": 1788131300320,
       "dir": "long",
@@ -662,12 +688,12 @@
       "balance_after": 1028.7199124726467
     }
   ],
-  "trades": 30,
+  "trades": 32,
   "wins": 11,
-  "total_pnl": 159.92970031204501,
+  "total_pnl": 130.06485228671565,
   "gross_win": 409.12907494357563,
-  "gross_loss": 249.19937463153076,
-  "trader_score": 1179.2622876298092,
+  "gross_loss": 279.06422265686007,
+  "trader_score": 1155.4653539957185,
   "lessons": [
     "✅ LONG 1h +2.4% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
@@ -697,12 +723,14 @@
     "✅ LONG 1h +1.1% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "❌ LONG 1h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 4h -0.6% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
-    "❌ LONG 1h -0.3% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
+    "❌ LONG 1h -0.3% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
+    "❌ LONG 4h -0.8% (GAP qua SL (trượt giá)) -> cần chờ mốc tốt hơn/tránh vào sớm",
+    "❌ LONG 1h -0.4% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 169,
+  "sessions": 170,
   "closed_sessions": 60,
   "trade_tf": "",
-  "last_candle_ts": 1788242400000,
+  "last_candle_ts": 1788264000000,
   "data_quality": "spot",
   "equity_points": [
     {
@@ -828,6 +856,14 @@
     {
       "t": 1788146823500,
       "e": 1159.9297003120446
+    },
+    {
+      "t": 1788267793306,
+      "e": 1141.4796487744597
+    },
+    {
+      "t": 1788267793306,
+      "e": 1130.0648522867152
     }
   ]
 }
