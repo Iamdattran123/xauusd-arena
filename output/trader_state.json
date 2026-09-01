@@ -17,26 +17,41 @@
       "pending": true,
       "opened_at": "2026-09-01 17:35:28",
       "reason": "Tự quyết LONG (lệnh chờ buy_limit @ $4,338) theo phán quyết hội đồng (+0.16), P(tăng) 60%.",
+      "llm": false,
+      "warned": true
+    },
+    {
+      "id": 1788294636650,
+      "dir": "long",
+      "tf": "1h",
+      "entry": 4326.644833161335,
+      "sl": 4295.484315445477,
+      "tp": 4388.965868593051,
+      "rr": 2.0,
+      "qty": 0.36265920309520644,
+      "risk_pct": 0.01,
+      "pending": true,
+      "opened_at": "2026-09-01 20:30:36",
+      "reason": "Tự quyết LONG (lệnh chờ buy_limit @ $4,327) theo phán quyết hội đồng (+0.29), P(tăng) 68%.",
+      "llm": false
+    },
+    {
+      "id": 1788294637688,
+      "dir": "long",
+      "tf": "1h",
+      "entry": 4328.399902,
+      "sl": 4298.10930218116,
+      "tp": 4455.60320735673,
+      "rr": 4.199431708764433,
+      "qty": 0.3730744386196833,
+      "risk_pct": 0.01,
+      "opened_at": "2026-09-01 20:30:37",
+      "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.21), P(tăng) 70%.",
       "llm": false
     }
   ],
   "position": null,
-  "pending_orders": [
-    {
-      "id": 1788284128356,
-      "dir": "long",
-      "type": "buy_limit",
-      "trigger": 4326.644833161335,
-      "sl": 4295.484315445477,
-      "tp": 4388.965868593051,
-      "rr": 2.0,
-      "risk_pct": 0.01,
-      "reason": "Tự quyết LONG (lệnh chờ buy_limit @ $4,327) theo phán quyết hội đồng (+0.29), P(tăng) 68%.",
-      "llm": false,
-      "created_at": "2026-09-01 17:35:28",
-      "sessions_alive": 0
-    }
-  ],
+  "pending_orders": [],
   "history": [
     {
       "id": 1788267793306,
@@ -743,10 +758,10 @@
     "❌ LONG 4h -0.8% (GAP qua SL (trượt giá)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 1h -0.4% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 171,
+  "sessions": 172,
   "closed_sessions": 60,
   "trade_tf": "",
-  "last_candle_ts": 1788278400000,
+  "last_candle_ts": 1788289200000,
   "data_quality": "spot",
   "equity_points": [
     {
