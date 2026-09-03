@@ -1,18 +1,5 @@
 [
   {
-    "time": "2026-08-19 09:32:48",
-    "tf": "1h",
-    "price": 4408.6,
-    "price_src": "Yahoo Finance · GC=F (COMEX futures)",
-    "consensus": -0.1881443298969072,
-    "verdict": "BÁN NHẸ 📉",
-    "target": 4315.1831761946505,
-    "p10": 4042.368425295108,
-    "p90": 4592.201212471941,
-    "prob_up": 0.29333333333333333,
-    "trader_action": "closed"
-  },
-  {
     "time": "2026-08-19 10:28:01",
     "tf": "1h",
     "price": 4369.299805,
@@ -2933,6 +2920,21 @@
     "p10": 4197.548268112544,
     "p90": 4997.025582334582,
     "prob_up": 0.7,
+    "market_open": true,
+    "trader_action": "long"
+  },
+  {
+    "time": "2026-09-03 02:50:20",
+    "tf": "1h",
+    "price": 4415.600098,
+    "price_src": "gold-api.com · XAU spot",
+    "price_quality": "spot",
+    "consensus": 0.26275802752293587,
+    "verdict": "MUA NHẸ 📈",
+    "target": 4615.259374844826,
+    "p10": 4176.313248599064,
+    "p90": 5070.647883016906,
+    "prob_up": 0.7066666666666667,
     "market_open": true,
     "trader_action": "long"
   }
