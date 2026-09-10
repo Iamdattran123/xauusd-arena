@@ -1,24 +1,27 @@
 {
-  "balance": 1085.201277650933,
+  "balance": 1052.4260067400614,
   "start_balance": 1000.0,
   "peak": 1259.513572245441,
-  "max_dd": 13.839651944658831,
-  "positions": [
+  "max_dd": 16.44186851723933,
+  "positions": [],
+  "position": null,
+  "pending_orders": [
     {
-      "id": 1788361044330,
+      "id": 1789051676810,
       "dir": "long",
-      "tf": "4h",
-      "entry": 4378.299805,
-      "sl": 4345.196512777848,
-      "tp": 4674.911807528246,
-      "rr": 8.960196482504525,
-      "qty": 0.3311341057444988,
+      "type": "buy_limit",
+      "trigger": 4321.323161976041,
+      "sl": 4291.315913899201,
+      "tp": 4381.33765812972,
+      "rr": 2.0,
       "risk_pct": 0.01,
-      "opened_at": "2026-09-02 14:57:24",
-      "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.26), P(tăng) 76%.",
+      "reason": "Tự quyết LONG (lệnh chờ buy_limit @ $4,321) theo phán quyết hội đồng (+0.16), P(tăng) 67%.",
       "llm": false,
-      "warned": true
-    },
+      "created_at": "2026-09-10 14:47:56",
+      "sessions_alive": 0
+    }
+  ],
+  "history": [
     {
       "id": 1788373697603,
       "dir": "long",
@@ -32,7 +35,34 @@
       "opened_at": "2026-09-02 18:28:17",
       "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.18), P(tăng) 63%.",
       "llm": false,
-      "warned": true
+      "warned": true,
+      "exit": 4347.090200364453,
+      "pnl": -10.961629067181141,
+      "pnl_pct": -0.6129473064367064,
+      "exit_reason": "chạm CẮT LỖ (SL)",
+      "closed_at": "2026-09-10 14:47:56",
+      "balance_after": 1052.4260067400614
+    },
+    {
+      "id": 1788361044330,
+      "dir": "long",
+      "tf": "4h",
+      "entry": 4378.299805,
+      "sl": 4345.196512777848,
+      "tp": 4674.911807528246,
+      "rr": 8.960196482504525,
+      "qty": 0.3311341057444988,
+      "risk_pct": 0.01,
+      "opened_at": "2026-09-02 14:57:24",
+      "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.26), P(tăng) 76%.",
+      "llm": false,
+      "warned": true,
+      "exit": 4345.196512777848,
+      "pnl": -10.961629067181141,
+      "pnl_pct": -0.7560764154238231,
+      "exit_reason": "chạm CẮT LỖ (SL)",
+      "closed_at": "2026-09-10 14:47:56",
+      "balance_after": 1063.3876358072425
     },
     {
       "id": 1788957907387,
@@ -46,12 +76,14 @@
       "risk_pct": 0.01,
       "opened_at": "2026-09-09 12:45:07",
       "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.27), P(tăng) 72%.",
-      "llm": false
-    }
-  ],
-  "position": null,
-  "pending_orders": [],
-  "history": [
+      "llm": false,
+      "exit": 4374.916867089593,
+      "pnl": -10.85201277650933,
+      "pnl_pct": -0.4614881463984588,
+      "exit_reason": "chạm CẮT LỖ (SL)",
+      "closed_at": "2026-09-10 14:47:56",
+      "balance_after": 1074.3492648744236
+    },
     {
       "id": 1788393065539,
       "dir": "long",
@@ -801,12 +833,12 @@
       "balance_after": 1028.7199124726467
     }
   ],
-  "trades": 36,
+  "trades": 39,
   "wins": 11,
-  "total_pnl": 85.20127765093306,
+  "total_pnl": 52.42600674006145,
   "gross_win": 409.12907494357563,
-  "gross_loss": 323.9277972926427,
-  "trader_score": 1103.9317026816361,
+  "gross_loss": 356.70306820351436,
+  "trader_score": 1067.3214653164564,
   "lessons": [
     "✅ LONG 1h +2.4% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
     "✅ LONG 1h +2.0% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
@@ -842,13 +874,16 @@
     "❌ LONG 1h -0.6% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 1h -0.7% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 1h -0.7% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
-    "❌ LONG 4h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
+    "❌ LONG 4h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
+    "❌ LONG 4h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
+    "❌ LONG 4h -0.8% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
+    "❌ LONG 1h -0.6% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 230,
+  "sessions": 231,
   "closed_sessions": 84,
   "trade_tf": "",
-  "last_candle_ts": 1789030800000,
-  "data_quality": "spot",
+  "last_candle_ts": 1789045200000,
+  "data_quality": "crypto_spot",
   "equity_points": [
     {
       "t": 1785837755119,
@@ -997,6 +1032,18 @@
     {
       "t": 1788900107797,
       "e": 1085.201277650933
+    },
+    {
+      "t": 1789051676462,
+      "e": 1074.3492648744236
+    },
+    {
+      "t": 1789051676462,
+      "e": 1063.3876358072425
+    },
+    {
+      "t": 1789051676462,
+      "e": 1052.4260067400614
     }
   ]
 }
