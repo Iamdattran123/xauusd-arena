@@ -18,6 +18,20 @@
       "reason": "Tự quyết LONG (lệnh chờ buy_limit @ $4,321) theo phán quyết hội đồng (+0.16), P(tăng) 67%.",
       "llm": false,
       "created_at": "2026-09-10 14:47:56",
+      "sessions_alive": 4
+    },
+    {
+      "id": 1789063429865,
+      "dir": "long",
+      "type": "buy_limit",
+      "trigger": 4327.733494345445,
+      "sl": 4296.40311686836,
+      "tp": 4390.394249299617,
+      "rr": 2.0,
+      "risk_pct": 0.01,
+      "reason": "Tự quyết LONG (lệnh chờ buy_limit @ $4,328) theo phán quyết hội đồng (+0.21), P(tăng) 62%.",
+      "llm": false,
+      "created_at": "2026-09-10 18:03:49",
       "sessions_alive": 0
     }
   ],
@@ -879,11 +893,11 @@
     "❌ LONG 4h -0.8% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 1h -0.6% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 231,
+  "sessions": 232,
   "closed_sessions": 84,
   "trade_tf": "",
-  "last_candle_ts": 1789045200000,
-  "data_quality": "crypto_spot",
+  "last_candle_ts": 1789059600000,
+  "data_quality": "spot",
   "equity_points": [
     {
       "t": 1785837755119,
