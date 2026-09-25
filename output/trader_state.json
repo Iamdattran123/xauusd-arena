@@ -3,24 +3,24 @@
   "start_balance": 1000.0,
   "peak": 1259.513572245441,
   "max_dd": 29.710745310726534,
-  "positions": [],
-  "position": null,
-  "pending_orders": [
+  "positions": [
     {
-      "id": 1790295507915,
+      "id": 1790334326799,
       "dir": "long",
-      "type": "buy_limit",
-      "trigger": 4252.084845578508,
-      "sl": 4228.005716277162,
-      "tp": 4300.243104181201,
-      "rr": 2.0,
+      "tf": "1h",
+      "entry": 4311.200195,
+      "sl": 4289.986586474223,
+      "tp": 4434.904546397191,
+      "rr": 5.831367692435476,
+      "qty": 0.4173277269474521,
       "risk_pct": 0.01,
-      "reason": "Tự quyết LONG (lệnh chờ buy_limit @ $4,252) theo phán quyết hội đồng (+0.18), P(tăng) 56%.",
-      "llm": false,
-      "created_at": "2026-09-25 00:18:27",
-      "sessions_alive": 5
+      "opened_at": "2026-09-25 11:05:26",
+      "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.21), P(tăng) 67%.",
+      "llm": false
     }
   ],
+  "position": null,
+  "pending_orders": [],
   "history": [
     {
       "id": 1790255386996,
@@ -1301,10 +1301,10 @@
     "❌ LONG 1h -0.4% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 1h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 19,
+  "sessions": 20,
   "closed_sessions": 116,
   "trade_tf": "",
-  "last_candle_ts": 1790308800000,
+  "last_candle_ts": 1790330400000,
   "data_quality": "spot",
   "equity_points": [
     {
