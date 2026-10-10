@@ -1,20 +1,5 @@
 [
   {
-    "time": "2026-08-15 09:24:45",
-    "tf": "1h",
-    "trades": 45,
-    "win_rate": 11.1,
-    "total_return_pct": -28.09,
-    "profit_factor": 0.09,
-    "max_drawdown_pct": 30.28,
-    "points": 2,
-    "skipped": 0,
-    "filtered": true,
-    "consensus": -0.33454935622317594,
-    "verdict": "BÁN MẠNH 📉",
-    "target": 4187.893639253139
-  },
-  {
     "time": "2026-08-15 10:20:39",
     "tf": "1h",
     "trades": 45,
@@ -8236,6 +8221,23 @@
     "consensus": 0.23386396526772793,
     "verdict": "MUA NHẸ 📈",
     "target": 4275.831198885437,
+    "market_open": false,
+    "price_quality": "spot"
+  },
+  {
+    "time": "2026-10-10 15:01:37",
+    "tf": "1h",
+    "trades": 215,
+    "win_rate": 34.0,
+    "total_return_pct": -52.88,
+    "profit_factor": 0.19,
+    "max_drawdown_pct": 53.9,
+    "points": 10,
+    "skipped": 20,
+    "filtered": true,
+    "consensus": 0.23908701854493583,
+    "verdict": "MUA NHẸ 📈",
+    "target": 4282.982773682021,
     "market_open": false,
     "price_quality": "spot"
   }
