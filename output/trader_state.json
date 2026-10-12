@@ -1,9 +1,12 @@
 {
-  "balance": 823.1019942738889,
+  "balance": 798.4089344456723,
   "start_balance": 1000.0,
   "peak": 1259.513572245441,
-  "max_dd": 34.64921598212908,
-  "positions": [
+  "max_dd": 36.60973950266519,
+  "positions": [],
+  "position": null,
+  "pending_orders": [],
+  "history": [
     {
       "id": 1791513932628,
       "dir": "long",
@@ -16,21 +19,13 @@
       "risk_pct": 0.01,
       "opened_at": "2026-10-09 02:45:32",
       "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.29), P(tăng) 80%.",
-      "llm": false
-    },
-    {
-      "id": 1791540038304,
-      "dir": "long",
-      "tf": "4h",
-      "entry": 4188.200195,
-      "sl": 4172.275450908529,
-      "tp": 4341.485283685242,
-      "rr": 9.625591959580342,
-      "qty": 0.5168698407622793,
-      "risk_pct": 0.01,
-      "opened_at": "2026-10-09 10:00:38",
-      "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.29), P(tăng) 76%.",
-      "llm": false
+      "llm": false,
+      "exit": 4157.199542934312,
+      "pnl": -8.23101994273889,
+      "pnl_pct": -0.4978567990829963,
+      "exit_reason": "chạm CẮT LỖ (SL)",
+      "closed_at": "2026-10-12 16:30:06",
+      "balance_after": 798.4089344456723
     },
     {
       "id": 1791565007867,
@@ -44,12 +39,34 @@
       "risk_pct": 0.01,
       "opened_at": "2026-10-09 16:56:47",
       "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.19), P(tăng) 68%.",
-      "llm": false
-    }
-  ],
-  "position": null,
-  "pending_orders": [],
-  "history": [
+      "llm": false,
+      "exit": 4174.026900353421,
+      "pnl": -8.23101994273889,
+      "pnl_pct": -0.423992210347901,
+      "exit_reason": "chạm CẮT LỖ (SL)",
+      "closed_at": "2026-10-12 16:30:06",
+      "balance_after": 806.6399543884112
+    },
+    {
+      "id": 1791540038304,
+      "dir": "long",
+      "tf": "4h",
+      "entry": 4188.200195,
+      "sl": 4172.275450908529,
+      "tp": 4341.485283685242,
+      "rr": 9.625591959580342,
+      "qty": 0.5168698407622793,
+      "risk_pct": 0.01,
+      "opened_at": "2026-10-09 10:00:38",
+      "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.29), P(tăng) 76%.",
+      "llm": false,
+      "exit": 4172.275450908529,
+      "pnl": -8.23101994273889,
+      "pnl_pct": -0.3802288178698543,
+      "exit_reason": "chạm CẮT LỖ (SL)",
+      "closed_at": "2026-10-12 16:30:06",
+      "balance_after": 814.87097433115
+    },
     {
       "id": 1791426621803,
       "dir": "long",
@@ -1600,16 +1617,13 @@
       "balance_after": 1028.7199124726467
     }
   ],
-  "trades": 75,
+  "trades": 78,
   "wins": 15,
-  "total_pnl": -176.89800572611148,
+  "total_pnl": -201.59106555432817,
   "gross_win": 481.5072207371792,
-  "gross_loss": 658.4052264632911,
-  "trader_score": 821.4081468325371,
+  "gross_loss": 683.0982862915076,
+  "trader_score": 795.3665902865222,
   "lessons": [
-    "❌ LONG 1h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
-    "✅ LONG 1h +1.1% (chạm CHỐT LỜI (TP)) -> giữ chiến lược",
-    "❌ LONG 1h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 4h -0.6% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 1h -0.3% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 4h -0.8% (GAP qua SL (trượt giá)) -> cần chờ mốc tốt hơn/tránh vào sớm",
@@ -1656,12 +1670,15 @@
     "❌ LONG 4h -0.4% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 4h -0.4% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 1h -0.4% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
-    "❌ LONG 1h -0.6% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
+    "❌ LONG 1h -0.6% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
+    "❌ LONG 4h -0.4% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
+    "❌ LONG 1h -0.4% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
+    "❌ LONG 4h -0.5% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 97,
+  "sessions": 98,
   "closed_sessions": 148,
   "trade_tf": "",
-  "last_candle_ts": 1791781200000,
+  "last_candle_ts": 1791817200000,
   "data_quality": "spot",
   "equity_points": [
     {
@@ -1967,6 +1984,18 @@
     {
       "t": 1791453530586,
       "e": 823.1019942738889
+    },
+    {
+      "t": 1791822606586,
+      "e": 814.87097433115
+    },
+    {
+      "t": 1791822606586,
+      "e": 806.6399543884112
+    },
+    {
+      "t": 1791822606586,
+      "e": 798.4089344456723
     }
   ]
 }
