@@ -3,35 +3,52 @@
   "start_balance": 1000.0,
   "peak": 1259.513572245441,
   "max_dd": 40.86951280080014,
-  "positions": [],
-  "position": null,
-  "pending_orders": [
+  "positions": [
     {
-      "id": 1792520356043,
+      "id": 1792545354636,
       "dir": "long",
-      "type": "buy_limit",
-      "trigger": 4112.617907096784,
+      "tf": "1h",
+      "entry": 4112.617907096784,
       "sl": 4088.13173273081,
       "tp": 4161.590255828731,
       "rr": 2.0,
+      "qty": 0.3102369649448296,
       "risk_pct": 0.01,
+      "pending": true,
+      "opened_at": "2026-10-21 01:15:54",
       "reason": "Tự quyết LONG (lệnh chờ buy_limit @ $4,113) theo phán quyết hội đồng (+0.21), P(tăng) 72%.",
-      "llm": false,
-      "created_at": "2026-10-20 18:19:16",
-      "sessions_alive": 4
+      "llm": false
     },
     {
-      "id": 1792533927131,
+      "id": 1792545354636,
       "dir": "long",
-      "type": "buy_limit",
-      "trigger": 4110.061771005017,
+      "tf": "1h",
+      "entry": 4110.061771005017,
       "sl": 4089.4369088684316,
       "tp": 4151.311495278189,
       "rr": 2.0,
+      "qty": 0.3683184095051137,
       "risk_pct": 0.01,
+      "pending": true,
+      "opened_at": "2026-10-21 01:15:54",
       "reason": "Tự quyết LONG (lệnh chờ buy_limit @ $4,110) theo phán quyết hội đồng (+0.16), P(tăng) 64%.",
+      "llm": false
+    }
+  ],
+  "position": null,
+  "pending_orders": [
+    {
+      "id": 1792545355211,
+      "dir": "long",
+      "type": "buy_limit",
+      "trigger": 4102.189485910815,
+      "sl": 4082.302660870499,
+      "tp": 4141.963135991447,
+      "rr": 2.0,
+      "risk_pct": 0.01,
+      "reason": "Tự quyết LONG (lệnh chờ buy_limit @ $4,102) theo phán quyết hội đồng (+0.16), P(tăng) 64%.",
       "llm": false,
-      "created_at": "2026-10-20 22:05:27",
+      "created_at": "2026-10-21 01:15:55",
       "sessions_alive": 0
     }
   ],
@@ -1994,10 +2011,10 @@
     "❌ LONG 1h -0.4% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "✅ LONG 1h +0.6% (chạm CHỐT LỜI (TP)) -> giữ chiến lược"
   ],
-  "sessions": 143,
+  "sessions": 144,
   "closed_sessions": 163,
   "trade_tf": "",
-  "last_candle_ts": 1792530000000,
+  "last_candle_ts": 1792540800000,
   "data_quality": "spot",
   "equity_points": [
     {
