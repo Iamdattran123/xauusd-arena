@@ -16,7 +16,8 @@
       "risk_pct": 0.01,
       "opened_at": "2026-10-28 10:19:51",
       "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.18), P(tăng) 62%.",
-      "llm": false
+      "llm": false,
+      "warned": true
     }
   ],
   "position": null,
@@ -2228,10 +2229,10 @@
     "❌ LONG 1h -0.5% (GAP qua SL (trượt giá)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 1h -0.3% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 184,
+  "sessions": 185,
   "closed_sessions": 179,
   "trade_tf": "",
-  "last_candle_ts": 1793178000000,
+  "last_candle_ts": 1793199600000,
   "data_quality": "spot",
   "equity_points": [
     {
