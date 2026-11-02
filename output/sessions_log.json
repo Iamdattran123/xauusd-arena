@@ -1,20 +1,5 @@
 [
   {
-    "time": "2026-09-22 10:55:50",
-    "tf": "1h",
-    "price": 4329.700195,
-    "price_src": "gold-api.com · XAU spot",
-    "price_quality": "spot",
-    "consensus": 0.18368237347294938,
-    "verdict": "MUA NHẸ 📈",
-    "target": 4408.95253138536,
-    "p10": 4124.746777151826,
-    "p90": 4695.5966272703945,
-    "prob_up": 0.6233333333333333,
-    "market_open": true,
-    "trader_action": "long"
-  },
-  {
     "time": "2026-09-22 15:24:52",
     "tf": "1h",
     "price": 4337.799805,
@@ -3012,6 +2997,21 @@
     "p90": 3949.4957364786787,
     "prob_up": 0.64,
     "market_open": false,
+    "trader_action": "closed"
+  },
+  {
+    "time": "2026-11-02 01:15:31",
+    "tf": "1h",
+    "price": 3911.199951,
+    "price_src": "gold-api.com · XAU spot",
+    "price_quality": "spot",
+    "consensus": 0.20840605002908666,
+    "verdict": "MUA NHẸ 📈",
+    "target": 3938.4654928651266,
+    "p10": 3867.061934618707,
+    "p90": 4012.1648344411433,
+    "prob_up": 0.6733333333333333,
+    "market_open": true,
     "trader_action": "closed"
   }
 ]
