@@ -17,6 +17,20 @@
       "opened_at": "2026-11-04 18:26:04",
       "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.26), P(tăng) 74%.",
       "llm": false
+    },
+    {
+      "id": 1793837242565,
+      "dir": "long",
+      "tf": "1h",
+      "entry": 4063.899902,
+      "sl": 4045.0979455792403,
+      "tp": 4196.369049656647,
+      "rr": 7.045498069040507,
+      "qty": 0.3506303083291787,
+      "risk_pct": 0.01,
+      "opened_at": "2026-11-05 00:07:22",
+      "reason": "Tự quyết LONG (vào ngay) theo phán quyết hội đồng (+0.18), P(tăng) 65%.",
+      "llm": false
     }
   ],
   "position": null,
@@ -2413,11 +2427,11 @@
     "❌ LONG 4h -0.6% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 1h -0.6% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 213,
+  "sessions": 214,
   "closed_sessions": 190,
   "trade_tf": "",
-  "last_candle_ts": 1793811600000,
-  "data_quality": "crypto_spot",
+  "last_candle_ts": 1793833200000,
+  "data_quality": "spot",
   "equity_points": [
     {
       "t": 1785837755119,
