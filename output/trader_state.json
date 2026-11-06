@@ -49,22 +49,7 @@
     }
   ],
   "position": null,
-  "pending_orders": [
-    {
-      "id": 1793917854015,
-      "dir": "long",
-      "type": "buy_limit",
-      "trigger": 4045.037961452141,
-      "sl": 4013.031248376287,
-      "tp": 4109.051387603849,
-      "rr": 1.9999999999999858,
-      "risk_pct": 0.01,
-      "reason": "Tự quyết LONG (lệnh chờ buy_limit @ $4,045) theo phán quyết hội đồng (+0.18), P(tăng) 61%.",
-      "llm": false,
-      "created_at": "2026-11-05 22:30:54",
-      "sessions_alive": 5
-    }
-  ],
+  "pending_orders": [],
   "history": [
     {
       "id": 1793864457261,
@@ -2477,10 +2462,10 @@
     "❌ LONG 1h -0.6% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm",
     "❌ LONG 1h -0.6% (chạm CẮT LỖ (SL)) -> cần chờ mốc tốt hơn/tránh vào sớm"
   ],
-  "sessions": 218,
+  "sessions": 219,
   "closed_sessions": 190,
   "trade_tf": "",
-  "last_candle_ts": 1793930400000,
+  "last_candle_ts": 1793959200000,
   "data_quality": "spot",
   "equity_points": [
     {
