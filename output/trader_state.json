@@ -3,7 +3,24 @@
   "start_balance": 1000.0,
   "peak": 1000.0,
   "max_dd": 0.0,
-  "positions": [],
+  "positions": [
+    {
+      "id": 1794301361209,
+      "dir": "long",
+      "tf": "1h",
+      "entry": 4102.200195,
+      "sl": 4073.15,
+      "initial_sl": 4073.15,
+      "tp": 4145.78,
+      "rr": 1.5,
+      "qty": 0.6884635369917421,
+      "risk_pct": 0.02,
+      "opened_at": "2026-11-10 09:02:41",
+      "reason": "Tôi quyết định mua dựa trên xu hướng tăng ngắn hạn được hỗ trợ bởi EMA20 và EMA50, cùng với tâm lý tích cực từ dòng tiền nhỏ lẻ. Tuy nhiên, tôi đặt SL dưới hỗ trợ $4,073.15 để bảo vệ vốn nếu thị trường đảo chiều.",
+      "llm": true,
+      "be_moved": false
+    }
+  ],
   "position": null,
   "pending_orders": [],
   "history": [],
@@ -14,11 +31,11 @@
   "gross_loss": 0.0,
   "trader_score": 1000.0,
   "lessons": [],
-  "sessions": 0,
+  "sessions": 1,
   "closed_sessions": 0,
   "trade_tf": "",
-  "last_candle_ts": 0,
-  "data_quality": "",
+  "last_candle_ts": 1794297600000,
+  "data_quality": "spot",
   "equity_points": [
     {
       "t": 1794300266514,
