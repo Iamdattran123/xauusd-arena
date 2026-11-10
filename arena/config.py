@@ -30,15 +30,15 @@ AGENTS = [
 
 # Cấu hình mặc định (ghi đè bằng config.json → models.<AgentKey>)
 DEFAULT_AGENT_CONFIG = {
-    "Macro_Analyst":        {"provider": "gemini",     "model": "gemini-2.5-flash"},
-    "Technical_Analyst":    {"provider": "openrouter", "model": "deepseek/deepseek-v4-flash-0731"},
-    "Institutional_Whale":  {"provider": "cohere",     "model": "command-r-plus-08-2024"},
-    "Retail_Crowd":         {"provider": "groq",       "model": "llama-3.3-70b-versatile"},
+    "Macro_Analyst":        {"provider": "openrouter", "model": "deepseek/deepseek-chat"},
+    "Technical_Analyst":    {"provider": "groq",       "model": "openai/gpt-oss-120b"},
+    "Institutional_Whale":  {"provider": "openrouter", "model": "openai/gpt-4o-mini"},
+    "Retail_Crowd":         {"provider": "groq",       "model": "qwen/qwen3.8-27b"},
 }
 
 DEFAULT_TRADER_CONFIG = {
-    "provider": "gemini",
-    "model": "gemini-2.5-flash",
+    "provider": "openrouter",
+    "model": "deepseek/deepseek-chat",
     "risk_pct": 1.0,
     "summary_every": 300,
     "report_every_session": True,
@@ -64,17 +64,22 @@ PROVIDER_META = {
 FALLBACK_CHAIN = {
     "gemini":     [("gemini", "gemini-2.5-flash"), ("gemini", "gemini-2.5-flash-lite"),
                    ("gemini", "gemini-1.5-flash"), ("gemini", "gemini-1.5-pro")],
-    "groq":       [("groq", "llama-3.3-70b-versatile"), ("groq", "llama-3.1-8b-instant")],
+    "groq":       [("groq", "openai/gpt-oss-120b"), ("groq", "qwen/qwen3.8-27b"),
+                   ("groq", "openai/gpt-oss-20b"), ("groq", "llama-3.3-70b-versatile")],
     "cohere":     [("cohere", "command-r-plus-08-2024"), ("cohere", "command-r-08-2024"),
                    ("cohere", "command-r-plus"), ("cohere", "command-r")],
-    "openrouter": [("openrouter", "deepseek/deepseek-v4-flash-0731"),
-                   ("openrouter", "deepseek/deepseek-chat"),
-                   ("openrouter", "qwen/qwen3-32b"),
+    "openrouter": [("openrouter", "deepseek/deepseek-chat"),
                    ("openrouter", "openai/gpt-4o-mini"),
-                   ("openrouter", "google/gemma-4-31b-it:free")],
+                   ("openrouter", "qwen/qwen-2.5-72b-instruct"),
+                   ("openrouter", "mistralai/mistral-small-24b-instruct-2501")],
 }
 # Model OpenRouter dùng làm fallback CHÉO (khi provider khác lỗi hết)
-OR_FALLBACK_MODELS = ["deepseek/deepseek-v4-flash-0731", "deepseek/deepseek-chat", "qwen/qwen3-32b", "openai/gpt-4o-mini", "google/gemma-4-31b-it:free"]
+OR_FALLBACK_MODELS = [
+    "deepseek/deepseek-chat",
+    "openai/gpt-4o-mini",
+    "qwen/qwen-2.5-72b-instruct",
+    "mistralai/mistral-small-24b-instruct-2501",
+]
 
 # Dữ liệu mẫu khi chưa có API key (được cân bằng trung lập để không thiên lệch mua/bán mù quáng)
 MOCK = {
