@@ -9,7 +9,7 @@ from . import datasources
 
 
 def market_snapshot(price, price_src, klines, ind, tf_key, context="", history="",
-                    market_status=None, data_note=""):
+                    market_status=None, data_note="", macro=None):
     tf = TIMEFRAMES[tf_key]
     L = [f"Giá hiện tại: ${price:,.2f}/oz (nguồn: {price_src}).",
          f"Khung {tf['label']}: dự báo {tf['steps']} nến ≈ {tf['label']} tới."]
@@ -21,6 +21,10 @@ def market_snapshot(price, price_src, klines, ind, tf_key, context="", history="
                      "Hãy phản ánh rủi ro gap này trong lập trường.")
         if market_status.get("next_close"):
             L.append(f"Đóng cửa phiên tiếp theo: {market_status['next_close']}.")
+    if macro and macro.get("summary"):
+        L.append(f"🌐 CHỈ SỐ VĨ MÔ REALTIME: {macro['summary']}")
+        if macro.get("dxy") and macro.get("us10y"):
+            L.append(f"  (DXY {macro['dxy']:.2f} · US10Y {macro['us10y']:.2f}% — tỷ lệ nghịch với sức hấp dẫn của vàng không sinh lãi)")
     if data_note:
         L.append(f"📡 CHẤT LƯỢNG DỮ LIỆU: {data_note}")
     if PRICE_INFO_line():

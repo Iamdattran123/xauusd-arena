@@ -260,11 +260,45 @@ def align_klines_to_price(klines, price):
             for k in klines], ratio
 
 
+def fetch_macro_context(cfg):
+    """Lấy dữ liệu vĩ mô thực tế: DXY, US 10Y Yield, Bạc, Dầu thô WTI.
+    Giúp Chuyên gia Vĩ mô & Quỹ phân tích trên số liệu thực tế thay vì suy diễn.
+    """
+    data = {"dxy": None, "dxy_chg": 0.0, "us10y": None, "us10y_chg": 0.0,
+            "silver": None, "oil": None, "summary": ""}
+    items = [("DX-Y.NYB", "dxy", "Chỉ số USD (DXY)"),
+             ("^TNX", "us10y", "Lợi suất Mỹ 10Y"),
+             ("SI=F", "silver", "Bạc"),
+             ("CL=F", "oil", "Dầu WTI")]
+    parts = []
+    for sym, key, label in items:
+        try:
+            d = _http_json(f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?interval=1d&range=5d", timeout=5)
+            meta = d["chart"]["result"][0]["meta"]
+            p = float(meta.get("regularMarketPrice") or 0)
+            prev = float(meta.get("chartPreviousClose") or meta.get("previousClose") or p)
+            if p > 0:
+                chg = ((p / prev - 1) * 100) if prev > 0 else 0.0
+                data[key] = p
+                data[f"{key}_chg"] = chg
+                if key in ("dxy", "us10y"):
+                    parts.append(f"{label}: {p:.2f} ({chg:+.2f}%)")
+                elif key == "silver":
+                    parts.append(f"{label}: ${p:.2f}")
+                elif key == "oil":
+                    parts.append(f"{label}: ${p:.2f}")
+        except Exception:
+            continue
+    if parts:
+        data["summary"] = " · ".join(parts)
+    return data
+
+
 def build_market_data(cfg, tf_key):
     """Tổng hợp giá + nến + trạng thái dữ liệu cho 1 phiên.
 
     Trả dict: price, price_src, price_quality, synthetic, klines, kline_src,
-    kline_quality, aligned_ratio, basis, stale (bool), stale_text.
+    kline_quality, aligned_ratio, basis, stale (bool), stale_text, macro.
     """
     q = fetch_price(cfg)
     price, price_src, quality = q["price"], q["source"], q["quality"]
@@ -280,6 +314,7 @@ def build_market_data(cfg, tf_key):
     age_min = (time.time() * 1000 - klines[-1]["t"]) / 60000 if klines else 0
     stale = age_min > 2.5 * step_min
 
+    macro = fetch_macro_context(cfg)
     kline_quality = quality if not k_synthetic else "default"
     return {
         "price": price, "price_src": price_src, "price_quality": quality,
@@ -288,4 +323,5 @@ def build_market_data(cfg, tf_key):
         "stale": stale, "stale_text": f"nến cuối cách {age_min:.0f} phút" if stale else "",
         "last_candle_ts": klines[-1]["t"] if klines else 0,
         "quality_label": QUALITY_LABEL.get(quality, quality),
+        "macro": macro,
     }

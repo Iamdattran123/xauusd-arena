@@ -30,15 +30,15 @@ AGENTS = [
 
 # Cấu hình mặc định (ghi đè bằng config.json → models.<AgentKey>)
 DEFAULT_AGENT_CONFIG = {
-    "Macro_Analyst":        {"provider": "openrouter", "model": "qwen/qwen3-32b"},
+    "Macro_Analyst":        {"provider": "gemini",     "model": "gemini-2.5-flash"},
     "Technical_Analyst":    {"provider": "openrouter", "model": "deepseek/deepseek-v4-flash-0731"},
     "Institutional_Whale":  {"provider": "cohere",     "model": "command-r-plus-08-2024"},
     "Retail_Crowd":         {"provider": "groq",       "model": "llama-3.3-70b-versatile"},
 }
 
 DEFAULT_TRADER_CONFIG = {
-    "provider": "openrouter",
-    "model": "deepseek/deepseek-v4-flash-0731",
+    "provider": "gemini",
+    "model": "gemini-2.5-flash",
     "risk_pct": 1.0,
     "summary_every": 300,
     "report_every_session": True,
@@ -62,39 +62,41 @@ PROVIDER_META = {
 
 # Chuỗi dự phòng theo từng nhà cung cấp (khi model chính lỗi/429)
 FALLBACK_CHAIN = {
-    "gemini":     [("gemini", "gemini-2.5-flash"), ("gemini", "gemini-2.5-flash-lite")],
+    "gemini":     [("gemini", "gemini-2.5-flash"), ("gemini", "gemini-2.5-flash-lite"),
+                   ("gemini", "gemini-1.5-flash"), ("gemini", "gemini-1.5-pro")],
     "groq":       [("groq", "llama-3.3-70b-versatile"), ("groq", "llama-3.1-8b-instant")],
-    "cohere":     [("cohere", "command-r-plus-08-2024"), ("cohere", "command-r-08-2024")],
-    "openrouter": [("openrouter", "qwen/qwen3-32b"),
-                   ("openrouter", "deepseek/deepseek-v4-flash-0731"),
+    "cohere":     [("cohere", "command-r-plus-08-2024"), ("cohere", "command-r-08-2024"),
+                   ("cohere", "command-r-plus"), ("cohere", "command-r")],
+    "openrouter": [("openrouter", "deepseek/deepseek-v4-flash-0731"),
                    ("openrouter", "deepseek/deepseek-chat"),
+                   ("openrouter", "qwen/qwen3-32b"),
                    ("openrouter", "openai/gpt-4o-mini"),
                    ("openrouter", "google/gemma-4-31b-it:free")],
 }
 # Model OpenRouter dùng làm fallback CHÉO (khi provider khác lỗi hết)
-OR_FALLBACK_MODELS = ["qwen/qwen3-32b", "deepseek/deepseek-v4-flash-0731", "openai/gpt-4o-mini", "google/gemma-4-31b-it:free"]
+OR_FALLBACK_MODELS = ["deepseek/deepseek-v4-flash-0731", "deepseek/deepseek-chat", "qwen/qwen3-32b", "openai/gpt-4o-mini", "google/gemma-4-31b-it:free"]
 
-# Dữ liệu mẫu khi chưa có API key (để demo/kiểm thử không cần key)
+# Dữ liệu mẫu khi chưa có API key (được cân bằng trung lập để không thiên lệch mua/bán mù quáng)
 MOCK = {
     "Macro_Analyst": {
-        1: (0.55, 0.80, "DXY suy yếu và kỳ vọng Fed hạ lãi suất từ quý IV củng cố vai trò trú ẩn của vàng; rủi ro địa chính trị duy trì dòng mua phòng thủ của các NHTW."),
-        2: ("Quan điểm kỹ thuật quá nhấn mạnh RSI ngắn hạn — vàng trong chu kỳ vĩ mô nới lỏng thường vượt vùng quá mua trong thời gian dài; bỏ qua sức ép DXY.", 0.52, 0.82, "Sau khi cân nhắc phản biện: vẫn duy trì xu hướng tăng vĩ mô nhưng thừa nhận khả năng điều chỉnh kỹ thuật ngắn hạn trước vùng kháng cự; hạ nhẹ mức độ tích cực."),
-        3: (0.50, 0.82, "Sau khi cân nhắc phản biện: vẫn duy trì xu hướng tăng vĩ mô nhưng thừa nhận khả năng điều chỉnh kỹ thuật ngắn hạn trước vùng kháng cự; hạ nhẹ mức độ tích cực."),
+        1: (0.05, 0.60, "Biến động DXY và lợi suất trái phiếu Mỹ giằng co; thị trường chờ đợi dữ liệu vĩ mô mới; rủi ro và cơ hội cân bằng."),
+        2: ("Quan điểm các bên có cơ sở nhưng chưa có chất xúc tác vĩ mô đột phá; giữ lập trường thận trọng.", 0.02, 0.60, "Sau phản biện: duy trì trạng thái trung lập chờ tín hiệu rõ ràng từ chính sách tiền tệ."),
+        3: (0.02, 0.60, "Lập trường cuối cùng: trung lập thận trọng, ưu tiên bảo toàn vốn."),
     },
     "Technical_Analyst": {
-        1: (-0.20, 0.75, "RSI tiệm cận vùng quá mua 68-70, MACD có dấu hiệu phân kỳ âm nhẹ; giá chạm vùng kháng cự nhiều lần chưa phá — xác suất điều chỉnh ngắn hạn cao."),
-        2: ("Lập luận vĩ mô đúng hướng nhưng chưa định lượng: nếu Fed hạ lãi suất, mô hình nến tăng vẫn chiếm ưu thế; kháng cự có thể bị phá trong 1-2 phiên.", -0.10, 0.72, "Giữ quan điểm thận trọng ngắn hạn: chờ xác nhận phá kháng cự đi kèm khối lượng trước khi đuổi mua; nâng nhẹ điểm do lực vĩ mô hỗ trợ."),
-        3: (-0.10, 0.72, "Giữ quan điểm thận trọng ngắn hạn: chờ xác nhận phá kháng cự đi kèm khối lượng trước khi đuổi mua; nâng nhẹ điểm do lực vĩ mô hỗ trợ."),
+        1: (0.00, 0.65, "Giá dao động trong biên độ tích lũy giữa hỗ trợ và kháng cự; RSI ở mức 50 trung tính; chưa có breakout kèm khối lượng."),
+        2: ("Kháng cự phía trên và hỗ trợ phía dưới đều được tôn trọng; biên độ hẹp cảnh báo rủi ro bẫy giá hai đầu.", 0.00, 0.65, "Giữ quan điểm kỹ thuật trung lập; khuyến nghị đứng ngoài hoặc giao dịch biên độ nhỏ."),
+        3: (0.00, 0.65, "Lập trường kỹ thuật: trung lập quan sát."),
     },
     "Institutional_Whale": {
-        1: (0.40, 0.90, "Lượng vàng do các NHTW nắm giữ tăng tháng thứ 9 liên tiếp; dòng vốn ETF vàng toàn cầu chuyển sang ròng dương, tạo lớp hỗ trợ mua tại vùng giá hiện tại."),
-        2: ("Phản biện kỹ thuật chỉ đúng cho nhà giao dịch lướt sóng; dòng tiền tổ chức quan tâm tích trữ 6-12 tháng, đợt điều chỉnh 1-2% không thay đổi chiến lược.", 0.45, 0.88, "Giữ lập trường tích cực: đợt điều chỉnh kỹ thuật nếu xảy ra sẽ là cơ hội gia tăng vị thế của dòng tiền lớn tại vùng hỗ trợ EMA50."),
-        3: (0.45, 0.88, "Giữ lập trường tích cực: đợt điều chỉnh kỹ thuật nếu xảy ra sẽ là cơ hội gia tăng vị thế của dòng tiền lớn tại vùng hỗ trợ EMA50."),
+        1: (-0.02, 0.65, "Dòng tiền lớn đang quan sát; các quỹ ETF duy trì khối lượng giao dịch vừa phải; thanh khoản OTC ổn định không có lực gom/xả đột biến."),
+        2: ("Thanh khoản thị trường cân bằng; chưa có vị thế tổ chức áp đảo để dẫn dắt xu hướng lớn.", -0.02, 0.65, "Giữ quan điểm dòng tiền tổ chức trung tính."),
+        3: (-0.02, 0.65, "Lập trường tổ chức: trung lập."),
     },
     "Retail_Crowd": {
-        1: (0.10, 0.60, "Tâm lý mạng xã hội phân hoá: một bộ phận FOMO đuổi mua phá đỉnh, phần còn lại chờ điều chỉnh để bắt đáy; chưa có dòng tiền nhỏ lẻ áp đảo."),
-        2: ("Quan điểm quỹ bỏ qua rủi ro thanh khoản: nếu thanh khoản toàn cầu thắt chặt bất ngờ, dòng tiền tổ chức cũng có thể đảo chiều nhanh; nhỏ lẻ thường bị cuốn theo.", 0.05, 0.58, "Sau phản biện, giữ tâm lý trung lập nhẹ: phần lớn nhỏ lẻ đang đứng ngoài quan sát, chỉ tham gia khi có tín hiệu phá đỉnh rõ ràng kèm khối lượng."),
-        3: (0.05, 0.58, "Sau phản biện, giữ tâm lý trung lập nhẹ: phần lớn nhỏ lẻ đang đứng ngoài quan sát, chỉ tham gia khi có tín hiệu phá đỉnh rõ ràng kèm khối lượng."),
+        1: (0.00, 0.50, "Tâm lý nhỏ lẻ phân vân, lực mua và bán tương đương nhau tại vùng giá hiện tại; tâm lý FOMO lẫn sợ hãi đều thấp."),
+        2: ("Nhỏ lẻ thiếu định hướng rõ rệt, giao dịch giằng co quanh các mốc kỹ thuật ngắn hạn.", 0.00, 0.50, "Giữ tâm lý trung lập quan sát."),
+        3: (0.00, 0.50, "Lập trường đám đông: trung lập."),
     },
 }
 

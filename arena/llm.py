@@ -137,14 +137,33 @@ def call_llm(role, prompt, cfg, provider=None, model=None):
 
 
 def _build_chain(cfg, provider, model):
-    chain = [(provider, model)]
-    for p, m in FALLBACK_CHAIN.get(provider, []):
-        if (p, m) not in chain:
-            chain.append((p, m))
-    if provider != "openrouter" and _api_key(cfg, "openrouter"):
-        for m in OR_FALLBACK_MODELS:
-            if ("openrouter", m) not in chain:
-                chain.append(("openrouter", m))
+    """Xây dựng chuỗi dự phòng thông minh:
+    1. Model chính và các model cùng provider (nếu có key).
+    2. Tự động dự phòng chéo sang TẤT CẢ các provider khác CÓ KEY (gemini -> groq -> openrouter -> cohere).
+    """
+    chain = []
+    # 1. Nếu provider được chỉ định có key, thêm model chính + chuỗi của provider đó
+    if _api_key(cfg, provider):
+        chain.append((provider, model))
+        for p, m in FALLBACK_CHAIN.get(provider, []):
+            if (p, m) not in chain:
+                chain.append((p, m))
+
+    # 2. Dự phòng chéo sang các nhà cung cấp khác có sẵn API key
+    cross_order = ["gemini", "groq", "openrouter", "cohere"]
+    for other_p in cross_order:
+        if other_p != provider and _api_key(cfg, other_p):
+            for p, m in FALLBACK_CHAIN.get(other_p, []):
+                if (p, m) not in chain:
+                    chain.append((p, m))
+            if other_p == "openrouter":
+                for m in OR_FALLBACK_MODELS:
+                    if ("openrouter", m) not in chain:
+                        chain.append(("openrouter", m))
+
+    # 3. Nếu chưa cấu hình key nào, giữ lại cặp gốc để báo lỗi / mock
+    if not chain:
+        chain = [(provider, model)]
     return chain
 
 
@@ -164,14 +183,21 @@ def call_agent_json(agent, round_no, prev, snap, cfg):
     chain = _build_chain(cfg, chosen["provider"], chosen["model"])
     prompt = build_prompt(agent, round_no, prev, snap)
     last_err = ""
-    for ci, (provider, model) in enumerate(chain):
+    blocked_providers = set()
+    idx = 0
+    while idx < len(chain):
+        provider, model = chain[idx]
+        if provider in blocked_providers:
+            idx += 1
+            continue
         try:
             res = call_llm(role, prompt, cfg, provider=provider, model=model)
             j = extract_json(res["text"])
             if not j:
                 last_err = "JSON không hợp lệ"
-                if ci == 0:
+                if idx == 0:
                     print(f"  🔁 {agent['title']} ({provider}/{model}) trả lời sai định dạng — thử lại...")
+                idx += 1
                 continue
             return {"json": _normalize_json(j, round_no), "model": f"{provider}/{model}", "provider": provider,
                     "prompt_tokens": res["prompt_tokens"], "completion_tokens": res["completion_tokens"]}
@@ -179,15 +205,10 @@ def call_agent_json(agent, round_no, prev, snap, cfg):
             last_err = str(e)
             status = getattr(e, "status", 0)
             is429 = status == 429 or "429" in last_err
-            if status == 403:
-                while ci + 1 < len(chain) and chain[ci + 1][0] == provider:
-                    ci += 1
-                if ci + 1 < len(chain):
-                    print(f"  🔄 {agent['title']} ({provider}) bị từ chối (403) — chuyển thẳng {chain[ci+1][0]}/{chain[ci+1][1]}")
-                else:
-                    print(f"  ⚠️ {agent['title']} hết chuỗi dự phòng — dùng dữ liệu mẫu. ({last_err[:80]})")
-                    break
-                ci += 1
+            if status in (401, 403) or "403" in last_err or "401" in last_err:
+                blocked_providers.add(provider)
+                print(f"  🔄 {agent['title']} ({provider}) bị từ chối xác thực/quyền ({status or last_err[:40]}) — chuyển provider khác.")
+                idx += 1
                 continue
             if is429:
                 print(f"  ⏳ {agent['title']} ({provider}/{model}) bị 429 (rate limit) — chờ 5s thử lại...")
@@ -202,10 +223,12 @@ def call_agent_json(agent, round_no, prev, snap, cfg):
                     last_err = "JSON không hợp lệ (sau retry)"
                 except Exception as e2:
                     last_err = str(e2)
-            if ci < len(chain) - 1:
-                print(f"  🔄 {agent['title']} ({provider}/{model}) lỗi: {last_err[:100]} → thử {chain[ci+1][0]}/{chain[ci+1][1]}...")
+            if idx < len(chain) - 1:
+                next_p, next_m = chain[idx + 1]
+                print(f"  🔄 {agent['title']} ({provider}/{model}) lỗi: {last_err[:80]} → thử {next_p}/{next_m}...")
             else:
-                print(f"  ⚠️ {agent['title']} hết chuỗi dự phòng — dùng dữ liệu mẫu. ({last_err[:100]})")
+                print(f"  ⚠️ {agent['title']} hết chuỗi dự phòng — dùng dữ liệu mẫu. ({last_err[:80]})")
+            idx += 1
     raise RuntimeError(last_err or "không gọi được LLM")
 
 

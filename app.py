@@ -103,6 +103,7 @@ def build_result(args, market_status, md, klines, ind, timeline, finals,
             "agents": [{"key": f["key"], "title": f["title"], "icon": f["icon"], "stance": f["stance"],
                         "conf": f["conf"], "reasoning": f["reason"], "model": f["model"],
                         "fallback": f.get("fallback", False)} for f in finals],
+            "macro": md.get("macro", {}),
             "timeline": timeline, "monte_carlo_rows": mc["rows"], "klines": klines[-90:]}
 
 
@@ -154,6 +155,7 @@ def _run_once_inner(cfg, args, out_dir):
     md = build_market_data(cfg, tf_key)
     price, klines = md["price"], md["klines"]
     ind = compute_indicators(klines, tf_key)
+    macro = md.get("macro", {})
     data_note = md["quality_label"]
     if md.get("stale"):
         data_note += f" · ⏳ nến cũ ({md['stale_text']})"
@@ -161,13 +163,16 @@ def _run_once_inner(cfg, args, out_dir):
         data_note += " · KHÔNG giao dịch trên dữ liệu mẫu"
     print(f"⚡ Giá realtime: ${price:,.2f} ({md['price_src']}) — {md['quality_label']}")
     print(f"📊 {len(klines)} nến ({md['kline_src']}) — RSI {ind['rsi']:.1f} · vol {ind['vol']*100:.2f}%/nến · {ind['trend']}")
+    if macro and macro.get("summary"):
+        print(f"🌐 Vĩ mô realtime: {macro['summary']}")
     if md.get("synthetic"):
         print("⛔ CẢNH BÁO: dữ liệu là GIẢ LẬP (offline) — AI Trader sẽ không giao dịch phiên này.")
 
-    # 🧠 Snapshot cho hội đồng — AI biết thị trường nghỉ hay mở
+    # 🧠 Snapshot cho hội đồng — AI biết thị trường nghỉ hay mở + dữ liệu vĩ mô thực tế
     hist = history_block(out_dir)
     snap = market_snapshot(price, md["price_src"], klines, ind, tf_key, args.context,
-                           history=hist, market_status=market_status, data_note=data_note)
+                           history=hist, market_status=market_status, data_note=data_note,
+                           macro=macro)
     if hist:
         print("🧠 Đã đưa lịch sử các phiên gần đây vào bối cảnh cho hội đồng AI.")
 

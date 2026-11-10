@@ -66,42 +66,69 @@ def save_trader_state(st, out_dir):
 # ----------------------------------------------------------------------
 # QUYẾT ĐỊNH
 # ----------------------------------------------------------------------
-def trader_heuristic(consensus, prob_up, price, atr, target, sup=None, res=None):
-    """Fallback khi không có LLM — có thể đặt lệnh chờ như trader chuyên nghiệp."""
+def trader_heuristic(consensus, prob_up, price, atr, target, sup=None, res=None, ind=None):
+    """Chiến lược định lượng định hướng thực chiến khi không có LLM.
+    Đòi hỏi hội tụ (confluence): Đồng thuận rõ ràng + xác suất Monte Carlo + bộ lọc xu hướng/RSI.
+    """
     action, sl, tp = "hold", None, None
-    strong = abs(consensus) >= 0.25
-    tf = "4h" if strong else "1h"
+    tf = "1h"
     otype, trigger = "market", 0
-    if consensus >= 0.15 and prob_up > 0.52:
-        action = "long"
-        sl = price - max(1.5 * atr, price * 0.003)
-        tp = target if target > price else price + 2 * max(1.5 * atr, price * 0.003)
-        if (tp - price) / (price - sl) < 1.2:
-            tp = price + 2 * (price - sl)
-        if sup and 0.3 * atr < (price - sup) < 3 * atr:
-            otype, trigger = "buy_limit", sup
-            sl = trigger - max(1.5 * atr, price * 0.003)
-            tp = trigger + 2 * (trigger - sl)
-    elif consensus <= -0.15 and prob_up < 0.48:
-        action = "short"
-        sl = price + max(1.5 * atr, price * 0.003)
-        tp = target if target < price else price - 2 * max(1.5 * atr, price * 0.003)
-        if (price - tp) / (sl - price) < 1.2:
-            tp = price - 2 * (sl - price)
-        if res and 0.3 * atr < (res - price) < 3 * atr:
-            otype, trigger = "sell_limit", res
-            sl = trigger + max(1.5 * atr, price * 0.003)
-            tp = trigger - 2 * (sl - trigger)
+    atr_val = max(1.5, float(atr or 2.0))
+    sl_dist = clamp(1.5 * atr_val, price * 0.003, price * 0.012)
+
+    # Đọc chỉ báo kỹ thuật nếu có
+    rsi = ind.get("rsi", 50.0) if ind else 50.0
+    trend = ind.get("trend", "") if ind else ""
+
+    # 1. Điều kiện MUA (LONG) thực chiến:
+    # Đồng thuận mạnh >= 0.20, xác suất tăng >= 54%, không mua khi RSI quá mua (>68)
+    if consensus >= 0.20 and prob_up >= 0.54 and rsi < 68:
+        # Nếu xu hướng EMA đang giảm, chỉ mua khi giá bật tại hỗ trợ mạnh (confluence)
+        if trend == "GIẢM" and sup and abs(price - sup) > 1.2 * atr_val:
+            action = "hold"
+        else:
+            action = "long"
+            sl = price - sl_dist
+            tp = price + 2.0 * sl_dist  # R:R chuẩn thực chiến 1:2.0
+            # Nếu có kháng cự gần phía trên trong tầm với hợp lý, chốt lời ngay dưới kháng cự
+            if res and price < res < price + 2.5 * sl_dist and (res - price) >= 1.3 * sl_dist:
+                tp = res - 0.3 * atr_val
+            # Kiểm tra cơ hội đặt lệnh chờ BUY LIMIT quanh hỗ trợ
+            if sup and 0.4 * atr_val < (price - sup) < 2.0 * atr_val:
+                otype, trigger = "buy_limit", round(sup + 0.2 * atr_val, 2)
+                sl = trigger - sl_dist
+                tp = trigger + 2.0 * sl_dist
+
+    # 2. Điều kiện BÁN (SHORT) thực chiến:
+    # Đồng thuận giảm <= -0.20, xác suất tăng <= 46%, không bán khi RSI quá bán (<32)
+    elif consensus <= -0.20 and prob_up <= 0.46 and rsi > 32:
+        # Nếu xu hướng EMA đang tăng, chỉ bán khi giá chạm kháng cự mạnh
+        if trend == "TĂNG" and res and abs(res - price) > 1.2 * atr_val:
+            action = "hold"
+        else:
+            action = "short"
+            sl = price + sl_dist
+            tp = price - 2.0 * sl_dist  # R:R chuẩn 1:2.0
+            # Nếu có hỗ trợ gần phía dưới, chốt lời ngay trên hỗ trợ
+            if sup and price - 2.5 * sl_dist < sup < price and (price - sup) >= 1.3 * sl_dist:
+                tp = sup + 0.3 * atr_val
+            # Kiểm tra cơ hội đặt lệnh chờ SELL LIMIT quanh kháng cự
+            if res and 0.4 * atr_val < (res - price) < 2.0 * atr_val:
+                otype, trigger = "sell_limit", round(res - 0.2 * atr_val, 2)
+                sl = trigger + sl_dist
+                tp = trigger - 2.0 * sl_dist
+
     if action == "hold":
         rr = 0
     elif otype == "market":
         rr = (tp - price) / (price - sl) if action == "long" else (price - tp) / (sl - price)
     else:
         rr = (tp - trigger) / (trigger - sl) if action == "long" else (trigger - tp) / (sl - trigger)
-    reason = ("Đứng ngoài bảo toàn vốn — hội đồng chưa đủ phân cực." if action == "hold"
-              else f"Tự quyết {action.upper()} ({'lệnh chờ ' + otype + ' @ ' + f'${trigger:,.0f}' if otype != 'market' else 'vào ngay'}) "
-                   f"theo phán quyết hội đồng ({consensus:+.2f}), P(tăng) {prob_up*100:.0f}%.")
-    return {"action": action, "tf": tf, "sl": sl, "tp": tp, "risk": 0.01, "rr": rr,
+
+    reason = ("Đứng ngoài bảo toàn vốn — thị trường thiếu đồng thuận hoặc chỉ báo kỹ thuật quá mua/quá bán." if action == "hold"
+              else f"Thực chiến {action.upper()} ({'lệnh chờ ' + otype + ' @ ' + f'${trigger:,.2f}' if otype != 'market' else 'vào ngay'}) "
+                   f"kết hợp đồng thuận ({consensus:+.2f}), P(tăng) {prob_up*100:.0f}%, RSI {rsi:.0f}.")
+    return {"action": action, "tf": tf, "sl": sl, "tp": tp, "risk": 0.01, "rr": max(0.1, round(rr, 2)),
             "reason": reason, "llm": False, "order_type": otype, "trigger": trigger}
 
 
@@ -190,8 +217,15 @@ def trader_llm_decision(cfg, consensus, verdict, finals, price, atr, sup, res, t
                 if action == "short" and not (tp < price < sl):
                     continue
                 rr = (tp - price) / (price - sl) if action == "long" else (price - tp) / (sl - price)
+                # Chốt chặn R:R thực chiến: Không nhận TP viển vông (> 2.8R) hoặc quá ngắn (< 1.2R)
+                if rr > 2.8:
+                    tp = round(price + 2.5 * (price - sl) if action == "long" else price - 2.5 * (sl - price), 2)
+                    rr = 2.5
+                elif rr < 1.2:
+                    tp = round(price + 1.5 * (price - sl) if action == "long" else price - 1.5 * (sl - price), 2)
+                    rr = 1.5
                 return {"action": action, "tf": tf, "sl": sl, "tp": tp, "risk": risk,
-                        "rr": max(0.1, rr), "reason": reason, "llm": True,
+                        "rr": round(rr, 2), "reason": reason, "llm": True,
                         "order_type": "market", "trigger": 0}
             if not trigger or trigger <= 0:
                 continue
@@ -204,8 +238,14 @@ def trader_llm_decision(cfg, consensus, verdict, finals, price, atr, sup, res, t
             if otype == "sell_stop" and not (trigger < price):
                 continue
             rr = (tp - trigger) / (trigger - sl) if action == "long" else (trigger - tp) / (sl - trigger)
+            if rr > 2.8:
+                tp = round(trigger + 2.5 * (trigger - sl) if action == "long" else trigger - 2.5 * (sl - trigger), 2)
+                rr = 2.5
+            elif rr < 1.2:
+                tp = round(trigger + 1.5 * (trigger - sl) if action == "long" else trigger - 1.5 * (sl - trigger), 2)
+                rr = 1.5
             return {"action": action, "tf": tf, "sl": sl, "tp": tp, "risk": risk,
-                    "rr": max(0.1, rr), "reason": reason, "llm": True,
+                    "rr": round(rr, 2), "reason": reason, "llm": True,
                     "order_type": otype, "trigger": trigger}
         except Exception as e:
             print(f"  🔄 Trader ({provider}/{model}) lỗi: {str(e)[:100]}")
@@ -253,9 +293,25 @@ def trader_create_pending(st, decision, price, out_dir):
 def trader_execute(st, decision, price, out_dir):
     if decision["action"] == "hold":
         return False
-    if len(st.get("positions") or []) >= MAX_POSITIONS:
+    positions = st.get("positions") or []
+    if len(positions) >= MAX_POSITIONS:
         print(f"🚫 Đã đủ {MAX_POSITIONS} lệnh mở — chờ 1 lệnh chạm SL/TP mới được mở tiếp.")
         return False
+
+    # 🛡️ KIỂM SOÁT TƯƠNG QUAN & RỦI RO CHIỀU GIAO DỊCH (Directional Exposure Cap):
+    # Không mở thêm lệnh cùng chiều nếu lệnh đang mở cùng chiều chưa được dời SL về Hòa Vốn (Break-Even)
+    same_dir_unprotected = [
+        p for p in positions
+        if p.get("dir") == decision["action"] and (
+            (p["dir"] == "long" and p.get("sl", 0) < p.get("entry", 0)) or
+            (p["dir"] == "short" and p.get("sl", float("inf")) > p.get("entry", 0))
+        )
+    ]
+    if same_dir_unprotected:
+        print(f"🛡️ BẢO VỆ VỐN: Đang có vị thế {decision['action'].upper()} chưa dời SL về Hòa Vốn — "
+              f"từ chối mở thêm lệnh cùng chiều để tránh rủi ro dồn toa.")
+        return False
+
     sl_dist = abs(decision["sl"] - price)
     if sl_dist < 1e-9:
         return False
@@ -264,10 +320,12 @@ def trader_execute(st, decision, price, out_dir):
     if qty * price > st["balance"] * 20:
         return False
     st["positions"].append({"id": int(time.time() * 1000), "dir": decision["action"], "tf": decision["tf"],
-                            "entry": price, "sl": decision["sl"], "tp": decision["tp"], "rr": decision["rr"],
+                            "entry": price, "sl": decision["sl"], "initial_sl": decision["sl"],
+                            "tp": decision["tp"], "rr": decision["rr"],
                             "qty": qty, "risk_pct": decision["risk"],
                             "opened_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-                            "reason": decision["reason"], "llm": decision.get("llm", False)})
+                            "reason": decision["reason"], "llm": decision.get("llm", False),
+                            "be_moved": False})
     save_trader_state(st, out_dir)
     print(f"💼 AI TRADER MỞ LỆNH {decision['action'].upper()} {decision['tf']} #{len(st['positions'])}/{MAX_POSITIONS} · "
           f"entry ${price:,.2f} · SL ${decision['sl']:,.2f} · TP ${decision['tp']:,.2f} · RR 1:{decision['rr']:.1f} · rủi ro ${risk_amt:,.2f}")
@@ -326,8 +384,11 @@ def _close_position(st, p, exit_p, reason, out_dir):
     st["history"].insert(0, closed_rec)
     delta = max(-100.0, min(100.0, pnl_pct * 20.0))  # thắng 1% → +20, thua 1% → -20
     st["trader_score"] = st.get("trader_score", 1000.0) + delta
-    lesson = (f"{'✅' if pnl > 0 else '❌'} {p['dir'].upper()} {p['tf']} {pnl_pct:+.1f}% ({reason}) "
-              f"-> {'giữ chiến lược' if pnl > 0 else 'cần chờ mốc tốt hơn/tránh vào sớm'}")
+    if pnl > 0:
+        lesson = f"✅ {p['dir'].upper()} {p['tf']} {pnl_pct:+.2f}% ({reason}) | entry ${p['entry']:,.1f} → exit ${exit_p:,.1f} -> Kỷ luật chốt lời chuẩn xác, tiếp tục duy trì R:R."
+    else:
+        gap_note = " do GAP trượt giá" if "GAP" in reason else ""
+        lesson = f"❌ {p['dir'].upper()} {p['tf']} {pnl_pct:+.2f}% ({reason}{gap_note}) | entry ${p['entry']:,.1f} → exit ${exit_p:,.1f} -> Cần chú ý cản S/R chặt chẽ hơn và kiên nhẫn đợi nến xác nhận."
     st.setdefault("lessons", []).append(lesson)
     st["lessons"] = st["lessons"][-50:]
     print(f"💼 ĐÓNG LỆNH {p['dir'].upper()} — {reason} · entry ${p['entry']:,.2f} → exit ${exit_p:,.2f} · "
@@ -404,6 +465,43 @@ def replay_candles(st, new_candles, out_dir):
             rec = _close_position(st, p, exit_p, reason, out_dir)
             events.append({"event": "closed", "record": rec})
 
+        # 1.5) Quản trị rủi ro thực chiến: Dời SL về Hòa Vốn (Break-Even) & Trailing Stop
+        for p in st.get("positions") or []:
+            init_sl = p.get("initial_sl", p.get("sl", p["entry"]))
+            risk_dist = abs(p["entry"] - init_sl)
+            if risk_dist <= 1e-6:
+                continue
+
+            if p["dir"] == "long":
+                # Kích hoạt Hòa Vốn (Break-Even) khi nến chạm >= +1.0R
+                if c["h"] >= p["entry"] + 1.0 * risk_dist and not p.get("be_moved"):
+                    p["sl"] = round(p["entry"] + 0.3, 2)  # Entry + buffer spread
+                    p["be_moved"] = True
+                    events.append({"event": "moved_to_be", "position": dict(p)})
+                    print(f"🛡️ DỜI SL VỀ HÒA VỐN: Lệnh LONG @ ${p['entry']:,.2f} đạt +1R lợi nhuận → SL mới ${p['sl']:,.2f} (rủi ro = $0).")
+                # Trailing Stop khóa lãi khi nến chạm >= +1.8R
+                elif c["h"] >= p["entry"] + 1.8 * risk_dist:
+                    new_trail = round(p["entry"] + 0.8 * risk_dist, 2)
+                    if new_trail > p.get("sl", 0):
+                        p["sl"] = new_trail
+                        events.append({"event": "trailing_stop", "position": dict(p)})
+                        print(f"📈 TRAILING STOP: Lệnh LONG @ ${p['entry']:,.2f} dời SL lên ${p['sl']:,.2f} để khóa lãi.")
+
+            elif p["dir"] == "short":
+                # Kích hoạt Hòa Vốn (Break-Even) khi nến chạm <= -1.0R
+                if c["l"] <= p["entry"] - 1.0 * risk_dist and not p.get("be_moved"):
+                    p["sl"] = round(p["entry"] - 0.3, 2)
+                    p["be_moved"] = True
+                    events.append({"event": "moved_to_be", "position": dict(p)})
+                    print(f"🛡️ DỜI SL VỀ HÒA VỐN: Lệnh SHORT @ ${p['entry']:,.2f} đạt +1R lợi nhuận → SL mới ${p['sl']:,.2f} (rủi ro = $0).")
+                # Trailing Stop khóa lãi khi nến chạm <= -1.8R
+                elif c["l"] <= p["entry"] - 1.8 * risk_dist:
+                    new_trail = round(p["entry"] - 0.8 * risk_dist, 2)
+                    if new_trail < p.get("sl", float("inf")):
+                        p["sl"] = new_trail
+                        events.append({"event": "trailing_stop", "position": dict(p)})
+                        print(f"📈 TRAILING STOP: Lệnh SHORT @ ${p['entry']:,.2f} dời SL xuống ${p['sl']:,.2f} để khóa lãi.")
+
         # 2) kích hoạt / hết hạn lệnh chờ trên nến này
         pend_remaining = []
         for po in st.get("pending_orders") or []:
@@ -415,10 +513,11 @@ def replay_candles(st, new_candles, out_dir):
                     qty = st["balance"] * po["risk_pct"] / sl_dist if sl_dist > 1e-9 else 0
                     st["positions"].append({
                         "id": int(time.time() * 1000), "dir": po["dir"], "tf": po.get("tf", "1h"),
-                        "entry": fill, "sl": po["sl"], "tp": po["tp"], "rr": po["rr"],
+                        "entry": fill, "sl": po["sl"], "initial_sl": po["sl"], "tp": po["tp"], "rr": po["rr"],
                         "qty": qty, "risk_pct": po["risk_pct"], "pending": True,
                         "opened_at": time.strftime("%Y-%m-%d %H:%M:%S"),
                         "reason": po["reason"], "llm": po.get("llm", False),
+                        "be_moved": False,
                     })
                     events.append({"event": "activated", "order": {**po, "fill": fill}})
                     print(f"⚡ LỆNH CHỜ KÍCH HOẠT: {po['dir'].upper()} {po['type'].upper()} @ ${fill:,.2f} "
@@ -456,8 +555,12 @@ def trader_step(cfg, args, ind, mc, consensus, verdict, finals, price, klines, o
     decided = None
     block_reason = ""
 
+    n_mock_agents = sum(1 for f in (finals or []) if f.get("fallback"))
+    allow_mock = getattr(args, "allow_mock_trading", False)
     if synthetic:
         block_reason = "⛔ DỮ LIỆU GIẢ LẬP (offline) — AI Trader KHÔNG giao dịch trên dữ liệu mẫu"
+    elif n_mock_agents >= 2 and not allow_mock:
+        block_reason = f"⛔ CẢNH BÁO: {n_mock_agents}/4 chuyên gia dùng DỮ LIỆU MẪU — AI Trader TỪ CHỐI mở lệnh mới để bảo vệ vốn"
     elif not market_open:
         block_reason = "🔴 THỊ TRƯỜNG ĐÓNG — giữ nguyên trạng thái, không mở lệnh mới"
         st["closed_sessions"] = st.get("closed_sessions", 0) + 1
@@ -507,7 +610,7 @@ def trader_step(cfg, args, ind, mc, consensus, verdict, finals, price, klines, o
                                           mc["prob_up"], st["balance"], st, market_status)
             if not decided:
                 decided = trader_heuristic(consensus, mc["prob_up"], price, ind["atr"], mc["target"],
-                                           ind.get("sup"), ind.get("res"))
+                                           ind.get("sup"), ind.get("res"), ind=ind)
             if cmd_tf and cmd_tf in TIMEFRAMES:
                 decided["tf"] = cmd_tf
             otype = decided.get("order_type", "market")
@@ -537,6 +640,13 @@ def trader_step(cfg, args, ind, mc, consensus, verdict, finals, price, klines, o
                 send_fn(f"💼 *AI TRADER ĐÓNG LỆNH* {r['dir'].upper()} {r['tf']}\nKết quả: {r['exit_reason']}\n"
                         f"Entry ${r['entry']:,.2f} → Exit ${r['exit']:,.2f}\nP&L: {r['pnl']:+,.2f}$ ({r['pnl_pct']:+.2f}%)\n"
                         f"Vốn: ${st['balance']:,.2f} · 🏆 Điểm: {st.get('trader_score', 1000):.0f}", cfg)
+            elif ev["event"] == "moved_to_be":
+                p = ev["position"]
+                send_fn(f"🛡️ *BẢO TOÀN VỐN (Break-Even)*\nLệnh {p['dir'].upper()} {p['tf']} đạt +1R lợi nhuận!\n"
+                        f"Đã dời SL về entry: ${p['sl']:,.2f} — Lệnh này rủi ro = $0.", cfg)
+            elif ev["event"] == "trailing_stop":
+                p = ev["position"]
+                send_fn(f"📈 *TRAILING STOP KHÓA LÃI*\nLệnh {p['dir'].upper()} {p['tf']} dời SL thành ${p['sl']:,.2f} để khóa lợi nhuận.", cfg)
             elif ev["event"] == "activated":
                 po = ev["order"]
                 send_fn(f"⚡ *LỆNH CHỜ KÍCH HOẠT*: {po['dir'].upper()} {po['type'].upper()} @ ${po.get('fill', po['trigger']):,.2f}\n"
@@ -575,7 +685,7 @@ def trader_status_line(st, price):
     pend = st.get("pending_orders") or []
     parts = []
     if positions:
-        pos_parts = [f"{p['dir'].upper()} {p['tf']}@{p['entry']:,.0f} (SL {p['sl']:,.0f}/TP {p['tp']:,.0f})"
+        pos_parts = [f"{p['dir'].upper()} {p['tf']}@{p['entry']:,.0f} (SL {p['sl']:,.0f}/TP {p['tp']:,.0f}{' 🛡️BE' if p.get('be_moved') else ''})"
                      for p in positions]
         parts.append(f"{len(positions)}/{MAX_POSITIONS} lệnh mở: " + " · ".join(pos_parts))
     if pend:

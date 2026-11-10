@@ -173,6 +173,67 @@ class TestTrader(unittest.TestCase):
         self.assertIsNone(st2["position"])
         self.assertEqual(st2["positions"][0]["id"], 7)
 
+    # ---- Combat Trading Enhancements ----
+    def test_break_even_moves_sl_when_1r_reached(self):
+        """Khi lệnh LONG đạt +1R lợi nhuận, SL tự động dời về entry + 0.3 (hòa vốn)."""
+        st = new_trader_state()
+        st["positions"] = [{"id": 1, "dir": "long", "tf": "1h", "entry": 100.0, "sl": 95.0, "initial_sl": 95.0,
+                            "tp": 115.0, "rr": 3.0, "qty": 1.0, "risk_pct": 0.01, "opened_at": "x",
+                            "reason": "t", "llm": False, "be_moved": False}]
+        st["last_candle_ts"] = 1000
+        # Nến có đỉnh 105.5 (>= entry 100 + 1R tức 105.0) nhưng chưa chạm TP 115
+        candles = [{"t": 2000, "o": 101.0, "h": 105.5, "l": 100.5, "c": 104.0}]
+        events = replay_candles(st, candles, self.tmp)
+        be_events = [e for e in events if e.get("event") == "moved_to_be"]
+        self.assertEqual(len(be_events), 1)
+        self.assertTrue(st["positions"][0]["be_moved"])
+        self.assertEqual(st["positions"][0]["sl"], 100.3)
+
+    def test_trailing_stop_moves_sl_when_1_8r_reached(self):
+        """Khi lệnh LONG đạt +1.8R, SL tự động trailing khóa lãi tại +0.8R."""
+        st = new_trader_state()
+        st["positions"] = [{"id": 1, "dir": "long", "tf": "1h", "entry": 100.0, "sl": 100.3, "initial_sl": 95.0,
+                            "tp": 115.0, "rr": 3.0, "qty": 1.0, "risk_pct": 0.01, "opened_at": "x",
+                            "reason": "t", "llm": False, "be_moved": True}]
+        st["last_candle_ts"] = 1000
+        # Nến có đỉnh 110.0 (entry 100 + 5*1.8 = 109.0)
+        candles = [{"t": 2000, "o": 104.0, "h": 110.0, "l": 103.5, "c": 108.0}]
+        events = replay_candles(st, candles, self.tmp)
+        trail_events = [e for e in events if e.get("event") == "trailing_stop"]
+        self.assertEqual(len(trail_events), 1)
+        self.assertEqual(st["positions"][0]["sl"], 104.0)  # 100 + 0.8 * 5 = 104.0
+
+    def test_directional_exposure_cap_blocks_second_unprotected_long(self):
+        """Không cho phép mở thêm lệnh LONG nếu lệnh LONG trước đó chưa về Hòa Vốn."""
+        from arena.trader import trader_execute
+        st = new_trader_state()
+        st["positions"] = [{"id": 1, "dir": "long", "tf": "1h", "entry": 100.0, "sl": 95.0, "tp": 110.0,
+                            "rr": 2.0, "qty": 1.0, "risk_pct": 0.01}]
+        decision = {"action": "long", "tf": "1h", "sl": 96.0, "tp": 112.0, "rr": 2.0, "risk": 0.01,
+                    "reason": "test second long"}
+        ok = trader_execute(st, decision, 101.0, self.tmp)
+        self.assertFalse(ok)
+        self.assertEqual(len(st["positions"]), 1)
+
+    def test_mock_agents_block_trading(self):
+        """Nếu >= 2 chuyên gia dùng Mock data, bot từ chối giao dịch để bảo vệ vốn."""
+        st = new_trader_state()
+        save_trader_state(st, self.tmp)
+        market_status = {"open": True, "text": "🟢 THỊ TRƯỜNG MỞ"}
+        market_data = {"synthetic": False, "price_quality": "spot"}
+        mock_finals = [
+            {"key": "Macro_Analyst", "title": "Vĩ mô", "stance": 0.5, "conf": 0.8, "fallback": True},
+            {"key": "Technical_Analyst", "title": "Kỹ thuật", "stance": -0.1, "conf": 0.7, "fallback": True},
+            {"key": "Institutional_Whale", "title": "Quỹ", "stance": 0.4, "conf": 0.8, "fallback": False},
+            {"key": "Retail_Crowd", "title": "Nhỏ lẻ", "stance": 0.1, "conf": 0.6, "fallback": False},
+        ]
+        klines = [{"t": 1000, "o": 100, "h": 101, "l": 99, "c": 100.5}]
+        st2, events, decided, reason = trader_step(
+            self.cfg, make_args(), make_ind(), make_mc(), 0.25, "MUA NHẸ 📈", mock_finals,
+            100.5, klines, self.tmp, market_status, market_data)
+        self.assertEqual(st2["positions"], [])
+        self.assertIn("DỮ LIỆU MẪU", reason)
+
 
 if __name__ == "__main__":
     unittest.main()

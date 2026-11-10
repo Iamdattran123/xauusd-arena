@@ -88,6 +88,30 @@ def telegram_poll_commands(cfg, out_dir, send_fn=None):
                 st = new_trader_state()
                 save_trader_state(st, out_dir)
                 send_fn("↺ Đã reset vốn AI Trader về $1.000.", cfg)
+            elif msg_l in ("close all", "dong het", "đóng hết", "liquidate", "cat het", "cắt hết"):
+                st = load_trader_state(out_dir)
+                n_pos = len(st.get("positions") or [])
+                n_pend = len(st.get("pending_orders") or [])
+                if n_pos == 0 and n_pend == 0:
+                    send_fn("ℹ️ Hiện tại không có vị thế mở hoặc lệnh chờ nào cần đóng.", cfg)
+                else:
+                    st["positions"] = []
+                    st["pending_orders"] = []
+                    save_trader_state(st, out_dir)
+                    send_fn(f"🚨 *ĐÃ ĐÓNG TOÀN BỘ VỊ THẾ TỪ XA*\nĐã đóng {n_pos} vị thế mở và hủy {n_pend} lệnh chờ theo lệnh boss.\nVốn an toàn: ${st.get('balance', 0):,.2f}", cfg)
+            elif msg_l in ("help", "lệnh", "lenh", "/help", "/start"):
+                help_text = (
+                    "🤖 *DANH SÁCH LỆNH ĐIỀU KHIỂN AI TRADER*\n"
+                    "━━━━━━━━━━━━━━━━━\n"
+                    "• `status`: Xem vốn, vị thế mở (kèm badge 🛡️BE), lệnh chờ\n"
+                    "• `market`: Kiểm tra giờ mở/đóng thị trường CME & đếm ngược\n"
+                    "• `trade 15p` / `1h` / `4h` / `1d`: Đổi khung giao dịch\n"
+                    "• `tổng kết ngày` / `tổng kết`: Thống kê P&L hôm nay / toàn bộ\n"
+                    "• `close all` / `đóng hết`: 🚨 Đóng khẩn cấp mọi vị thế & lệnh chờ\n"
+                    "• `reset trader`: Khởi động lại vốn về $1.000\n"
+                    "• `stop`: Trở về khung mặc định (1h)"
+                )
+                send_fn(help_text, cfg)
             elif "stop" in msg_l or "dừng" in msg_l:
                 tg_state["trade_tf"] = ""
                 changed = True

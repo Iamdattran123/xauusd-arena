@@ -93,7 +93,54 @@ def run_backtest(klines, tf_key):
             skipped += 1
             continue
         d = 1 if score > 0 else -1
-        ret = (closes[i + steps] / closes[i] - 1) * d
+        entry = closes[i]
+        sl_dist = max(1.5 * atr, entry * 0.003)
+        tp_dist = 2.0 * sl_dist
+        sl_level = entry - sl_dist if d == 1 else entry + sl_dist
+        tp_level = entry + tp_dist if d == 1 else entry - tp_dist
+        ret = 0.0
+        exited = False
+        be = False
+
+        for j in range(i + 1, min(n, i + steps + 1)):
+            cj = klines[j]
+            o, h, l = cj["o"], cj["h"], cj["l"]
+            if d == 1:
+                if o <= sl_level:
+                    ret = (o / entry - 1)
+                    exited = True
+                    break
+                if l <= sl_level:
+                    ret = (sl_level / entry - 1)
+                    exited = True
+                    break
+                if h >= tp_level:
+                    ret = (tp_level / entry - 1)
+                    exited = True
+                    break
+                if h >= entry + 1.0 * sl_dist and not be:
+                    sl_level = entry + 0.3
+                    be = True
+            else:
+                if o >= sl_level:
+                    ret = (1 - o / entry)
+                    exited = True
+                    break
+                if h >= sl_level:
+                    ret = (1 - sl_level / entry)
+                    exited = True
+                    break
+                if l <= tp_level:
+                    ret = (1 - tp_level / entry)
+                    exited = True
+                    break
+                if l <= entry - 1.0 * sl_dist and not be:
+                    sl_level = entry - 0.3
+                    be = True
+
+        if not exited:
+            ret = (closes[min(n - 1, i + steps)] / entry - 1) * d
+
         trades += 1
         if ret > 0:
             wins += 1
