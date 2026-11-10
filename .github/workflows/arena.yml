@@ -32,6 +32,7 @@ jobs:
 
       # ---- KIỂM TRA TELEGRAM TRƯỚC (nhìn log là biết secret đúng/sai ngay) ----
       - name: 🔔 Kiểm tra Telegram (getMe + gửi tin test)
+        if: ${{ secrets.TELEGRAM_BOT_TOKEN != '' }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
