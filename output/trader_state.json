@@ -1,9 +1,12 @@
 {
-  "balance": 1000.0,
+  "balance": 980.0,
   "start_balance": 1000.0,
   "peak": 1000.0,
-  "max_dd": 0.0,
-  "positions": [
+  "max_dd": 2.0,
+  "positions": [],
+  "position": null,
+  "pending_orders": [],
+  "history": [
     {
       "id": 1794301361209,
       "dir": "long",
@@ -18,28 +21,37 @@
       "opened_at": "2026-11-10 09:02:41",
       "reason": "Tôi quyết định mua dựa trên xu hướng tăng ngắn hạn được hỗ trợ bởi EMA20 và EMA50, cùng với tâm lý tích cực từ dòng tiền nhỏ lẻ. Tuy nhiên, tôi đặt SL dưới hỗ trợ $4,073.15 để bảo vệ vốn nếu thị trường đảo chiều.",
       "llm": true,
-      "be_moved": false
+      "be_moved": false,
+      "exit": 4073.15,
+      "pnl": -20.0,
+      "pnl_pct": -0.7081613187822522,
+      "exit_reason": "chạm CẮT LỖ (SL)",
+      "closed_at": "2026-11-13 07:11:21",
+      "balance_after": 980.0
     }
   ],
-  "position": null,
-  "pending_orders": [],
-  "history": [],
-  "trades": 0,
+  "trades": 1,
   "wins": 0,
-  "total_pnl": 0.0,
+  "total_pnl": -20.0,
   "gross_win": 0.0,
-  "gross_loss": 0.0,
-  "trader_score": 1000.0,
-  "lessons": [],
-  "sessions": 2,
+  "gross_loss": 20.0,
+  "trader_score": 985.8367736243549,
+  "lessons": [
+    "❌ LONG 1h -0.71% (chạm CẮT LỖ (SL)) | entry $4,102.2 → exit $4,073.2 -> Cần chú ý cản S/R chặt chẽ hơn và kiên nhẫn đợi nến xác nhận."
+  ],
+  "sessions": 3,
   "closed_sessions": 0,
   "trade_tf": "",
-  "last_candle_ts": 1794297600000,
+  "last_candle_ts": 1794549600000,
   "data_quality": "spot",
   "equity_points": [
     {
       "t": 1794300266514,
       "e": 1000.0
+    },
+    {
+      "t": 1794553881695,
+      "e": 980.0
     }
   ]
 }
