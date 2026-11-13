@@ -234,6 +234,33 @@ class TestTrader(unittest.TestCase):
         self.assertEqual(st2["positions"], [])
         self.assertIn("DỮ LIỆU MẪU", reason)
 
+    def test_telegram_config_strips_whitespace_and_chunks_long_text(self):
+        """Token/Chat ID có khoảng trắng thừa vẫn được làm sạch và tin >4000 ký tự tự chia đoạn."""
+        from unittest.mock import patch
+        from arena.reports import _chunk_telegram_text, _telegram_ok
+
+        with patch.dict(os.environ, {"TELEGRAM_BOT_TOKEN": " 123:ABC \n", "TELEGRAM_CHAT_ID": " 99999 "}):
+            cfg = load_config(path="/nonexistent/config.json")
+            self.assertEqual(cfg["trader"]["telegram_token"], "123:ABC")
+            self.assertEqual(cfg["trader"]["telegram_chat_id"], "99999")
+            self.assertTrue(_telegram_ok(cfg))
+
+        long_msg = ("Dòng báo cáo dài để kiểm tra chia nhỏ tin nhắn Telegram.\n" * 120)
+        chunks = _chunk_telegram_text(long_msg, limit=4000)
+        self.assertGreater(len(chunks), 1)
+        self.assertTrue(all(len(c) <= 4000 for c in chunks))
+
+    def test_github_workflow_has_no_secrets_in_if_condition(self):
+        """Ngăn lỗi cú pháp GitHub Actions: không dùng secrets.* trong biểu thức if:."""
+        wf_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                               ".github", "workflows", "arena.yml")
+        with open(wf_path, encoding="utf-8") as f:
+            for line_no, line in enumerate(f, 1):
+                stripped = line.strip()
+                if stripped.startswith("if:"):
+                    self.assertNotIn("secrets.", stripped,
+                                     f"Line {line_no} of arena.yml uses secrets.* in `if:` which breaks GitHub Actions")
+
 
 if __name__ == "__main__":
     unittest.main()

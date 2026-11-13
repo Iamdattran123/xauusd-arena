@@ -4,7 +4,7 @@ name: Arena Auto-Run 24/7
 # Cần 6 GitHub Secrets: OPENROUTER_API_KEY · GEMINI_API_KEY · GROQ_API_KEY · COHERE_API_KEY · TELEGRAM_BOT_TOKEN · TELEGRAM_CHAT_ID
 "on":
   schedule:
-    - cron: '0 * * * *'   # chạy đầu mỗi giờ
+    - cron: '17 * * * *'  # chạy mỗi giờ (lệch :00 để tránh nghẽn/rớt lịch trên GitHub Actions)
   workflow_dispatch: {}   # bấm "Run workflow" để chạy tay bất cứ lúc nào
 
 concurrency:
@@ -30,22 +30,28 @@ jobs:
       - name: 🧪 Chạy unit test (kiểm tra tính toàn vẹn hệ thống)
         run: python -m unittest discover -s tests
 
-      # ---- KIỂM TRA TELEGRAM TRƯỚC (nhìn log là biết secret đúng/sai ngay) ----
-      - name: 🔔 Kiểm tra Telegram (getMe + gửi tin test)
-        if: ${{ secrets.TELEGRAM_BOT_TOKEN != '' }}
+      # ---- KIỂM TRA TELEGRAM TRƯỚC (kiểm tra trong bash; KHÔNG dùng secrets.* trong step `if:`) ----
+      - name: 🔔 Kiểm tra Telegram (getMe)
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          echo "Độ dài token: ${#TELEGRAM_BOT_TOKEN} ký tự (bot token chuẩn ~46)"
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "⚠️ Chưa cấu hình TELEGRAM_BOT_TOKEN hoặc TELEGRAM_CHAT_ID trong GitHub Secrets — bỏ qua Telegram."
+            exit 0
+          fi
+          echo "Độ dài token: ${#TELEGRAM_BOT_TOKEN} ký tự (bot token chuẩn ~46) · chat_id: ${#TELEGRAM_CHAT_ID} ký tự"
           echo "--- getMe: kiểm tra token ---"
           curl -s "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getMe" | head -c 300
           echo ""
-          echo "--- Gửi tin test qua Telegram ---"
-          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-            -d "chat_id=${TELEGRAM_CHAT_ID}" \
-            -d "text=🔔 Kết nối Telegram từ GitHub Actions OK!" | head -c 300
-          echo ""
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "--- Gửi tin test (chạy thủ công) ---"
+            curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              -d "chat_id=${TELEGRAM_CHAT_ID}" \
+              -d "text=🔔 Kết nối Telegram từ GitHub Actions OK!" | head -c 300
+            echo ""
+          fi
 
       - name: Chạy phiên mô phỏng + AI Trader 24/7
         env:
@@ -63,5 +69,5 @@ jobs:
           git config user.email "arena-bot@users.noreply.github.com"
           git add output/
           git commit -m "auto: phiên $(date -u +%Y-%m-%dT%H:%MZ)" || echo "Không có thay đổi — bỏ qua commit"
-          git pull --rebase origin main || true
+          git pull --rebase -X theirs origin main || { git rebase --abort || true; }
           git push

@@ -32,8 +32,8 @@ def telegram_poll_commands(cfg, out_dir, send_fn=None):
     """Đọc tin nhắn Telegram (getUpdates) → xử lý lệnh → lưu trade_tf. Trả trade_tf mới (hoặc '')."""
     from .reports import send_telegram
     send_fn = send_fn or send_telegram
-    token = cfg.get("trader", {}).get("telegram_token", "")
-    chat = cfg.get("trader", {}).get("telegram_chat_id", "")
+    token = str(cfg.get("trader", {}).get("telegram_token", "") or "").strip()
+    chat = str(cfg.get("trader", {}).get("telegram_chat_id", "") or "").strip()
     if not token or not chat:
         return ""
     tg_path = os.path.join(out_dir, "tg_state.json")

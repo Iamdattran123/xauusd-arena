@@ -127,10 +127,10 @@ def _config_path():
 def load_config(path=None):
     """Key từ biến môi trường (GitHub Secrets) + ghi đè tùy chọn bằng config.json."""
     cfg = {
-        "openrouter_api_key": os.getenv("OPENROUTER_API_KEY", ""),
-        "gemini_api_key":     os.getenv("GEMINI_API_KEY", ""),
-        "groq_api_key":       os.getenv("GROQ_API_KEY", ""),
-        "cohere_api_key":     os.getenv("COHERE_API_KEY", ""),
+        "openrouter_api_key": os.getenv("OPENROUTER_API_KEY", "").strip(),
+        "gemini_api_key":     os.getenv("GEMINI_API_KEY", "").strip(),
+        "groq_api_key":       os.getenv("GROQ_API_KEY", "").strip(),
+        "cohere_api_key":     os.getenv("COHERE_API_KEY", "").strip(),
         "models": {k: dict(v) for k, v in DEFAULT_AGENT_CONFIG.items()},
         "trader": dict(DEFAULT_TRADER_CONFIG),
         "data": {"price_providers": ["metaapi", "gold_api", "binance", "yahoo"],
@@ -145,7 +145,7 @@ def load_config(path=None):
                 user = json.load(f)
             for k in ("openrouter_api_key", "gemini_api_key", "groq_api_key", "cohere_api_key"):
                 if user.get(k):
-                    cfg[k] = user[k]
+                    cfg[k] = str(user[k]).strip()
             if isinstance(user.get("models"), dict):
                 for key, val in user["models"].items():
                     if isinstance(val, str):
@@ -160,15 +160,15 @@ def load_config(path=None):
 
     # Môi trường luôn thắng config.json với các secret nhạy cảm
     if os.getenv("EXNESS_PASSWORD"):
-        cfg["exness"]["password"] = os.getenv("EXNESS_PASSWORD")
+        cfg["exness"]["password"] = os.getenv("EXNESS_PASSWORD").strip()
     if os.getenv("METAAPI_TOKEN"):
-        cfg["metaapi"]["token"] = os.getenv("METAAPI_TOKEN")
+        cfg["metaapi"]["token"] = os.getenv("METAAPI_TOKEN").strip()
     if os.getenv("METAAPI_ACCOUNT_ID"):
-        cfg["metaapi"]["account_id"] = os.getenv("METAAPI_ACCOUNT_ID")
+        cfg["metaapi"]["account_id"] = os.getenv("METAAPI_ACCOUNT_ID").strip()
     if os.getenv("TELEGRAM_BOT_TOKEN"):
-        cfg.get("trader", {})["telegram_token"] = os.getenv("TELEGRAM_BOT_TOKEN")
+        cfg.get("trader", {})["telegram_token"] = os.getenv("TELEGRAM_BOT_TOKEN").strip()
     if os.getenv("TELEGRAM_CHAT_ID"):
-        cfg.get("trader", {})["telegram_chat_id"] = os.getenv("TELEGRAM_CHAT_ID")
+        cfg.get("trader", {})["telegram_chat_id"] = os.getenv("TELEGRAM_CHAT_ID").strip()
     return cfg
 
 

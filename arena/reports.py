@@ -11,37 +11,64 @@ from . import datasources
 from .trader import load_trader_state, trader_perf_line
 
 
+def _chunk_telegram_text(text, limit=4000):
+    s = str(text or "")
+    if len(s) <= limit:
+        return [s] if s else []
+    chunks, cur = [], ""
+    for line in s.splitlines(keepends=True):
+        if len(cur) + len(line) <= limit:
+            cur += line
+        else:
+            if cur:
+                chunks.append(cur.rstrip("\n"))
+                cur = ""
+            while len(line) > limit:
+                chunks.append(line[:limit])
+                line = line[limit:]
+            cur = line
+    if cur:
+        chunks.append(cur.rstrip("\n"))
+    return chunks
+
+
 def send_telegram(text, cfg):
-    """Gửi tin Telegram — kiểm tra response thật (ok=true)."""
-    token = cfg.get("trader", {}).get("telegram_token", "")
-    chat = cfg.get("trader", {}).get("telegram_chat_id", "")
+    """Gửi tin Telegram — kiểm tra response thật (ok=true), tự tách nếu >4000 ký tự."""
+    token = str(cfg.get("trader", {}).get("telegram_token", "") or "").strip()
+    chat = str(cfg.get("trader", {}).get("telegram_chat_id", "") or "").strip()
     if not token or not chat:
         return False
-    try:
-        url = f"https://api.telegram.org/bot{token}/sendMessage"
-        body = json.dumps({"chat_id": chat, "text": text, "disable_web_page_preview": True}).encode("utf-8")
-        req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=15) as r:
-            resp = json.loads(r.read().decode("utf-8"))
-        if resp.get("ok"):
-            return True
-        print(f"⚠️ Telegram trả lỗi: {json.dumps(resp, ensure_ascii=False)[:200]}")
+    chunks = _chunk_telegram_text(text, limit=4000)
+    if not chunks:
         return False
-    except urllib.error.HTTPError as e:
-        detail = e.read().decode('utf-8', errors='ignore')[:200]
-        if e.code == 401:
-            print(f"⚠️ Telegram 401 — TOKEN BOT SAI trên GitHub Secret! (token hiện dài {len(token)} ký tự, "
-                  f"bot token chuẩn ~46). Sửa: Settings → Secrets → TELEGRAM_BOT_TOKEN.")
-        else:
-            print(f"⚠️ Telegram HTTP {e.code}: {detail}")
-        return False
-    except Exception as e:
-        print(f"⚠️ Telegram lỗi: {e}")
-        return False
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    for chunk in chunks:
+        try:
+            body = json.dumps({"chat_id": chat, "text": chunk, "disable_web_page_preview": True}).encode("utf-8")
+            req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=15) as r:
+                resp = json.loads(r.read().decode("utf-8"))
+            if not resp.get("ok"):
+                print(f"⚠️ Telegram trả lỗi: {json.dumps(resp, ensure_ascii=False)[:200]}")
+                return False
+        except urllib.error.HTTPError as e:
+            detail = e.read().decode('utf-8', errors='ignore')[:200]
+            if e.code == 401:
+                print(f"⚠️ Telegram 401 — TOKEN BOT SAI trên GitHub Secret! (token hiện dài {len(token)} ký tự, "
+                      f"bot token chuẩn ~46). Sửa: Settings → Secrets → TELEGRAM_BOT_TOKEN.")
+            else:
+                print(f"⚠️ Telegram HTTP {e.code}: {detail}")
+            return False
+        except Exception as e:
+            print(f"⚠️ Telegram lỗi: {e}")
+            return False
+    return True
 
 
 def _telegram_ok(cfg):
-    return bool(cfg.get("trader", {}).get("telegram_token") and cfg.get("trader", {}).get("telegram_chat_id"))
+    token = str(cfg.get("trader", {}).get("telegram_token", "") or "").strip()
+    chat = str(cfg.get("trader", {}).get("telegram_chat_id", "") or "").strip()
+    return bool(token and chat)
 
 
 def send_session_report(cfg, price, price_src, quality_label, consensus, verdict, finals, mc, bt,
