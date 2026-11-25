@@ -5,7 +5,22 @@
   "max_dd": 2.0,
   "positions": [],
   "position": null,
-  "pending_orders": [],
+  "pending_orders": [
+    {
+      "id": 1795649892888,
+      "dir": "long",
+      "type": "buy_limit",
+      "trigger": 3550.0,
+      "sl": 3520.0,
+      "tp": 3600.0,
+      "rr": 1.67,
+      "risk_pct": 0.015,
+      "reason": "Kết hợp tín hiệu kỹ thuật (giá trên EMA20/50, MACD dương) và đồng thuận hội đồng về xu hướng tăng tiềm năng. Đặt lệnh giới hạn để vào giá tốt hơn, kiểm soát rủi ro chặt với SL 1.5%.",
+      "llm": true,
+      "created_at": "2026-11-25 23:38:12",
+      "sessions_alive": 0
+    }
+  ],
   "history": [
     {
       "id": 1794301361209,
@@ -39,10 +54,10 @@
   "lessons": [
     "❌ LONG 1h -0.71% (chạm CẮT LỖ (SL)) | entry $4,102.2 → exit $4,073.2 -> Cần chú ý cản S/R chặt chẽ hơn và kiên nhẫn đợi nến xác nhận."
   ],
-  "sessions": 42,
+  "sessions": 43,
   "closed_sessions": 20,
   "trade_tf": "",
-  "last_candle_ts": 1795611600000,
+  "last_candle_ts": 1795644000000,
   "data_quality": "spot",
   "equity_points": [
     {
